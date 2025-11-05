@@ -33,8 +33,8 @@ export default function Login() {
               Menos digitação, mais atendimentos... Simples assim!
             </span>
             <span>
-              Acesse seu assistente virtual. O Health Voice transforma suas
-              conversas em prontuários estruturados, liberando horas do seu dia
+              Acesse seu assistente virtual. O Executivo's Voice transforma suas
+              conversas em transcrições estruturados, liberando horas do seu dia
               e eliminando o trabalho administrativo.
             </span>
           </div>
