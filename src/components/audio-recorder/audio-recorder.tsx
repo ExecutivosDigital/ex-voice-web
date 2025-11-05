@@ -66,7 +66,7 @@ export function AudioRecorder({
 
   const derivedTitle = (() => {
     const labelByType: Record<RecordingType, string> = {
-      CLIENT: "Gravação do Paciente",
+      CLIENT: "Gravação do Cliente",
       REMINDER: "Lembrete",
       STUDY: "Estudo",
       OTHER: "Gravação",
@@ -120,7 +120,7 @@ export function AudioRecorder({
   const handleSaveRecording = async () => {
     if (payload.type === "CLIENT") {
       if (!payload.clientId) {
-        toast.error("Selecione um paciente.");
+        toast.error("Selecione um cliente.");
         return;
       }
     }
@@ -228,7 +228,7 @@ export function AudioRecorder({
                         placeholder="Tipo"
                         value={
                           payload.type === "CLIENT"
-                            ? "Paciente"
+                            ? "Cliente"
                             : payload.type === "REMINDER"
                               ? "Lembrete"
                               : payload.type === "STUDY"
@@ -252,7 +252,7 @@ export function AudioRecorder({
                       )}
                       onClick={() => setPayload({ ...payload, type: "CLIENT" })}
                     >
-                      Paciente
+                      Cliente
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className={cn(
@@ -301,19 +301,19 @@ export function AudioRecorder({
                   payload.type !== "CLIENT" && "hidden",
                 )}
               >
-                <label className="text-neutral-600">Paciente</label>
+                <label className="text-neutral-600">Cliente</label>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div className="mb-3 flex w-full cursor-pointer items-center gap-2 rounded-lg border p-3">
                       <input
                         name="clientId"
                         type="text"
-                        placeholder="Paciente"
+                        placeholder="Cliente"
                         value={
                           payload.clientId
                             ? clients.find((c) => c.id === payload.clientId)
                                 ?.name
-                            : "Selecione um Paciente"
+                            : "Selecione um Cliente"
                         }
                         className="w-full cursor-pointer"
                         required
