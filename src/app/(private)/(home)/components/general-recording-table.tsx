@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/blocks/table";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { GeneralRecordingsTableHeader } from "./general-recording-table-header";
 import { GeneralRecordingTableItem } from "./general-recording-table-row";
@@ -74,12 +74,12 @@ export function GeneralRecordingsTable() {
 
   const getSortIcon = (column: SortableColumn) => {
     if (sortColumn !== column)
-      return <ChevronUp className="h-4 w-4 text-gray-300" />;
+      return <ArrowUpDown className="h-4 w-4 text-gray-300" />;
     if (sortDirection === "ASC")
-      return <ChevronUp className="h-4 w-4 text-gray-600" />;
+      return <ArrowUp className="h-4 w-4 text-gray-600" />;
     if (sortDirection === "DESC")
-      return <ChevronDown className="h-4 w-4 text-gray-600" />;
-    return <ChevronUp className="h-4 w-4 text-gray-300" />;
+      return <ArrowDown className="h-4 w-4 text-gray-600" />;
+    return <ArrowUpDown className="h-4 w-4 text-gray-300" />;
   };
 
   useEffect(() => {
@@ -111,7 +111,7 @@ export function GeneralRecordingsTable() {
                 <div
                   className={cn(
                     "flex w-max items-center gap-2",
-                    column.key === "ACTIONS" && "justify-end",
+                    column.key === "ACTIONS" && "w-full justify-end",
                   )}
                 >
                   {column.label}

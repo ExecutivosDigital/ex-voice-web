@@ -45,6 +45,8 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     validateSession();
   }, [profile, loading, checkSession, router, pathname]);
 
+  console.log("profile: ", profile);
+
   if (loading) {
     return (
       fallback || (
@@ -66,9 +68,9 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
   }
 
   // Se não tem perfil, mostra loading (vai redirecionar)
-  if (!profile) {
-    return fallback || null;
-  }
+  // if (!profile) {
+  //   return fallback || null;
+  // }
 
   // Usuário autenticado, mostra conteúdo
   return <>{children}</>;

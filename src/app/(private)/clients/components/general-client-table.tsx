@@ -34,7 +34,7 @@ export function GeneralClientsTable() {
 
   const GeneralClientsColumns = [
     { key: "NAME", label: "Nome do Cliente", sortable: true },
-    { key: "BIRTH_DATE", label: "Data de Nascimento", sortable: true },
+    // { key: "BIRTH_DATE", label: "Data de Nascimento", sortable: true },
     { key: "DESCRIPTION", label: "Descrição", sortable: true },
     { key: "ACTIONS", label: "Ações", sortable: false },
   ];
@@ -110,7 +110,7 @@ export function GeneralClientsTable() {
                 <div
                   className={cn(
                     "flex w-max items-center gap-2",
-                    column.key === "ACTIONS" && "justify-end",
+                    column.key === "ACTIONS" && "w-full justify-end",
                   )}
                 >
                   {column.label}
