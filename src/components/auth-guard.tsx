@@ -45,6 +45,8 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     validateSession();
   }, [profile, loading, checkSession, router, pathname]);
 
+  console.log(profile);
+
   if (loading) {
     return (
       fallback || (

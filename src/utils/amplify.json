@@ -6,8 +6,8 @@
   "oauth": {
     "domain": "us-east-1b58jb8niz.auth.us-east-1.amazoncognito.com",
     "scope": ["email", "openid"],
-    "redirectSignIn": "http://localhost:3000",
-    "redirectSignOut": "http://localhost:3000",
+    "redirectSignIn": "https://voice.executivosdigital.com.br",
+    "redirectSignOut": "https://voice.executivosdigital.com.br",
     "responseType": "code"
   },
   "federationTarget": "COGNITO_USER_POOLS",
