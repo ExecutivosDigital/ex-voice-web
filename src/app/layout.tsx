@@ -18,7 +18,7 @@ const poppins = Poppins({
 
 export const metadata = {
   title: {
-    default: "EX Voice",
+    default: process.env.PROJECT_NAME || "EX Voice",
   },
   icons: {
     icon: "/icon.png",

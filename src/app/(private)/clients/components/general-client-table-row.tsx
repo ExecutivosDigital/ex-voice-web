@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/blocks/tooltip";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { ChevronRight } from "lucide-react";
-import moment from "moment";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -44,9 +43,9 @@ export function GeneralClientTableItem({ client }: Props) {
           {client.name || "N/A"}
         </div>
       </TableCell>
-      <TableCell className="py-0.5 text-start text-sm font-medium whitespace-nowrap">
+      {/* <TableCell className="py-0.5 text-start text-sm font-medium whitespace-nowrap">
         {moment(client.birthDate).format("DD/MM/YYYY") || "N/A"}
-      </TableCell>
+      </TableCell> */}
       <TableCell className="w-80 max-w-80 truncate py-0.5 text-start text-sm font-medium whitespace-nowrap">
         <TooltipProvider>
           <Tooltip
