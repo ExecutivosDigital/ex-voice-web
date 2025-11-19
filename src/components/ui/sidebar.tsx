@@ -62,12 +62,12 @@ export function Sidebar() {
               Baixar Play Store
             </button>
             <button
-              // onClick={() =>
-              //   window.open(
-              //     "https://apps.apple.com/br/app/health-voice/id6754345791",
-              //     "_blank",
-              //   )
-              // }
+              onClick={() =>
+                window.open(
+                  "https://apps.apple.com/br/app/executivos-voice/id6754694679",
+                  "_blank",
+                )
+              }
               className="text-light flex h-10 items-center gap-2 rounded-3xl border border-white px-4 font-semibold text-white"
             >
               <Image

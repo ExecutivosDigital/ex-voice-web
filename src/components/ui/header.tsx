@@ -166,7 +166,7 @@ export function Header() {
 
   useEffect(() => {
     if (isIOSDevice()) {
-      setAppUrl("");
+      setAppUrl("https://apps.apple.com/br/app/executivos-voice/id6754694679");
     } else {
       setAppUrl(
         "https://play.google.com/store/apps/details?id=com.executivos.exvoice",
