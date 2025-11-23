@@ -20,7 +20,6 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
   useEffect(() => {
     const validateSession = async () => {
       // ✅ Aguarda loading inicial
-      if (loading) return;
 
       // ✅ Evita redirecionar múltiplas vezes
       if (hasRedirected.current) return;
@@ -44,8 +43,6 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
 
     validateSession();
   }, [profile, loading, checkSession, router, pathname]);
-
-  console.log("profile: ", profile);
 
   if (loading) {
     return (
