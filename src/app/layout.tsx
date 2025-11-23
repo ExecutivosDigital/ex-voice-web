@@ -1,3 +1,4 @@
+import MobileAppBlocker from "@/components/mobile";
 import { ApiContextProvider } from "@/context/ApiContext";
 import { SessionProvider } from "@/context/auth";
 import moment from "moment";
@@ -9,7 +10,6 @@ import { Toaster } from "react-hot-toast";
 import "swiper/css";
 import "./globals.css";
 moment.locale("pt-br");
-
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -42,6 +42,8 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={`${poppins.variable} bg-neutral-100 text-black`}>
+        <MobileAppBlocker />
+
         <Toaster
           containerStyle={{
             bottom: 40,
