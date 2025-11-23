@@ -43,9 +43,14 @@ export function Transcription() {
           </div>
         ))
       ) : selectedRecording.transcription ? (
-        <p className="text-primary m-auto w-full text-justify text-base font-extrabold md:w-max">
-          {selectedRecording.transcription}
-        </p>
+        <div className="flex flex-col gap-4 px-10">
+          <p className="text-primary m-auto w-full text-justify text-base font-extrabold">
+            Transcrição Completa
+          </p>
+          <p className="m-auto w-full text-justify text-base font-medium text-black">
+            {selectedRecording.transcription}
+          </p>
+        </div>
       ) : (
         <>
           <h1 className="text-primary m-auto w-full text-center text-3xl font-extrabold md:w-max">
