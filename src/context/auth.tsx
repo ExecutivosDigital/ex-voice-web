@@ -103,115 +103,83 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   const checkSession = useCallback(
     async (forceRefresh = false): Promise<boolean> => {
-      // Gera um ID curto para rastrear ESSA chamada específica (ajuda muito em async)
       const reqId = Math.floor(Math.random() * 1000);
       console.log(
         `[AUTH_DEBUG] #${reqId} - Iniciando checkSession. forceRefresh:`,
         forceRefresh,
       );
 
-      // Se forceRefresh, invalida cache
       if (forceRefresh) {
-        console.log(`[AUTH_DEBUG] #${reqId} - Invalidando cache anterior.`);
         invalidateSessionCache();
       }
 
-      // Retorna cache se válido
       const now = Date.now();
       if (
         !forceRefresh &&
         sessionCacheRef.current &&
         now - sessionCacheRef.current.timestamp < CACHE_TTL
       ) {
-        console.log(
-          `[AUTH_DEBUG] #${reqId} - Retornando valor do CACHE:`,
-          sessionCacheRef.current.value,
-        );
         return sessionCacheRef.current.value;
       }
 
-      // Se já existe uma promise em andamento, retorna ela
       if (sessionCheckPromise.current && !forceRefresh) {
-        console.log(
-          `[AUTH_DEBUG] #${reqId} - Já existe verificação em andamento. Retornando Promise existente.`,
-        );
+        console.log(`[AUTH_DEBUG] #${reqId} - Retornando Promise existente.`);
         return sessionCheckPromise.current;
       }
 
-      console.log(
-        `[AUTH_DEBUG] #${reqId} - Criando nova Promise de verificação...`,
-      );
-
-      // Cria nova promise de verificação
       sessionCheckPromise.current = (async () => {
         try {
           console.log(
-            `[AUTH_DEBUG] #${reqId} - Aguardando Promise.allSettled (fetchAuthSession, getCurrentUser)...`,
+            `[AUTH_DEBUG] #${reqId} - Aguardando APIs com TIMEOUT de 10s...`,
           );
 
-          // Log antes para saber se travou AQUI
-          const startTime = Date.now();
+          // --- MUDANÇA PRINCIPAL AQUI ---
+          // Criamos uma promessa que rejeita automaticamente após 10 segundos
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("TIMEOUT_EXCEEDED")), 10000),
+          );
 
-          const [sessionResult, userResult] = await Promise.allSettled([
+          const authCallsPromise = Promise.allSettled([
             fetchAuthSession({ forceRefresh }),
             getCurrentUser(),
           ]);
 
-          const duration = Date.now() - startTime;
-          console.log(
-            `[AUTH_DEBUG] #${reqId} - Resposta recebida em ${duration}ms. Analisando resultados:`,
-            {
-              sessionStatus: sessionResult.status,
-              userStatus: userResult.status,
-            },
-          );
+          // Promise.race vai pegar quem terminar primeiro: a resposta ou o erro de timeout
+          const result: any = await Promise.race([
+            authCallsPromise,
+            timeoutPromise,
+          ]);
+          // ------------------------------
 
-          // Detalhe: Se falhou, queremos ver o motivo
-          if (sessionResult.status === "rejected")
-            console.error(
-              `[AUTH_DEBUG] #${reqId} - Erro na Session:`,
-              sessionResult.reason,
-            );
-          if (userResult.status === "rejected")
-            console.error(
-              `[AUTH_DEBUG] #${reqId} - Erro no User:`,
-              userResult.reason,
-            );
+          // Se chegou aqui, é porque não deu timeout. 'result' é o array do allSettled
+          const [sessionResult, userResult] = result as [
+            PromiseSettledResult<any>,
+            PromiseSettledResult<any>,
+          ];
+
+          console.log(`[AUTH_DEBUG] #${reqId} - APIs responderam a tempo!`);
 
           const hasTokens =
             sessionResult.status === "fulfilled" &&
             !!sessionResult.value.tokens?.accessToken;
 
-          // Log específico para ver se o token existe mesmo
-          if (sessionResult.status === "fulfilled") {
-            console.log(
-              `[AUTH_DEBUG] #${reqId} - Tokens encontrados?`,
-              !!sessionResult.value.tokens?.accessToken,
-            );
-          }
-
           const hasUser = userResult.status === "fulfilled";
-
           const isValid = hasTokens && hasUser;
 
-          console.log(
-            `[AUTH_DEBUG] #${reqId} - Resultado Final Calculado (isValid):`,
-            isValid,
-          );
-
-          // Atualiza cache
           sessionCacheRef.current = {
             value: isValid,
             timestamp: Date.now(),
           };
 
           return isValid;
-        } catch (error) {
+        } catch (error: any) {
+          // Se der timeout, vai cair aqui com erro "TIMEOUT_EXCEEDED"
           console.error(
-            `[AUTH_DEBUG] #${reqId} - ❌ CAIU NO CATCH GERAL:`,
-            error,
+            `[AUTH_DEBUG] #${reqId} - ❌ Erro ou Timeout:`,
+            error.message || error,
           );
 
+          // Se deu erro ou timeout, assumimos que não está logado para destravar a UI
           sessionCacheRef.current = {
             value: false,
             timestamp: Date.now(),
@@ -219,14 +187,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
           return false;
         } finally {
-          console.log(
-            `[AUTH_DEBUG] #${reqId} - Executando FINALLY. Limpando promise ref em 100ms.`,
-          );
           setTimeout(() => {
-            // Verificação extra para não limpar se outra request já sobrescreveu (improvável aqui, mas boa prática)
-            console.log(
-              `[AUTH_DEBUG] #${reqId} - Limpando sessionCheckPromise.current`,
-            );
             sessionCheckPromise.current = null;
           }, 100);
         }
