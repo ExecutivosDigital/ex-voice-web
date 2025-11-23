@@ -10,7 +10,7 @@ const MobileAppBlocker = () => {
   return (
     // A classe 'md:hidden' garante que isso só apareça em telas menores que o breakpoint 'md' do Tailwind (tablets/celulares)
     // 'fixed inset-0 z-[9999]' garante que fique por cima de tudo e o usuário não consiga sair.
-    <div className="fixed inset-0 z-[9999] flex touch-none flex-col items-center justify-center overscroll-none bg-[#0070f3] p-6 text-center select-none md:hidden">
+    <div className="fixed inset-0 z-[9999] flex touch-none flex-col items-center justify-center overscroll-none bg-[#4c4d4e] p-6 text-center select-none md:hidden">
       {/* Background Decorativo (Círculos sutis para dar textura similar ao header) */}
       <div className="pointer-events-none absolute top-0 left-0 h-full w-full overflow-hidden opacity-10">
         <div className="absolute top-[-10%] left-[-10%] h-64 w-64 rounded-full bg-white mix-blend-overlay blur-3xl"></div>
@@ -25,7 +25,7 @@ const MobileAppBlocker = () => {
           alt=""
           width={1000}
           height={500}
-          className="mx-auto h-20 w-max object-contain lg:mx-0 lg:h-max lg:max-w-80"
+          className="mx-auto mb-8 h-20 w-max object-contain lg:mx-0 lg:h-max lg:max-w-80"
         />
 
         {/* Mensagem de Bloqueio */}
@@ -35,8 +35,8 @@ const MobileAppBlocker = () => {
           </h2>
           <p className="mb-6 text-sm leading-relaxed text-gray-600">
             Para garantir a melhor experiência e compatibilidade com o
-            microfone, o sistema HealthVoice não pode ser acessado pelo
-            navegador do celular.
+            microfone, o sistema Ex Voice não pode ser acessado pelo navegador
+            do celular.
             <br />
             <br />
             <span className="font-medium text-[#0070f3]">
@@ -48,7 +48,7 @@ const MobileAppBlocker = () => {
           <div className="flex w-full flex-col gap-3">
             {/* Botão Apple Store */}
             <a
-              href="https://apps.apple.com/us/app/health-voice/id6754345791"
+              href="https://apps.apple.com/us/app/executivos-voice/id6754694679"
               className="group flex w-full items-center justify-center gap-3 rounded-xl bg-black px-4 py-3 text-white shadow-lg transition-all hover:bg-gray-900 active:scale-95"
             >
               <Image
@@ -68,7 +68,7 @@ const MobileAppBlocker = () => {
 
             {/* Botão Google Play Store */}
             <a
-              href="https://play.google.com/store/apps/details?id=com.executivos.healthvoice"
+              href="https://play.google.com/store/apps/details?id=com.executivos.exvoice"
               className="group flex w-full items-center justify-center gap-3 rounded-xl bg-black px-4 py-3 text-white shadow-lg transition-all hover:bg-gray-900 active:scale-95"
             >
               {/* Ícone Google Play SVG Manual */}
@@ -90,7 +90,7 @@ const MobileAppBlocker = () => {
         </div>
 
         <p className="mt-4 text-xs text-white/60">
-          Versão 2.1.0 • HealthVoice Inc.
+          Versão 2.1.0 • ExVoice Inc.
         </p>
       </div>
     </div>
