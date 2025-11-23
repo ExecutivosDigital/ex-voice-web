@@ -112,13 +112,13 @@ export default function Privacy() {
         2.2. Conteúdo Gerado pelo Usuário (Dados Pessoais Sensíveis – Saúde)
       </span>
       <span>
-        Esta categoria refere-se aos áudios de consultas, transcrições e
+        Esta categoria refere-se aos áudios de reuniões, transcrições e
         anotações gravadas e geradas por você dentro do Aplicativo.
       </span>
       <span className="font-semibold">Dados:</span>
       <span className="pl-4">
-        Áudios de Consultas: Gravações de voz de interações profissionais
-        (médico-paciente, reuniões etc.).
+        Áudios de Reuniões: Gravações de voz de interações profissionais
+        (equipe-cliente, reuniões etc.).
       </span>
       <span className="pl-4">
         Transcrições de Áudio: Texto gerado a partir do processamento dos
@@ -146,7 +146,7 @@ export default function Privacy() {
         O Usuário, na qualidade de profissional de saúde ou responsável pela
         interação, é o Controlador dos dados contidos nos áudios, transcrições e
         anotações. Ele é EXCLUSIVAMENTE responsável por obter o CONSENTIMENTO
-        explícito e informado dos titulares dos dados (pacientes e/ou demais
+        explícito e informado dos titulares dos dados (clientes e/ou demais
         interlocutores) para a gravação, armazenamento e tratamento desses dados
         de saúde, conforme o Art. 11, I da LGPD. Além disso, outras bases legais
         para tratamento de dados sensíveis, como o Art. 11, II, alínea {"'"}f

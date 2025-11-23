@@ -30,7 +30,7 @@ export function Hero() {
               </span>
               <span>para </span>
               <span className="text-primary font-semibold">você focar </span>
-              <span>no paciente e na sua verdadeira vocação.</span>
+              <span>no cliente e na sua verdadeira vocação.</span>
             </div>
             <button className="group relative hidden w-max xl:block">
               <div className="animate-tilt bg-primary absolute -inset-px rounded-3xl opacity-70 blur-md transition duration-1000 group-hover:-inset-0.5 group-hover:opacity-100 group-hover:duration-200" />

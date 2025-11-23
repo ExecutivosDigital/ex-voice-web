@@ -39,11 +39,11 @@ export default function Terms() {
         1.1. O {process.env.PROJECT_VOICE || "Health Voice"} é um aplicativo
         desenvolvido para auxiliar médicos e outros profissionais da área de
         saúde na gravação, transcrição e gestão de informações provenientes de
-        consultas, reuniões e interações profissionais. Sua principal
-        funcionalidade é a gravação de áudios com identificação dos
-        interlocutores (limitado a 2 pessoas para a IA proprietária, conforme o
-        plano contratado), transcrição automática do conteúdo falado e
-        organização dessas informações.
+        reuniões e interações profissionais. Sua principal funcionalidade é a
+        gravação de áudios com identificação dos interlocutores (limitado a 2
+        pessoas para a IA proprietária, conforme o plano contratado),
+        transcrição automática do conteúdo falado e organização dessas
+        informações.
       </span>
       <span>
         1.2. Além das funcionalidades de gravação e transcrição, o Aplicativo

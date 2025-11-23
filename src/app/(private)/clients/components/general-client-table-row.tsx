@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/blocks/tooltip";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { cn } from "@/utils/cn";
 import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -68,7 +69,10 @@ export function GeneralClientTableItem({ client }: Props) {
               </span>
             </TooltipTrigger>
             <TooltipContent
-              className="text-primary flex max-w-80 overflow-auto bg-white text-wrap xl:max-w-[500px]"
+              className={cn(
+                "text-primary flex max-w-80 overflow-auto bg-white text-wrap xl:max-w-[500px]",
+                client.description === "" && "hidden",
+              )}
               side="top"
               align="start"
             >
