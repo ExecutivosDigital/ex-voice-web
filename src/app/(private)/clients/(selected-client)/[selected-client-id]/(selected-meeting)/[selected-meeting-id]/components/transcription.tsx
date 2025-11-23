@@ -42,6 +42,10 @@ export function Transcription() {
             </span>
           </div>
         ))
+      ) : selectedRecording.transcription ? (
+        <p className="text-primary m-auto w-full text-justify text-base font-extrabold md:w-max">
+          {selectedRecording.transcription}
+        </p>
       ) : (
         <>
           <h1 className="text-primary m-auto w-full text-center text-3xl font-extrabold md:w-max">
