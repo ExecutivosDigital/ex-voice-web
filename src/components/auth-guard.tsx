@@ -19,22 +19,34 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
 
   useEffect(() => {
     const validateSession = async () => {
+      console.log("entrou aqui");
       // ✅ Aguarda loading inicial
 
       // ✅ Evita redirecionar múltiplas vezes
       if (hasRedirected.current) return;
 
+      console.log("passou 1");
+
       // ✅ Verifica sessão
       const isValid = await checkSession();
 
+      console.log("passou 2");
+      console.log("isValid: ", isValid);
+
       if (!isValid || !profile) {
+        console.log("entrou aqui 2");
         // ✅ Pequeno delay para dar tempo do login finalizar
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         // ✅ Revalida após o delay
         const recheckValid = await checkSession();
 
+        console.log("recheckValid: ", recheckValid);
+
+        console.log("passou 3");
+
         if (!recheckValid) {
+          console.log("entrou aqui 3");
           hasRedirected.current = true;
           router.push("/login");
         }
