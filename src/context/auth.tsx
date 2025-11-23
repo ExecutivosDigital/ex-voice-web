@@ -136,7 +136,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           // --- MUDANÇA PRINCIPAL AQUI ---
           // Criamos uma promessa que rejeita automaticamente após 10 segundos
           const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("TIMEOUT_EXCEEDED")), 10000),
+            setTimeout(() => reject(new Error("TIMEOUT_EXCEEDED")), 2000),
           );
 
           const authCallsPromise = Promise.allSettled([
