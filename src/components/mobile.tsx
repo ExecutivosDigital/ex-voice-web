@@ -20,29 +20,13 @@ const MobileAppBlocker = () => {
       {/* Conteúdo Principal */}
       <div className="animate-fade-in relative z-10 flex w-full max-w-sm flex-col items-center">
         {/* Logo / Branding */}
-        <div className="mb-8 flex items-center gap-2">
-          <div className="rounded-full border border-white/30 bg-white/20 p-3 backdrop-blur-sm">
-            {/* Ícone de Microfone simulando o logo HealthVoice */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-8 w-8 text-white"
-            >
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="23" />
-              <line x1="8" y1="23" x2="16" y2="23" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            HEALTH<span className="font-light">VOICE</span>
-          </h1>
-        </div>
+        <Image
+          src="/logos/logo.png"
+          alt=""
+          width={1000}
+          height={500}
+          className="mx-auto h-20 w-max object-contain lg:mx-0 lg:h-max lg:max-w-80"
+        />
 
         {/* Mensagem de Bloqueio */}
         <div className="mb-6 w-full rounded-2xl bg-white p-6 shadow-2xl">
