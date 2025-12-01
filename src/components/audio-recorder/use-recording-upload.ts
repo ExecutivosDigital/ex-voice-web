@@ -19,7 +19,13 @@ export function useRecordingUpload() {
         const response = await PostAPI("/convert", formData, false);
 
         if (!response || response.status >= 400) {
-          throw new Error(`Falha no upload de ${mediaType}.`);
+          const statusText =
+            response?.status === 413
+              ? "Arquivo muito grande para upload."
+              : response?.status === 500
+                ? "Erro no servidor. Tente novamente."
+                : `Falha no upload de ${mediaType}.`;
+          throw new Error(statusText);
         }
 
         const url = response?.body?.url || response?.body?.[`${mediaType}Url`];
@@ -31,6 +37,15 @@ export function useRecordingUpload() {
         return url;
       } catch (error) {
         console.error(`Erro no upload de ${mediaType}:`, error);
+
+        // Check if it's a network error
+        if (error instanceof TypeError && error.message.includes("fetch")) {
+          throw new Error(
+            "Erro de conexão. Verifique sua internet e tente novamente.",
+          );
+        }
+
+        // Re-throw the error with the existing message
         throw error;
       }
     },

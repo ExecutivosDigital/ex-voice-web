@@ -136,7 +136,6 @@ export function AudioRecorder({
       console.log("response", response);
 
       if (response?.status >= 400) {
-        resetFlow();
         throw new Error("Erro ao salvar gravação");
       }
 
@@ -148,9 +147,19 @@ export function AudioRecorder({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Erro ao processar gravação:", error);
-      toast.error(error.message || "Erro ao salvar gravação");
-      setCurrentStep("idle");
-      resetFlow();
+
+      // Define a more specific error message
+      let errorMessage = "Erro ao salvar gravação. Tente novamente.";
+      if (error.message) {
+        errorMessage = error.message;
+      }
+
+      // Set error and return to preview to allow retry
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setCurrentStep("preview");
+
+      // DO NOT call resetFlow() here - keep the modal open with the recording
     }
   };
 
@@ -235,8 +244,10 @@ export function AudioRecorder({
       setCurrentStep("instructions");
     } else {
       try {
-        setCurrentStep("recording");
+        // FIXED: Wait for permission BEFORE changing step
         await recorder.startRecording();
+        // Only navigate to recording screen after permission is granted
+        setCurrentStep("recording");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         let errorMessage = "Erro ao iniciar gravação";
@@ -245,18 +256,23 @@ export function AudioRecorder({
           errorMessage = "Permissão negada. Permita o acesso ao microfone.";
         } else if (error.name === "NotFoundError") {
           errorMessage = "Nenhum microfone encontrado.";
+        } else if (error.message) {
+          // Show custom error messages from the recorder
+          errorMessage = error.message;
         }
 
         setError(errorMessage);
-        setCurrentStep("idle");
+        setCurrentStep("save-dialog");
       }
     }
   };
 
   const handleStartVideoRecording = async () => {
     try {
-      setCurrentStep("recording");
+      // FIXED: Wait for permission BEFORE changing step
       await recorder.startRecording();
+      // Only navigate to recording screen after permission is granted and recording starts
+      setCurrentStep("recording");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       let errorMessage = "Erro ao iniciar gravação de vídeo";
@@ -264,16 +280,20 @@ export function AudioRecorder({
       if (error.name === "NotAllowedError") {
         errorMessage = "Permissão negada. Permita o compartilhamento de tela.";
       } else if (error.message) {
+        // This will catch errors like "Áudio não detectado..."
         errorMessage = error.message;
       }
 
       setError(errorMessage);
-      setCurrentStep("idle");
+      setCurrentStep("save-dialog");
     }
   };
 
   // CORRIGIDO: Passa currentMediaType para handleRecordingComplete
   const handleConfirmRecording = () => {
+    // Clear any previous errors before retrying
+    setError("");
+
     if (recorder.mediaBlob) {
       handleRecordingComplete(
         recorder.mediaBlob,
@@ -849,6 +869,16 @@ export function AudioRecorder({
             </div>
 
             <div className="space-y-6">
+              {error && (
+                <div className="mb-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                  <AlertCircle
+                    className="mt-0.5 flex-shrink-0 text-red-500"
+                    size={20}
+                  />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
               {currentMediaType === "video" && ( // Usa currentMediaType
                 <div className="overflow-hidden rounded-lg bg-black">
                   <video
