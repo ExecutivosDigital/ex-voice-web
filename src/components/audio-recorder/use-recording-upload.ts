@@ -10,31 +10,56 @@ export function useRecordingUpload() {
         const extension = mediaType === "audio" ? "mp3" : "webm";
         const mimeType = mediaType === "audio" ? "audio/mpeg" : "video/webm";
 
-        const file = new File([blob], `${mediaType}.${extension}`, {
-          type: mimeType,
+        // Step 1: Request presigned URL from API
+        console.log(`Solicitando presigned URL para ${mediaType}...`);
+
+        const presignedResponse = await PostAPI(
+          "/upload/presigned-url",
+          {
+            fileName: `recording-${Date.now()}.${extension}`,
+            fileType: mimeType,
+          },
+          true,
+        );
+
+        if (
+          presignedResponse?.status !== 200 &&
+          presignedResponse?.status !== 201
+        ) {
+          throw new Error(
+            `Erro ao obter URL de upload: ${presignedResponse?.status}`,
+          );
+        }
+
+        const presignedData = presignedResponse.body;
+        const uploadUrl = presignedData.uploadUrl || presignedData.url;
+        const finalUrl = presignedData.finalUrl || presignedData.url;
+
+        if (!uploadUrl) {
+          throw new Error("API não retornou URL de upload.");
+        }
+
+        console.log(`Enviando ${mediaType} para URL assinada...`);
+
+        // Step 2: Upload file directly to presigned URL
+        // Note: Presigned URLs typically use PUT and require the exact Content-Type
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "PUT",
+          body: blob,
+          headers: {
+            "Content-Type": mimeType,
+          },
         });
-        const formData = new FormData();
-        formData.append("file", file);
 
-        const response = await PostAPI("/file", formData, false);
-
-        if (!response || response.status >= 400) {
-          const statusText =
-            response?.status === 413
-              ? "Arquivo muito grande para upload."
-              : response?.status === 500
-                ? "Erro no servidor. Tente novamente."
-                : `Falha no upload de ${mediaType}.`;
-          throw new Error(statusText);
+        if (!uploadResponse.ok) {
+          throw new Error(
+            `Erro no upload direto: ${uploadResponse.status} ${uploadResponse.statusText}`,
+          );
         }
 
-        const url = response?.body?.url || response?.body?.[`${mediaType}Url`];
+        console.log(`Upload de ${mediaType} concluído. URL final: ${finalUrl}`);
 
-        if (!url) {
-          throw new Error(`Upload não retornou URL do ${mediaType}.`);
-        }
-
-        return url;
+        return finalUrl;
       } catch (error) {
         console.error(`Erro no upload de ${mediaType}:`, error);
 

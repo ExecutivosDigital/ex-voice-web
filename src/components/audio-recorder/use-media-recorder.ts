@@ -254,7 +254,7 @@ export function useMediaRecorder(options: RecorderOptions) {
 
       const mediaRecorder = new MediaRecorder(finalStream, {
         mimeType,
-        videoBitsPerSecond: 2500000,
+        videoBitsPerSecond: 1000000, // 1 Mbps (reduced from 2.5 Mbps)
       });
 
       chunksRef.current = [];
