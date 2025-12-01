@@ -16,7 +16,7 @@ export function useRecordingUpload() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await PostAPI("/convert", formData, false);
+        const response = await PostAPI("/file", formData, false);
 
         if (!response || response.status >= 400) {
           const statusText =
