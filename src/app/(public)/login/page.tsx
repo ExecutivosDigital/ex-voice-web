@@ -1,93 +1,76 @@
 "use client";
-import { cn } from "@/utils/cn";
 import Image from "next/image";
 import { useState } from "react";
 import ForgotPassword from "./components/forgot";
 import SignIn from "./components/login";
 import CreateAccount from "./components/register";
+import LoginAnimation from "./components/LoginAnimation";
 
 export default function Login() {
   const [selectedStep] = useState(0);
   const [forgot, setForgot] = useState<boolean>(false);
 
   return (
-    <>
-      <div className="relative flex h-full min-h-[100svh] flex-col gap-2 overflow-x-hidden p-2 max-lg:items-center max-lg:justify-center lg:flex-row 2xl:gap-4 2xl:p-4">
-        <div className="to-primary relative mx-auto hidden h-60 w-full max-w-[31.5rem] flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-b from-gray-800 px-4 py-8 md:h-auto lg:flex lg:max-w-[50vw] lg:justify-between">
-          <Image
-            className="object-full absolute top-0 left-0 m-auto block h-full w-full rounded-3xl"
-            src="/static/login.png"
-            alt=""
-            width={1000}
-            height={1000}
-          />
-          <Image
-            src="/logos/logo-2.png"
-            alt=""
-            width={1000}
-            height={500}
-            className="mx-auto h-20 w-max object-contain lg:mx-0 lg:h-max lg:max-w-80"
-          />
-          <div className="flex flex-col p-2 text-white lg:gap-4">
-            <span className="text-sm font-bold lg:text-2xl lg:text-lg">
-              Menos digitação, mais atendimentos... Simples assim!
-            </span>
-            <span className="text-xs lg:text-base">
-              Acesse seu assistente virtual. O{" "}
-              {process.env.PROJECT_NAME || "Health Voice"} transforma suas
-              conversas em prontuários estruturados, liberando horas do seu dia
-              e eliminando o trabalho administrativo.
-            </span>
-          </div>
+    <div className="flex min-h-screen w-full bg-white">
+      {/* Lado Esquerdo - Branding / Marketing */}
+      <div className="relative hidden w-1/2 flex-col items-center justify-center bg-gradient-to-br from-primary to-blue-700 p-12 lg:flex">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -left-[10%] top-[20%] h-[30rem] w-[30rem] rounded-full bg-white/10 blur-[120px]" />
+          <div className="absolute -right-[10%] bottom-[20%] h-[30rem] w-[30rem] rounded-full bg-blue-900/20 blur-[120px]" />
         </div>
-        <div className="relative flex h-full w-full rounded-3xl bg-white lg:h-auto lg:max-w-[50vw] lg:p-2">
-          <div className="bg-primary m-auto w-full max-w-[31.5rem] rounded-3xl p-8">
-            {forgot ? (
-              <ForgotPassword onClick={() => setForgot(false)} />
-            ) : (
-              <>
-                <Image
-                  className="mx-auto mb-2 h-auto w-full 2xl:mb-8 2xl:w-80"
-                  src="/logos/logo.png"
-                  width={1000}
-                  height={500}
-                  alt=""
-                />
-                <div>
-                  {/* <div className="mb-2 flex rounded-md bg-stone-800 p-1 2xl:mb-8">
-                    <div
-                      onClick={() => setSelectedStep(0)}
-                      className={cn(
-                        "flex h-10 w-1/2 cursor-pointer items-center justify-center rounded-md transition-colors outline-none",
-                        selectedStep === 0 && "bg-stone-700 font-semibold",
-                      )}
-                    >
-                      Entrar
-                    </div>
-                    <div
-                      onClick={() => setSelectedStep(1)}
-                      className={cn(
-                        "flex h-10 w-1/2 cursor-pointer items-center justify-center rounded-md transition-colors outline-none",
-                        selectedStep === 1 && "bg-stone-700 font-semibold",
-                      )}
-                    >
-                      Contrate Agora
-                    </div>
-                  </div> */}
-                  <div>
-                    <div className={cn("", selectedStep !== 0 && "hidden")}>
-                      <SignIn onClick={() => setForgot(true)} />
-                    </div>
-                    <div className={cn("", selectedStep !== 1 && "hidden")}>
-                      <CreateAccount />
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+
+        <div className="relative z-10 flex flex-col items-center gap-12">
+          <LoginAnimation />
+
+          <div className="text-center max-w-md">
+            <h2 className="text-2xl font-bold text-white mb-2">Seu Consultório Inteligente</h2>
+            <p className="text-blue-50">
+              Grave suas consultas e deixe nossa IA gerar prontuários perfeitos automaticamente.
+            </p>
           </div>
         </div>
       </div>
-    </>
+
+      {/* Lado Direito - Formulário */}
+      <div className="flex w-full flex-col items-center justify-center p-6 lg:w-1/2 lg:p-12">
+        <div className="w-full max-w-md">
+          <div className="mb-8 text-center lg:text-left">
+            <div className="mb-6 flex justify-center lg:justify-start">
+              <Image
+                src="/logos/logo-2.png"
+                alt="Health Voice"
+                width={200}
+                height={60}
+                className="h-10 w-auto object-contain"
+              />
+            </div>
+
+            <h2 className="text-3xl font-bold text-gray-900">
+              {forgot ? "Recuperar senha" : "Acesse sua conta"}
+            </h2>
+            <p className="mt-2 text-gray-500">
+              {forgot
+                ? "Digite seu email para receber o código"
+                : "Bem-vindo de volta! Por favor, insira seus dados."}
+            </p>
+          </div>
+
+          <div className="w-full">
+            {forgot ? (
+              <ForgotPassword onClick={() => setForgot(false)} />
+            ) : (
+              <div className={selectedStep !== 0 ? "hidden" : ""}>
+                <SignIn onClick={() => setForgot(true)} />
+              </div>
+            )}
+
+            <div className={selectedStep !== 1 ? "hidden" : ""}>
+              <CreateAccount />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

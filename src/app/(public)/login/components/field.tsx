@@ -17,6 +17,7 @@ type FieldProps = {
   disabled?: boolean;
   Svg?: ReactNode;
   maxLength?: number;
+  invalid?: boolean;
 };
 
 const Field = ({
@@ -34,6 +35,7 @@ const Field = ({
   icon,
   Svg,
   maxLength,
+  invalid,
 }: FieldProps) => {
   const handleKeyDown = (event: any) => {
     const remainingChars = 880 - value.length;
@@ -48,24 +50,26 @@ const Field = ({
     <div className={`${className}`}>
       <div className="relative">
         {label && (
-          <div className="mb-0.5 flex font-semibold 2xl:mb-2">
+          <div className="mb-0.5 flex font-semibold 2xl:mb-2 text-gray-700">
             {label}
             {textarea && (
-              <span className="text-n-4/50 ml-auto pl-4">{remainingChars}</span>
+              <span className="ml-auto pl-4 text-gray-400">{remainingChars}</span>
             )}
           </div>
         )}
         <div className="relative">
           {Svg && (
-            <svg className="text-[rgb(108 114 117 / 0.5)] pointer-events-none absolute top-2 left-4 h-10 transition-colors 2xl:top-3.5 2xl:h-13">
+            <div className="pointer-events-none absolute top-0 bottom-0 left-4 flex items-center justify-center text-gray-400">
               {Svg}
-            </svg>
+            </div>
           )}
           {textarea ? (
             <textarea
-              className={`bg-n-2 border-n-2 base2 text-n-7 placeholder:text-n-4/50 dark:bg-n-8 dark:border-n-6 dark:text-n-3 dark:focus:bg-n-8 h-24 w-full resize-none rounded-3xl border-2 px-3.5 py-3 transition-colors outline-none focus:bg-transparent ${
-                (icon || Svg) && "pl-[3.125rem]"
-              } ${value !== "" && "dark:bg-n-8 border-n-3/50 bg-transparent"}`}
+              className={twMerge(
+                `h-24 w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-3 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 ${(icon || Svg) && "pl-[3.125rem]"
+                } ${invalid && "border-red-500 focus:border-red-500 focus:ring-red-500/20"}`,
+                classInput,
+              )}
               value={value}
               onChange={onChange}
               onKeyDown={handleKeyDown}
@@ -77,11 +81,9 @@ const Field = ({
           ) : (
             <input
               className={twMerge(
-                `bg-n-2 border-n-2 base2 placeholder:text-n-4/50 dark:bg-n-8 dark:border-n-6 dark:text-n-3 dark:focus:bg-n-8 h-10 w-full rounded-3xl border-2 px-3.5 text-white transition-colors outline-none focus:border-white/20 focus:bg-transparent 2xl:h-13 dark:focus:border-white/20 ${
-                  (icon || Svg) && "pl-[3.125rem]"
-                } ${
-                  value !== "" && "dark:bg-n-8 border-white/20 bg-transparent"
-                } ${classInput}`,
+                `h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 disabled:opacity-50 ${(icon || Svg) && "pl-[3.125rem]"
+                } ${invalid && "border-red-500 focus:border-red-500 focus:ring-red-500/20"}`,
+                classInput,
               )}
               type={type || "text"}
               autoCapitalize="off"
@@ -94,10 +96,7 @@ const Field = ({
             />
           )}
         </div>
-        {note && <div className="base2 text-n-4/50 mt-2">{note}</div>}
-        {/* <div className="mt-2 caption2 text-accent-1">
-                Email is incorrect
-            </div> */}
+        {note && <div className="mt-2 text-xs text-gray-500">{note}</div>}
       </div>
     </div>
   );

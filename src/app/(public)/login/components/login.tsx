@@ -38,7 +38,7 @@ const FormSchema = z.object({
 type FormData = z.infer<typeof FormSchema>;
 
 const SignIn = ({ onClick }: SignInProps) => {
-  const { handleGetProfile, waitForTokens } = useSession(); // ← ADICIONE ISSO
+  const { handleGetProfile, waitForTokens } = useSession();
   const router = useRouter();
   Amplify.configure(config);
 
@@ -55,21 +55,15 @@ const SignIn = ({ onClick }: SignInProps) => {
     },
   });
 
-  // Efeito para "ouvir" eventos de autenticação do Amplify (NOVO)
-  // Isso é crucial para o signInWithRedirect (login social)
+  // Efeito para "ouvir" eventos de autenticação do Amplify
   useEffect(() => {
     const unsubscribe = Hub.listen("auth", async ({ payload }) => {
       switch (payload.event) {
         case "signedIn":
           setIsLoggingIn(true);
           try {
-            // ✅ Aguarda tokens
             await waitForTokens();
-
-            // ✅ Carrega perfil
             await handleGetProfile(true);
-
-            // ✅ Delay para sincronização
             await new Promise((resolve) => setTimeout(resolve, 300));
 
             toast.success("Login efetuado com sucesso!");
@@ -99,10 +93,6 @@ const SignIn = ({ onClick }: SignInProps) => {
     return () => unsubscribe();
   }, [router, handleGetProfile, waitForTokens]);
 
-  /**
-   * Trata a submissão do formulário de e-mail e senha.
-   * (MODIFICADO: usa Amplify signIn em vez de PostAPI)
-   */
   const handleLogin = async (data: FormData) => {
     setIsLoggingIn(true);
     try {
@@ -117,7 +107,6 @@ const SignIn = ({ onClick }: SignInProps) => {
       });
 
       if (isSignedIn) {
-        // ✅ AGUARDA os tokens propagarem
         const tokensReady = await waitForTokens();
 
         if (!tokensReady) {
@@ -125,21 +114,17 @@ const SignIn = ({ onClick }: SignInProps) => {
           return;
         }
 
-        // ✅ FORÇA o carregamento do perfil
-        await handleGetProfile(true); // forceRefresh = true
-
-        // ✅ Pequeno delay para garantir que o Context atualizou
+        await handleGetProfile(true);
         await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // ✅ Agora redireciona com segurança
         toast.success("Login efetuado com sucesso!");
         router.push("/");
       } else {
         toast.error("Não foi possível completar o login. Tente novamente.");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.error("Erro no login:", error);
+    } catch (err: unknown) {
+      console.error("Erro no login:", err);
+      const error = err as { name?: string };
 
       let errorMessage = "Erro ao efetuar login, tente novamente.";
       if (error.name === "UserNotFoundException") {
@@ -159,16 +144,12 @@ const SignIn = ({ onClick }: SignInProps) => {
     }
   };
 
-  /**
-   * Inicia o fluxo de login com Google. (NOVO)
-   */
   const handleGoogleSignIn = async () => {
-    setIsLoggingIn(true); // Mostra o loader
+    setIsLoggingIn(true);
     try {
       await signInWithRedirect({
         provider: "Google",
       });
-      // O usuário será redirecionado. O Hub listener cuidará do resto.
     } catch (error) {
       console.error("Erro ao iniciar Google SignIn:", error);
       toast.error("Não foi possível iniciar o login com Google.");
@@ -176,16 +157,12 @@ const SignIn = ({ onClick }: SignInProps) => {
     }
   };
 
-  /**
-   * Inicia o fluxo de login com Apple. (NOVO)
-   */
   const handleAppleSignIn = async () => {
-    setIsLoggingIn(true); // Mostra o loader
+    setIsLoggingIn(true);
     try {
       await signInWithRedirect({
         provider: "Apple",
       });
-      // O usuário será redirecionado. O Hub listener cuidará do resto.
     } catch (error) {
       console.error("Erro ao iniciar Apple SignIn:", error);
       toast.error("Não foi possível iniciar o login com Apple.");
@@ -193,37 +170,36 @@ const SignIn = ({ onClick }: SignInProps) => {
     }
   };
 
-  // Trata o "Enter" para submeter o formulário
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      // Dispara a validação e submissão do react-hook-form
       form.handleSubmit(handleLogin)();
     }
   };
 
   return (
-    // Usa o 'onSubmit' do react-hook-form
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleLogin)}
-        className="flex flex-col gap-1 2xl:gap-4"
-        onKeyDown={handleKeyPress} // Manter o onKeyDown no wrapper
+        className="flex flex-col gap-4"
+        onKeyDown={handleKeyPress}
+        noValidate
       >
         <FormField
           key="email"
           name="email"
           control={form.control}
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <Field
-                classInput="border-white/50"
-                placeholder="Email"
-                Svg={<Mail className="text-white/50" />}
-                {...field} // Simplifica a passagem de props
+                placeholder="nome@exemplo.com"
+                label="Email"
+                Svg={<Mail size={20} />}
+                {...field}
                 required
+                invalid={!!fieldState.error}
               />
-              <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-rose-800" />
+              <FormMessage className="text-xs text-red-500" />
             </FormItem>
           )}
         />
@@ -232,73 +208,77 @@ const SignIn = ({ onClick }: SignInProps) => {
           key="password"
           name="password"
           control={form.control}
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <div className="relative">
                 <Field
-                  classInput="border-white/50"
-                  placeholder="Senha"
-                  Svg={<LockIcon className="text-white/50" />}
+                  placeholder="*********"
+                  label="Senha"
+                  Svg={<LockIcon size={20} />}
                   type={showPassword ? "text" : "password"}
-                  {...field} // Simplifica a passagem de props
+                  {...field}
                   required
+                  invalid={!!fieldState.error}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-white/50"
+                  className="absolute bottom-3 right-3 text-gray-400 hover:text-gray-600 focus:outline-none"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-rose-800" />
+              <FormMessage className="text-xs text-red-500" />
             </FormItem>
           )}
         />
 
-        <span
-          className="mb-6 cursor-pointer text-white/50 transition hover:text-white/60"
-          onClick={onClick} // Para "Esqueceu a senha?"
-        >
-          Esqueceu a senha?
-        </span>
+        <div className="flex justify-end">
+          <span
+            className="cursor-pointer text-sm text-gray-500 transition hover:text-primary hover:underline"
+            onClick={onClick}
+          >
+            Esqueceu a senha?
+          </span>
+        </div>
 
         <button
-          type="submit" // Botão principal agora é 'submit'
+          type="submit"
           disabled={isLoggingIn}
-          className="text-primary w-full rounded-3xl bg-white px-4 py-2 font-semibold shadow-sm transition hover:shadow-lg"
+          className="w-full rounded-xl bg-primary px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoggingIn ? (
-            <div className="flex w-full items-center justify-center gap-2">
-              <Loader2 className="animate-spin" />
-              <span>Entrando</span>
-            </div>
+            <>
+              <Loader2 className="animate-spin" size={20} />
+              <span>Entrando...</span>
+            </>
           ) : (
-            "Entrar Agora"
+            "Entrar na conta"
           )}
         </button>
-      </form>
 
-      <div className="mt-2 flex flex-col gap-4 xl:mt-4">
-        <div className="flex w-full items-center gap-2">
-          <div className="h-px w-full flex-1 bg-white/50" />
-          <span className="text-xs text-white/50">ou entre com </span>
-          <div className="h-px w-full flex-1 bg-white/50" />
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-gray-500">ou entre com</span>
+          </div>
         </div>
-        <div className="flex w-full items-center justify-center gap-2">
-          {/* Botões sociais agora têm 'onClick' e 'type="button"' */}
+
+        <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isLoggingIn}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-3xl border border-white font-semibold text-white disabled:opacity-50"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white font-medium text-gray-700 transition hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50"
           >
             <Image
               src="/icons/google-login.png"
-              alt="Logo do Google"
-              width={24} // Tamanho explícito é melhor
-              height={24}
-              className="h-6 w-6 object-contain" // Ajustado para w-6
+              alt="Google"
+              width={20}
+              height={20}
+              className="h-5 w-5"
             />
             Google
           </button>
@@ -306,20 +286,19 @@ const SignIn = ({ onClick }: SignInProps) => {
             type="button"
             onClick={handleAppleSignIn}
             disabled={isLoggingIn}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-3xl border border-white font-semibold text-white disabled:opacity-50"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-800 bg-gradient-to-br from-gray-800 to-gray-950 font-medium text-white transition hover:from-gray-700 hover:to-gray-900 disabled:opacity-50"
           >
             <Image
               src="/icons/apple-login.png"
-              alt="Logo da Apple"
-              width={24} // Tamanho explícito
-              height={24}
-              className="h-6 w-6 object-contain" // Ajustado para w-6
+              alt="Apple"
+              width={20}
+              height={20}
+              className="h-max object-contain w-4.5 brightness-0 invert"
             />
             Apple
           </button>
         </div>
-        {/* ... restante do seu JSX ... */}
-      </div>
+      </form>
     </Form>
   );
 };

@@ -1,7 +1,7 @@
 import { useApiContext } from "@/context/ApiContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, LockIcon, LockKeyhole, Mail } from "lucide-react";
-import Image from "next/image";
+import { ArrowLeft, Loader2, LockIcon, LockKeyhole, Mail } from "lucide-react";
+
 import { useState } from "react";
 import { UseFormReturn, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -85,9 +85,9 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
 
       // Define field labels with proper typing
       const fieldLabels: Record<keyof z.infer<typeof EmailFormSchema>, string> =
-        {
-          email: "Email",
-        };
+      {
+        email: "Email",
+      };
 
       // Get first error with type safety
       const firstErrorField = Object.keys(
@@ -130,9 +130,9 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
 
       // Define field labels with proper typing
       const fieldLabels: Record<keyof z.infer<typeof CodeFormSchema>, string> =
-        {
-          code: "Código",
-        };
+      {
+        code: "Código",
+      };
 
       // Get first error with type safety
       const firstErrorField = Object.keys(
@@ -218,14 +218,16 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
 
   return (
     <>
-      <Image
-        className="mx-auto mb-2 h-auto w-48 2xl:mb-8 2xl:w-80"
-        src="/logos/logo.png"
-        width={1000}
-        height={500}
-        alt=""
-      />
-      <span className="text-white">Recuperar senha</span>
+      <div className="mb-6">
+        <button
+          onClick={() => onClick()}
+          className="flex items-center gap-2 text-sm text-blue-500 hover:text-blue-800 transition-colors"
+        >
+          <ArrowLeft size={16} />
+          Voltar para o login
+        </button>
+      </div>
+
       <Form {...form}>
         <div className="flex flex-col gap-4" onKeyDown={handleKeyPress}>
           {currentStep === 0 ? (
@@ -233,17 +235,17 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
               key="email"
               name="email"
               control={form.control}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <Field
-                    classInput="border-white/50"
-                    placeholder="Email"
-                    Svg={<Mail className="text-white/50" />}
+                    placeholder="nome@exemplo.com"
+                    Svg={<Mail size={20} />}
                     value={field.value}
                     onChange={field.onChange}
                     required
+                    invalid={!!fieldState.error}
                   />
-                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
+                  <FormMessage className="text-xs text-red-500" />
                 </FormItem>
               )}
             />
@@ -252,17 +254,17 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
               key="code"
               name="code"
               control={form.control}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <Field
-                    classInput="border-white/50"
                     placeholder="Código"
-                    Svg={<LockKeyhole className="text-white/50" />}
+                    Svg={<LockKeyhole size={20} />}
                     value={field.value}
                     onChange={field.onChange}
                     required
+                    invalid={!!fieldState.error}
                   />
-                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
+                  <FormMessage className="text-xs text-red-500" />
                 </FormItem>
               )}
             />
@@ -271,18 +273,18 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
               key="password"
               name="password"
               control={form.control}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <Field
-                    classInput="border-white/50"
-                    placeholder="Senha"
-                    Svg={<LockIcon className="text-white/50" />}
+                    placeholder="Nova senha"
+                    Svg={<LockIcon size={20} />}
                     type="password"
                     value={field.value}
                     onChange={field.onChange}
                     required
+                    invalid={!!fieldState.error}
                   />
-                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
+                  <FormMessage className="text-xs text-red-500" />
                 </FormItem>
               )}
             />
@@ -290,19 +292,15 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
             <></>
           )}
         </div>
-        <div className="mt-4 flex w-full items-center justify-center gap-4">
-          <button
-            onClick={() => onClick()}
-            className="rounded-3xl border border-white/50 bg-transparent px-4 py-2 text-white/50"
-          >
-            Voltar
-          </button>
+        <div className="mt-6 flex w-full items-center justify-center gap-4">
           <button
             onClick={() => handleNext(form)}
-            className="text-primary flex w-full items-center justify-center rounded-3xl bg-white px-4 py-2 font-semibold shadow-sm transition hover:shadow-lg"
+            className="w-full rounded-xl bg-primary px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
-              <Loader2 className="animate-spin" />
+              <>
+                <Loader2 className="animate-spin" size={20} />
+              </>
             ) : currentStep === 0 ? (
               "Enviar código"
             ) : currentStep === 1 ? (
@@ -312,7 +310,7 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
             )}
           </button>
         </div>
-      </Form>
+      </Form >
     </>
   );
 };
