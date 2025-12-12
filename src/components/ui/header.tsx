@@ -173,7 +173,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="bg-primary flex w-full flex-col gap-4 px-4 pb-20 text-white">
+    <header className="from-primary flex w-full flex-col gap-4 bg-gradient-to-br to-black to-90% px-4 pb-20 text-white">
       <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between py-2">
         <Image
           src="/logos/logo.png"

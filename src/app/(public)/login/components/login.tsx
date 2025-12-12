@@ -223,7 +223,7 @@ const SignIn = ({ onClick }: SignInProps) => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute bottom-3 right-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute right-3 bottom-3 text-gray-400 hover:text-gray-600 focus:outline-none"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -235,7 +235,7 @@ const SignIn = ({ onClick }: SignInProps) => {
 
         <div className="flex justify-end">
           <span
-            className="cursor-pointer text-sm text-gray-500 transition hover:text-primary hover:underline"
+            className="hover:text-primary cursor-pointer text-sm text-gray-500 transition hover:underline"
             onClick={onClick}
           >
             Esqueceu a senha?
@@ -245,7 +245,7 @@ const SignIn = ({ onClick }: SignInProps) => {
         <button
           type="submit"
           disabled={isLoggingIn}
-          className="w-full rounded-xl bg-primary px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="bg-primary flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-neutral-500 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isLoggingIn ? (
             <>
@@ -271,7 +271,7 @@ const SignIn = ({ onClick }: SignInProps) => {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isLoggingIn}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white font-medium text-gray-700 transition hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50"
           >
             <Image
               src="/icons/google-login.png"
@@ -293,7 +293,7 @@ const SignIn = ({ onClick }: SignInProps) => {
               alt="Apple"
               width={20}
               height={20}
-              className="h-max object-contain w-4.5 brightness-0 invert"
+              className="h-max w-4.5 object-contain brightness-0 invert"
             />
             Apple
           </button>

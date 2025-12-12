@@ -85,9 +85,9 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
 
       // Define field labels with proper typing
       const fieldLabels: Record<keyof z.infer<typeof EmailFormSchema>, string> =
-      {
-        email: "Email",
-      };
+        {
+          email: "Email",
+        };
 
       // Get first error with type safety
       const firstErrorField = Object.keys(
@@ -130,9 +130,9 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
 
       // Define field labels with proper typing
       const fieldLabels: Record<keyof z.infer<typeof CodeFormSchema>, string> =
-      {
-        code: "Código",
-      };
+        {
+          code: "Código",
+        };
 
       // Get first error with type safety
       const firstErrorField = Object.keys(
@@ -221,7 +221,7 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
       <div className="mb-6">
         <button
           onClick={() => onClick()}
-          className="flex items-center gap-2 text-sm text-blue-500 hover:text-blue-800 transition-colors"
+          className="flex items-center gap-2 text-sm text-neutral-500 transition-colors hover:text-neutral-800"
         >
           <ArrowLeft size={16} />
           Voltar para o login
@@ -295,7 +295,7 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
         <div className="mt-6 flex w-full items-center justify-center gap-4">
           <button
             onClick={() => handleNext(form)}
-            className="w-full rounded-xl bg-primary px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="bg-primary flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
               <>
@@ -310,7 +310,7 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
             )}
           </button>
         </div>
-      </Form >
+      </Form>
     </>
   );
 };

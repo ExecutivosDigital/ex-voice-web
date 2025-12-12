@@ -81,7 +81,7 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
 }
 
 const loadingMessages = [
-  "Preparando seu ambiente de saúde...",
+  "Preparando seu ambiente de trabalho...",
   "Verificando suas credenciais...",
   "Sincronizando dados...",
   "Quase lá...",
@@ -105,7 +105,7 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-white via-blue-50 to-blue-100"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-white via-neutral-500 to-black"
     >
       {/* Background Animated Shapes */}
       <div className="absolute inset-0 z-0 overflow-hidden">
@@ -120,7 +120,7 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute -top-20 -left-20 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl"
+          className="absolute -top-20 -left-20 h-96 w-96 rounded-full bg-black/30 blur-3xl"
         />
         <motion.div
           animate={{
@@ -134,7 +134,7 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
             ease: "easeInOut",
             delay: 2,
           }}
-          className="absolute top-1/2 -right-20 h-80 w-80 rounded-full bg-indigo-200/30 blur-3xl"
+          className="absolute top-1/2 -right-20 h-80 w-80 rounded-full bg-neutral-200/30 blur-3xl"
         />
         <motion.div
           animate={{
@@ -148,7 +148,7 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
             ease: "easeInOut",
             delay: 5,
           }}
-          className="absolute -bottom-20 left-1/3 h-[500px] w-[500px] rounded-full bg-blue-100/40 blur-3xl"
+          className="absolute -bottom-20 left-1/3 h-[500px] w-[500px] rounded-full bg-neutral-100/40 blur-3xl"
         />
       </div>
 
@@ -166,13 +166,13 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-400/20 to-indigo-400/20 blur-xl"
+            className="absolute inset-0 rounded-full bg-gradient-to-tr from-neutral-800/20 to-black/20 blur-xl"
           />
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative flex h-32 w-32 items-center justify-center rounded-3xl bg-white/40 shadow-2xl ring-1 ring-white/60 backdrop-blur-md sm:h-40 sm:w-40"
+            className="relative flex h-32 w-32 items-center justify-center rounded-3xl bg-black/40 shadow-2xl ring-1 ring-black/40 backdrop-blur-md sm:h-40 sm:w-40"
           >
             <Image
               src="/logos/icon.png"
@@ -190,7 +190,7 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
           {/* Progress Bar Container */}
           <div className="relative h-2 w-64 overflow-hidden rounded-full bg-gray-200/50 sm:w-80">
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-blue-400 via-[#0d78ec] to-indigo-500"
+              className="absolute inset-0 bg-gradient-to-r from-black via-neutral-800 to-neutral-500"
               initial={{ x: "-100%" }}
               animate={{ x: "100%" }}
               transition={{
@@ -212,7 +212,7 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
                 transition={{ duration: 0.4 }}
                 className="flex flex-col items-center gap-1"
               >
-                <p className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-lg font-bold text-transparent sm:text-xl">
+                <p className="bg-gradient-to-r from-neutral-700 to-black bg-clip-text text-lg font-bold text-transparent sm:text-xl">
                   {loadingMessages[messageIndex]}
                 </p>
                 <p className="text-xs font-medium text-gray-400">
@@ -231,9 +231,9 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
         transition={{ delay: 0.8 }}
         className="absolute bottom-8 flex flex-col items-center gap-2 text-center"
       >
-        <div className="h-1 w-12 rounded-full bg-gradient-to-r from-blue-300 to-indigo-300" />
+        <div className="h-1 w-12 rounded-full bg-gradient-to-r from-neutral-400 to-neutral-600" />
         <p className="text-xs font-medium tracking-wider text-gray-400 uppercase">
-          Health Voice Security
+          EX Voice Security
         </p>
       </motion.div>
     </motion.div>

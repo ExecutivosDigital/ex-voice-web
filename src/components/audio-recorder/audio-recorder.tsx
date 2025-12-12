@@ -673,10 +673,10 @@ export function AudioRecorder({
                     >
                       <DropdownMenuItem
                         onSelect={() => setIsCreateClientSheetOpen(true)}
-                        className="sticky top-0 z-10 mb-2 flex items-center justify-start gap-2 border-b border-gray-100 bg-white py-3 font-semibold text-blue-600 hover:bg-neutral-50"
+                        className="text-primary sticky top-0 z-10 mb-2 flex items-center justify-start gap-2 border-b border-gray-100 bg-white py-3 font-semibold hover:bg-neutral-50"
                       >
                         <UserPlus size={16} />
-                        Cadastrar Novo Paciente
+                        Cadastrar Novo Cliente
                       </DropdownMenuItem>
                       {clients.length !== 0 ? (
                         clients.map((client) => (

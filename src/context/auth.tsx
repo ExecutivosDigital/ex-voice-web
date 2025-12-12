@@ -145,6 +145,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           ]);
 
           // Promise.race vai pegar quem terminar primeiro: a resposta ou o erro de timeout
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const result: any = await Promise.race([
             authCallsPromise,
             timeoutPromise,
@@ -153,7 +154,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
           // Se chegou aqui, é porque não deu timeout. 'result' é o array do allSettled
           const [sessionResult, userResult] = result as [
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             PromiseSettledResult<any>,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             PromiseSettledResult<any>,
           ];
 
@@ -172,6 +175,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           };
 
           return isValid;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
           // Se der timeout, vai cair aqui com erro "TIMEOUT_EXCEEDED"
           console.error(
