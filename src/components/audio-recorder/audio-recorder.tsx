@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Send,
   TriangleAlert,
+  UserPlus,
   Video,
   Volume2,
   X,
@@ -469,27 +470,27 @@ export function AudioRecorder({
                         updateMetadata({ personalRecordingType: "REMINDER" })
                       }
                       className={cn(
-                        "rounded-lg border-2 p-4 transition-all",
+                        "group rounded-lg border-2 p-4 transition-all",
                         metadata.personalRecordingType === "REMINDER"
                           ? "border-blue-600 bg-blue-50"
-                          : "border-gray-300 hover:border-gray-400",
+                          : "border-gray-300 hover:border-blue-600 hover:bg-blue-50",
                       )}
                     >
                       <Lightbulb
                         size={24}
                         className={cn(
-                          "mx-auto mb-2",
+                          "mx-auto mb-2 transition-colors",
                           metadata.personalRecordingType === "REMINDER"
                             ? "text-blue-600"
-                            : "text-gray-600",
+                            : "text-gray-600 group-hover:text-blue-600",
                         )}
                       />
                       <p
                         className={cn(
-                          "font-semibold",
+                          "font-semibold transition-colors",
                           metadata.personalRecordingType === "REMINDER"
                             ? "text-blue-600"
-                            : "text-gray-800",
+                            : "text-gray-800 group-hover:text-blue-600",
                         )}
                       >
                         Lembrete
@@ -501,27 +502,27 @@ export function AudioRecorder({
                         updateMetadata({ personalRecordingType: "STUDY" })
                       }
                       className={cn(
-                        "rounded-lg border-2 p-4 transition-all",
+                        "group rounded-lg border-2 p-4 transition-all",
                         metadata.personalRecordingType === "STUDY"
-                          ? "border-blue-600 bg-blue-50"
-                          : "border-gray-300 hover:border-gray-400",
+                          ? "border-blue-600 bg-blue-50" // Mantendo a cor selecionada como azul (padrão do sistema) ou você quer verde? O user pediu hover. Vou manter selecionado como azul para consistência, mas o hover verde.
+                          : "border-gray-300 hover:border-green-600 hover:bg-green-50",
                       )}
                     >
                       <Pen
                         size={24}
                         className={cn(
-                          "mx-auto mb-2",
+                          "mx-auto mb-2 transition-colors",
                           metadata.personalRecordingType === "STUDY"
                             ? "text-blue-600"
-                            : "text-gray-600",
+                            : "text-gray-600 group-hover:text-green-600",
                         )}
                       />
                       <p
                         className={cn(
-                          "font-semibold",
+                          "font-semibold transition-colors",
                           metadata.personalRecordingType === "STUDY"
                             ? "text-blue-600"
-                            : "text-gray-800",
+                            : "text-gray-800 group-hover:text-green-600",
                         )}
                       >
                         Estudos
@@ -533,27 +534,27 @@ export function AudioRecorder({
                         updateMetadata({ personalRecordingType: "OTHER" })
                       }
                       className={cn(
-                        "rounded-lg border-2 p-4 transition-all",
+                        "group rounded-lg border-2 p-4 transition-all",
                         metadata.personalRecordingType === "OTHER"
                           ? "border-blue-600 bg-blue-50"
-                          : "border-gray-300 hover:border-gray-400",
+                          : "border-gray-300 hover:border-orange-600 hover:bg-orange-50",
                       )}
                     >
                       <TriangleAlert
                         size={24}
                         className={cn(
-                          "mx-auto mb-2",
+                          "mx-auto mb-2 transition-colors",
                           metadata.personalRecordingType === "OTHER"
                             ? "text-blue-600"
-                            : "text-gray-600",
+                            : "text-gray-600 group-hover:text-orange-600",
                         )}
                       />
                       <p
                         className={cn(
-                          "font-semibold",
+                          "font-semibold transition-colors",
                           metadata.personalRecordingType === "OTHER"
                             ? "text-blue-600"
-                            : "text-gray-800",
+                            : "text-gray-800 group-hover:text-orange-600",
                         )}
                       >
                         Outro
@@ -575,27 +576,27 @@ export function AudioRecorder({
                         updateMetadata({ consultationType: "IN_PERSON" })
                       }
                       className={cn(
-                        "rounded-lg border-2 p-4 transition-all",
+                        "group rounded-lg border-2 p-4 transition-all",
                         metadata.consultationType === "IN_PERSON"
                           ? "border-blue-600 bg-blue-50"
-                          : "border-gray-300 hover:border-gray-400",
+                          : "border-gray-300 hover:border-blue-600 hover:bg-blue-50",
                       )}
                     >
                       <Mic
                         size={24}
                         className={cn(
-                          "mx-auto mb-2",
+                          "mx-auto mb-2 transition-colors",
                           metadata.consultationType === "IN_PERSON"
                             ? "text-blue-600"
-                            : "text-gray-600",
+                            : "text-gray-600 group-hover:text-blue-600",
                         )}
                       />
                       <p
                         className={cn(
-                          "font-semibold",
+                          "font-semibold transition-colors",
                           metadata.consultationType === "IN_PERSON"
                             ? "text-blue-600"
-                            : "text-gray-800",
+                            : "text-gray-800 group-hover:text-blue-600",
                         )}
                       >
                         Presencial
@@ -608,27 +609,27 @@ export function AudioRecorder({
                         updateMetadata({ consultationType: "ONLINE" })
                       }
                       className={cn(
-                        "w-full flex-1 rounded-lg border-2 p-4 transition-all",
+                        "group w-full flex-1 rounded-lg border-2 p-4 transition-all",
                         metadata.consultationType === "ONLINE"
                           ? "border-blue-600 bg-blue-50"
-                          : "border-gray-300 hover:border-gray-400",
+                          : "border-gray-300 hover:border-blue-600 hover:bg-blue-50",
                       )}
                     >
                       <Video
                         size={24}
                         className={cn(
-                          "mx-auto mb-2",
+                          "mx-auto mb-2 transition-colors",
                           metadata.consultationType === "ONLINE"
                             ? "text-blue-600"
-                            : "text-gray-600",
+                            : "text-gray-600 group-hover:text-blue-600",
                         )}
                       />
                       <p
                         className={cn(
-                          "font-semibold",
+                          "font-semibold transition-colors",
                           metadata.consultationType === "ONLINE"
                             ? "text-blue-600"
-                            : "text-gray-800",
+                            : "text-gray-800 group-hover:text-blue-600",
                         )}
                       >
                         Online
@@ -670,6 +671,13 @@ export function AudioRecorder({
                       className="z-[9999] h-80 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-scroll"
                       onWheel={(e) => e.stopPropagation()}
                     >
+                      <DropdownMenuItem
+                        onSelect={() => setIsCreateClientSheetOpen(true)}
+                        className="sticky top-0 z-10 mb-2 flex items-center justify-start gap-2 border-b border-gray-100 bg-white py-3 font-semibold text-blue-600 hover:bg-neutral-50"
+                      >
+                        <UserPlus size={16} />
+                        Cadastrar Novo Paciente
+                      </DropdownMenuItem>
                       {clients.length !== 0 ? (
                         clients.map((client) => (
                           <DropdownMenuItem

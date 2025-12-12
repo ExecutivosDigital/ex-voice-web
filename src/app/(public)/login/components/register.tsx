@@ -174,7 +174,7 @@ const CreateAccount = () => {
             key="name"
             name="name"
             control={form.control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem className="relative">
                 <Field
                   classInput="border-white/50"
@@ -183,6 +183,7 @@ const CreateAccount = () => {
                   value={field.value}
                   onChange={field.onChange}
                   required
+                  invalid={!!fieldState.error}
                 />
                 <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
               </FormItem>
@@ -192,7 +193,7 @@ const CreateAccount = () => {
             key="phone"
             name="phone"
             control={form.control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem>
                 <Field
                   classInput="border-white/50"
@@ -202,6 +203,7 @@ const CreateAccount = () => {
                   onChange={(e: any) => field.onChange(e.target.value)}
                   required
                   maxLength={15}
+                  invalid={!!fieldState.error}
                 />
                 <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
               </FormItem>
@@ -211,7 +213,7 @@ const CreateAccount = () => {
             key="email"
             name="email"
             control={form.control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem>
                 <Field
                   classInput="border-white/50"
@@ -220,6 +222,7 @@ const CreateAccount = () => {
                   value={field.value}
                   onChange={field.onChange}
                   required
+                  invalid={!!fieldState.error}
                 />
                 <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
               </FormItem>
@@ -229,7 +232,7 @@ const CreateAccount = () => {
             key="cpfCnpj"
             name="cpfCnpj"
             control={form.control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem>
                 <Field
                   classInput="border-white/50"
@@ -241,6 +244,7 @@ const CreateAccount = () => {
                   }
                   required
                   maxLength={14}
+                  invalid={!!fieldState.error}
                 />
                 <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
               </FormItem>
@@ -268,7 +272,7 @@ const CreateAccount = () => {
             key="password.password"
             name="password.password"
             control={form.control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem>
                 <div className="relative">
                   <Field
@@ -279,6 +283,7 @@ const CreateAccount = () => {
                     value={field.value}
                     onChange={field.onChange}
                     required
+                    invalid={!!fieldState.error}
                   />
                   <button
                     type="button"
@@ -296,7 +301,7 @@ const CreateAccount = () => {
             key="password.confirm"
             name="password.confirm"
             control={form.control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormItem>
                 <div className="relative">
                   <Field
@@ -307,6 +312,7 @@ const CreateAccount = () => {
                     value={field.value}
                     onChange={field.onChange}
                     required
+                    invalid={!!fieldState.error}
                   />
                   <button
                     type="button"
@@ -348,14 +354,14 @@ const CreateAccount = () => {
         Ao criar uma conta, você aceita nossos{" "}
         <button
           className="transition-colors hover:text-neutral-300"
-          // onClick={() => window.open("/terms", "_blank")}
+        // onClick={() => window.open("/terms", "_blank")}
         >
           Termos de Serviço
         </button>{" "}
         e nossa{" "}
         <button
           className="transition-colors hover:text-neutral-300"
-          // onClick={() => window.open("/privacy", "_blank")}
+        // onClick={() => window.open("/privacy", "_blank")}
         >
           Política de Privacidade
         </button>
