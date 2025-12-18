@@ -72,7 +72,7 @@ export function AudioRecorder({
   // 3. Declaramos o recorder.
   // 4. Atualizamos o placeholder para a função real do recorder.
 
-  const resetRecorderRef = useRef(() => { }); // Placeholder para recorder.resetRecording
+  const resetRecorderRef = useRef(() => {}); // Placeholder para recorder.resetRecording
 
   const {
     currentStep,
@@ -137,7 +137,6 @@ export function AudioRecorder({
       console.log("response", response);
 
       if (response?.status >= 400) {
-        resetFlow();
         throw new Error("Erro ao salvar gravação");
       }
 
@@ -148,10 +147,15 @@ export function AudioRecorder({
       resetFlow();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error("Erro ao processar gravação:", error);
-      toast.error(error.message || "Erro ao salvar gravação");
-      setCurrentStep("idle");
-      resetFlow();
+      let errorMessage = "Erro ao salvar gravação. Tente novamente.";
+      if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setCurrentStep("preview"); // Return to preview to allow retry
+      // DO NOT call resetFlow() - keep the modal open with the recording
     }
   };
 
@@ -246,10 +250,12 @@ export function AudioRecorder({
           errorMessage = "Permissão negada. Permita o acesso ao microfone.";
         } else if (error.name === "NotFoundError") {
           errorMessage = "Nenhum microfone encontrado.";
+        } else if (error.message) {
+          errorMessage = error.message; // Custom error messages
         }
 
         setError(errorMessage);
-        setCurrentStep("idle");
+        setCurrentStep("save-dialog");
       }
     }
   };
@@ -269,7 +275,7 @@ export function AudioRecorder({
       }
 
       setError(errorMessage);
-      setCurrentStep("idle");
+      setCurrentStep("save-dialog");
     }
   };
 
@@ -635,8 +641,8 @@ export function AudioRecorder({
                           value={
                             metadata.selectedClientId
                               ? clients.find(
-                                (c) => c.id === metadata.selectedClientId,
-                              )?.name
+                                  (c) => c.id === metadata.selectedClientId,
+                                )?.name
                               : "Selecione um Paciente"
                           }
                           className="w-full cursor-pointer text-black outline-none"
