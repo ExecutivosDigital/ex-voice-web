@@ -6,14 +6,14 @@ import { useSession } from "@/context/auth";
 import { cn } from "@/utils/cn";
 import {
   ArrowLeft,
-  BookOpen,
-  Briefcase,
+  Camera,
+  FileText,
   Lightbulb,
   Maximize2,
   Minimize2,
   PanelLeftOpen,
-  PenTool,
   Plus,
+  Stethoscope,
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -56,6 +56,8 @@ export default function ChatBusiness() {
     startRecording,
     stopRecording,
     setMessages,
+    files,
+    setFiles,
   } = useSectionChat({ selectedPrompt: hookPrompt });
 
   // Auto-scroll to bottom
@@ -67,25 +69,28 @@ export default function ChatBusiness() {
 
   const suggestions = [
     {
-      title: "Resumir Texto",
+      title: "Análise de Exames com Imagem",
       description:
-        "Transforme artigos longos em resumos objetivos e fáceis de ler.",
-      icon: BookOpen,
-      prompt: "Resuma o seguinte texto de forma objetiva:",
-    },
-    {
-      title: "Escrita Criativa",
-      description:
-        "Gere histórias, posts de blog ou novas ideias para conteúdo.",
-      icon: PenTool,
-      prompt: "Crie um post criativo para blog sobre:",
-    },
-    {
-      title: "Consultoria",
-      description: "Obtenha insights de negócios baseados em análise de dados.",
-      icon: Briefcase,
+        "Envie a foto de um exame para identificar padrões e transcrever os achados clínicos principais.",
+      icon: Camera, // Certifique-se de importar o ícone Camera ou Similar
       prompt:
-        "Atue como um consultor de negócios experiente e analise o seguinte cenário:",
+        "Atue como um especialista em radiologia e diagnóstico por imagem. Analise a imagem do exame fornecida, identifique os termos técnicos, transcreva os valores de referência e destaque qualquer desvio do padrão de normalidade encontrado. Explique o que esses termos significam em linguagem acessível, mas mantenha o rigor técnico. Importante: Finalize lembrando que esta análise é apenas informativa e deve ser validada por um médico.",
+    },
+    {
+      title: "Análise de Exames",
+      description:
+        "Interprete resultados laboratoriais e receba uma explicação detalhada sobre cada marcador.",
+      icon: FileText, // Certifique-se de importar o ícone FileText
+      prompt:
+        "Atue como um analista clínico sênior. Com base nos dados do exame de sangue ou laboratorial fornecidos, compare os resultados com os valores de referência padrão. Explique a função de cada biomarcador alterado e quais são as possíveis causas fisiológicas para esses níveis. Apresente as informações de forma estruturada em tópicos. Nota: Ressalte que este relatório não é um diagnóstico definitivo.",
+    },
+    {
+      title: "Ajuda para Diagnóstico",
+      description:
+        "Descreva sintomas e histórico para obter uma análise de possíveis hipóteses diagnósticas.",
+      icon: Stethoscope, // Certifique-se de importar o ícone Stethoscope
+      prompt:
+        "Atue como um clínico geral experiente no auxílio à decisão diagnóstica. Com base nos sintomas, histórico clínico e idade relatados, liste as hipóteses diagnósticas mais prováveis (diagnóstico diferencial). Sugira quais exames complementares poderiam ajudar a confirmar ou descartar cada hipótese. Adote um tom empático e profissional. Alerta: Instrua o usuário a procurar atendimento médico imediato em caso de sinais de alerta.",
     },
     {
       title: "Responder Perguntas",
@@ -145,7 +150,6 @@ export default function ChatBusiness() {
         )}
       >
         <ChatSidebar
-          isOpen={true} // Sidebar content is always "open" internally, container handles width
           onToggle={() => setIsSidebarOpen(false)} // Inner close button
           onNewChat={handleNewChat}
           className="h-full w-full"
@@ -170,7 +174,7 @@ export default function ChatBusiness() {
 
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Assistente Business
+                Inteligência Artificial
               </h1>
               <p className="text-sm text-gray-500">
                 Olá, {profile?.name?.split(" ")[0] || "Usuário"}. Como posso
@@ -275,6 +279,8 @@ export default function ChatBusiness() {
                       onRecordStart={startRecording}
                       onRecordStop={stopRecording}
                       isLoading={loading}
+                      files={files}
+                      onFilesChange={setFiles}
                     />
                   </div>
                 </div>
@@ -330,6 +336,8 @@ export default function ChatBusiness() {
                 onRecordStart={startRecording}
                 onRecordStop={stopRecording}
                 isLoading={loading}
+                files={files}
+                onFilesChange={setFiles}
               />
             </div>
           )}

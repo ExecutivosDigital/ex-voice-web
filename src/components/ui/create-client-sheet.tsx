@@ -5,6 +5,7 @@ import { maskDate } from "@/utils/masks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useForm, UseFormReturn } from "react-hook-form";
 import toast from "react-hot-toast";
 import z from "zod";
@@ -23,6 +24,8 @@ interface CreateClientSheetProps {
   isOpen: boolean;
   onClose: () => void;
   className?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onClientCreated?: (client: any) => void;
 }
 
 const FormSchema = z.object({
@@ -35,9 +38,10 @@ export function CreateClientSheet({
   isOpen,
   onClose,
   className,
+  onClientCreated,
 }: CreateClientSheetProps) {
   const { PostAPI } = useApiContext();
-  const { GetClients } = useGeneralContext();
+  const { GetClients, setClients } = useGeneralContext();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -97,16 +101,48 @@ export function CreateClientSheet({
       const data = await PostAPI("/client", form.getValues(), true);
       if (data.status === 200) {
         toast.success("Formulário enviado com sucesso!");
-        onClose();
-        GetClients();
-        return setIsLoading(false);
+
+        // Optimistic update
+        // Check if response body has a client property or is the client itself
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rawClient = (data.body.client || data.body) as any;
+        console.log("DEBUG: Full data object:", JSON.stringify(data, null, 2));
+        console.log(
+          "DEBUG: Raw client from API:",
+          JSON.stringify(rawClient, null, 2),
+        );
+
+        const newClient = {
+          ...rawClient,
+          id: rawClient.id || rawClient._id,
+        };
+        console.log("DEBUG: Normalized newClient:", newClient);
+
+        setClients((prev) => [newClient, ...prev]);
+
+        // Strategy: Force fetch clients to ensure we get the real ID from DB
+        await GetClients();
+
+        // Pass the form values effectively primarily for the name
+        const finalClient = {
+          ...newClient,
+          name: form.getValues().name, // Ensure accurate name from input
+        };
+
+        if (onClientCreated) {
+          console.log("DEBUG: Calling onClientCreated with:", finalClient);
+          onClientCreated(finalClient);
+        }
+
+        setIsLoading(false);
+        return onClose();
       }
       toast.error(data?.body?.message ?? "Falha ao enviar o formulário.");
       return setIsLoading(false);
     }
   };
 
-  return (
+  return createPortal(
     <div
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -114,7 +150,7 @@ export function CreateClientSheet({
         }
       }}
       className={cn(
-        "bg-opacity-50 fixed inset-0 z-50 flex items-end justify-center bg-black/20 backdrop-blur-xs",
+        "bg-opacity-50 fixed inset-0 z-[9999999] flex items-end justify-center bg-black/20 backdrop-blur-xs",
         isOpen
           ? "pointer-events-auto opacity-100"
           : "pointer-events-none opacity-0",
@@ -218,6 +254,7 @@ export function CreateClientSheet({
           </div>
         </Form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

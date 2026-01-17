@@ -18,8 +18,12 @@ import {
   DropdownMenuTrigger,
 } from "./blocks/dropdown-menu";
 import {
+  ChatBusinessIcon,
+  ChatIcon,
   ContactsIcon,
+  GeneralVisionIcon,
   HomeIcon,
+  LastRecordIcon,
   LogoutIcon,
   NotesIcon,
   OtherIcon,
@@ -371,9 +375,12 @@ export function Header() {
                 <div className="flex h-8 items-center">
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       !pathname.includes("/chat") &&
-                        !pathname.includes("/transcription")
+                        !pathname.includes("/transcription") &&
+                        !pathname.includes("/diagnosis") &&
+                        !pathname.includes("/medical-record") &&
+                        !pathname.includes("/points")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
                     )}
@@ -383,11 +390,12 @@ export function Header() {
                       )
                     }
                   >
+                    <GeneralVisionIcon />
                     Visão Geral
                   </span>
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/chat")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
@@ -398,11 +406,12 @@ export function Header() {
                       )
                     }
                   >
+                    <ChatIcon />
                     Conversar
                   </span>
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/transcription")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
@@ -413,7 +422,56 @@ export function Header() {
                       )
                     }
                   >
+                    <TranscriptionIcon />
                     Transcrição
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname.includes("/diagnosis")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(
+                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/diagnosis`,
+                      )
+                    }
+                  >
+                    <TranscriptionIcon />
+                    Diagnóstico
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname.includes("/medical-record")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(
+                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/medical-record`,
+                      )
+                    }
+                  >
+                    <TranscriptionIcon />
+                    Prontuário
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname.includes("/points")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(
+                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/points`,
+                      )
+                    }
+                  >
+                    <TranscriptionIcon />
+                    Pontos
                   </span>
                 </div>
               </div>
@@ -468,7 +526,7 @@ export function Header() {
                 <div className="flex h-8 items-center">
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       !pathname.includes("/chat") &&
                         !pathname.includes("/transcription")
                         ? "border-b-white"
@@ -478,11 +536,12 @@ export function Header() {
                       router.push(`/reminders/${selectedRecording?.id}`)
                     }
                   >
+                    <GeneralVisionIcon />
                     Visão Geral
                   </span>
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/chat")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
@@ -491,6 +550,7 @@ export function Header() {
                       router.push(`/reminders/${selectedRecording?.id}/chat`)
                     }
                   >
+                    <ChatIcon />
                     Conversar
                   </span>
                 </div>
@@ -536,7 +596,7 @@ export function Header() {
                 <div className="flex h-8 items-center">
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       !pathname.includes("/chat") &&
                         !pathname.includes("/transcription")
                         ? "border-b-white"
@@ -546,11 +606,12 @@ export function Header() {
                       router.push(`/studies/${selectedRecording?.id}`)
                     }
                   >
+                    <GeneralVisionIcon />
                     Visão Geral
                   </span>
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/chat")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
@@ -559,11 +620,12 @@ export function Header() {
                       router.push(`/studies/${selectedRecording?.id}/chat`)
                     }
                   >
+                    <ChatIcon />
                     Conversar
                   </span>
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/transcription")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
@@ -574,6 +636,7 @@ export function Header() {
                       )
                     }
                   >
+                    <TranscriptionIcon />
                     Transcrição
                   </span>
                 </div>
@@ -619,7 +682,7 @@ export function Header() {
                 <div className="flex h-8 items-center">
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       !pathname.includes("/chat") &&
                         !pathname.includes("/transcription")
                         ? "border-b-white"
@@ -629,11 +692,12 @@ export function Header() {
                       router.push(`/others/${selectedRecording?.id}`)
                     }
                   >
+                    <GeneralVisionIcon />
                     Visão Geral
                   </span>
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/chat")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
@@ -642,11 +706,12 @@ export function Header() {
                       router.push(`/others/${selectedRecording?.id}/chat`)
                     }
                   >
+                    <ChatIcon />
                     Conversar
                   </span>
                   <span
                     className={cn(
-                      "h-full w-max cursor-pointer border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/transcription")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
@@ -657,6 +722,7 @@ export function Header() {
                       )
                     }
                   >
+                    <TranscriptionIcon />
                     Transcrição
                   </span>
                 </div>
@@ -712,7 +778,7 @@ export function Header() {
                   )}
                   onClick={() => router.push("/recordings")}
                 >
-                  <TranscriptionIcon />
+                  <LastRecordIcon />
                   Ultimas Gravações
                 </span>
                 <span
@@ -772,8 +838,8 @@ export function Header() {
                   )}
                   onClick={() => router.push("/chat-business")}
                 >
-                  <OtherIcon />
-                  Chat Business
+                  <ChatBusinessIcon />
+                  AI Health
                 </span>
               </div>
               <div className="hidden items-center gap-2 md:flex">

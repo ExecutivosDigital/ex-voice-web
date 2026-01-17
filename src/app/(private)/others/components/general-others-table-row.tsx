@@ -5,6 +5,7 @@ import { OtherIcon } from "@/components/ui/custom-icons";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { ChevronRight } from "lucide-react";
 import moment from "moment";
+import "moment/locale/pt-br";
 import { useRouter } from "next/navigation";
 
 interface Props {

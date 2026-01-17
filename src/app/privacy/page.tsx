@@ -11,7 +11,7 @@ export default function Privacy() {
           className="absolute top-1/2 left-2 -translate-y-1/2 cursor-pointer text-white"
         />
         <Image
-          src="/logos/logo.png"
+          src="/logos/logo-dark.png"
           alt=""
           width={1000}
           height={500}

@@ -8,7 +8,13 @@ interface ModalProps {
   children: React.ReactNode;
 }
 
-export function Modal({ isOpen, onClose, size, children }: ModalProps) {
+export function Modal({
+  isOpen,
+  onClose,
+  size,
+  children,
+  className,
+}: ModalProps & { className?: string }) {
   return (
     <div
       className="fixed top-0 right-0 bottom-0 left-0 z-[990] flex w-full cursor-pointer items-center justify-center bg-black/20 p-4 text-center backdrop-blur-[4px] transition-opacity duration-300 ease-in-out"
@@ -23,6 +29,7 @@ export function Modal({ isOpen, onClose, size, children }: ModalProps) {
         className={cn(
           "relative z-20 flex flex-col items-center justify-start gap-4 overflow-hidden rounded-md border border-stone-700 bg-stone-800 shadow-md",
           size ? size : "h-[85vh] w-[90vw] xl:w-[50vw]",
+          className,
         )}
       >
         {children}

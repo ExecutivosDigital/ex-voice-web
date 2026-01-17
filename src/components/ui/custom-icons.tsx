@@ -553,3 +553,144 @@ export const LogoutIcon: React.FC<IconProps> = ({ className, ...props }) => (
     />
   </svg>
 );
+
+export const DiagnosisIcon: React.FC<IconProps> = ({ className, ...props }) => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn("h-4 w-4", className)}
+    {...props}
+  >
+    <path
+      d="M19 14V17.3751C19 18.2372 18.2721 18.9221 17.4138 18.8415C15.8427 18.6946 13.9772 18.4167 12 18.4167C10.0228 18.4167 8.15729 18.6946 6.58622 18.8415C5.72793 18.9221 5 18.2372 5 17.3751V14"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      opacity="0.5"
+      d="M12 18.4167V5.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M12 5.5C14.4853 5.5 16.5 3.48528 16.5 1H7.5C7.5 3.48528 9.51472 5.5 12 5.5Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      opacity="0.5"
+      d="M12 13C12.8284 13 13.5 12.3284 13.5 11.5C13.5 10.6716 12.8284 10 12 10C11.1716 10 10.5 10.6716 10.5 11.5C10.5 12.3284 11.1716 13 12 13Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+  </svg>
+);
+
+export const MedicalRecordIcon: React.FC<IconProps> = ({
+  className,
+  ...props
+}) => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn("h-4 w-4", className)}
+    {...props}
+  >
+    <path
+      d="M8 2V5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M16 2V5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M3.5 9.18412C3.5 6.45261 3.5 5.08726 4.30232 4.10825C5.10464 3.12924 6.35703 2.92429 8.86182 2.5144C10.6865 2.21583 13.3135 2.21583 15.1382 2.5144C17.643 2.92429 18.8954 3.12924 19.6977 4.10825C20.5 5.08726 20.5 6.45262 20.5 9.18413V15.8159C20.5 18.5474 20.5 19.9127 19.6977 20.8918C18.8954 21.8708 17.643 22.0757 15.1382 22.4856C13.3135 22.7842 10.6865 22.7842 8.86182 22.4856C6.35703 22.0757 5.10464 21.8708 4.30232 20.8918C3.5 19.9127 3.5 18.5474 3.5 15.8159V9.18412Z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    />
+    <path
+      opacity="0.5"
+      d="M8 12H16"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <path
+      opacity="0.5"
+      d="M8 16H13"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const ItemsIcon: React.FC<IconProps> = ({ className, ...props }) => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn("h-4 w-4", className)}
+    {...props}
+  >
+    <path
+      d="M8 6L20 6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M4 6.01L4.01 5.99889"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M4 12.01L4.01 11.9989"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M4 18.01L4.01 17.9989"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M8 12L20 12"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M8 18L20 18"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);

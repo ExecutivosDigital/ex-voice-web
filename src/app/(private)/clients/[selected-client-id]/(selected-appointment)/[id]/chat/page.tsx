@@ -1,6 +1,5 @@
 "use client";
 
-import { AudioPlayer } from "@/components/chatPopup/AudioPlayer";
 import { useSectionChat } from "@/components/chatPopup/chat-handler";
 import { Prompt } from "@/components/chatPopup/types";
 import { useSession } from "@/context/auth";
@@ -15,8 +14,7 @@ import {
   Maximize2,
   Minimize2,
   Plus,
-  Stethoscope, // Análise de Sintoma
-  X,
+  Stethoscope,
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -57,9 +55,9 @@ export default function ChatPage() {
     isRecording,
     startRecording,
     stopRecording,
-    file,
-    setFile,
-    loading, // Assuming loading is available or safely ignored if not used by hook
+    files,
+    setFiles,
+    loading,
   } = useSectionChat({ selectedPrompt: hookPrompt });
 
   // Auto-scroll to bottom
@@ -117,6 +115,7 @@ export default function ChatPage() {
   const handleNewChat = () => {
     setMessages([]);
     setInputMessage("");
+    setSelectedSuggestion(null);
   };
 
   useEffect(() => {
@@ -150,10 +149,17 @@ export default function ChatPage() {
     }
   }, [messages.length, selectedRecording]);
 
+  const styles = {
+    iconGradient: "bg-gradient-to-br from-sky-500 to-blue-600",
+    border: "border-sky-200",
+  };
+
+  const isChatEmpty = messages.filter((m) => m.role !== "system").length === 0;
+
   return (
     <div
       className={`flex w-full flex-col gap-6 ${
-        isExpanded ? "" : "h-[calc(100vh-19rem)] overflow-hidden"
+        isExpanded ? "" : "h-[calc(100vh-10rem)] overflow-hidden"
       }`}
     >
       {/* Header Standardized - STATIC */}
@@ -167,7 +173,7 @@ export default function ChatPage() {
           </p>
         </div>
 
-        {messages.length > 0 && (
+        {!isChatEmpty && (
           <button
             onClick={handleNewChat}
             className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 active:scale-95"
@@ -199,16 +205,16 @@ export default function ChatPage() {
 
         {/* Suggestion Mode Overlay */}
         {selectedSuggestion && (
-          <div className="absolute top-6 left-6 z-10 flex items-center gap-3 rounded-xl bg-white/90 p-2 shadow-sm backdrop-blur-sm transition-all hover:shadow-md">
+          <div className="animate-in fade-in slide-in-from-top-4 absolute top-6 left-6 z-10 flex items-center gap-3 duration-300">
             <button
               onClick={handleBack}
-              className="group flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-gray-200"
+              className="group hover:bg-primary flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition-all hover:text-white active:scale-95"
             >
-              <ArrowLeft className="h-4 w-4 text-gray-600 transition-transform group-hover:-translate-x-0.5" />
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             </button>
-            <div className="flex items-center gap-2 pr-2">
-              <selectedSuggestion.icon className="h-4 w-4 text-sky-600" />
-              <span className="text-sm font-semibold text-gray-800">
+            <div className="border-primary flex items-center gap-2 rounded-full border bg-white/80 px-4 py-2 shadow-sm backdrop-blur-md">
+              <selectedSuggestion.icon className="text-primary h-4 w-4" />
+              <span className="text-sm font-semibold text-gray-700">
                 {selectedSuggestion.title}
               </span>
             </div>
@@ -216,9 +222,57 @@ export default function ChatPage() {
         )}
 
         {/* Scrollable Area */}
-        <div className="scrollbar-hide flex-1 overflow-y-auto scroll-smooth p-6">
-          {!selectedSuggestion && messages.length <= 1 ? (
+        <div
+          className={cn(
+            "scrollbar-hide relative flex-1 p-6",
+            isChatEmpty && !selectedSuggestion
+              ? "overflow-hidden"
+              : "overflow-y-auto scroll-smooth",
+          )}
+        >
+          {!selectedSuggestion && isChatEmpty ? (
             <div className="flex h-full flex-col">
+              <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+                <div className="flex flex-col items-center gap-6">
+                  <div
+                    className={cn(
+                      "flex h-20 w-20 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110",
+                      styles.iconGradient,
+                    )}
+                  >
+                    <Image
+                      className="h-12 w-12"
+                      src={"/logos/iconWhite.png"}
+                      alt="Icon"
+                      width={48}
+                      height={48}
+                    />
+                  </div>
+                  <div className="max-w-md space-y-2">
+                    <h3 className="text-2xl font-semibold text-black">
+                      Comece uma conversa
+                    </h3>
+                    <p className="text-gray-500">
+                      Selecione uma das sugestões abaixo ou digite sua própria
+                      pergunta para começar.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="z-20 mt-6 w-full max-w-2xl px-4">
+                  <ChatInput
+                    value={inputMessage}
+                    onChange={setInputMessage}
+                    onSend={() => handleSendMessage()}
+                    isRecording={isRecording}
+                    onRecordStart={startRecording}
+                    onRecordStop={stopRecording}
+                    isLoading={loading}
+                    files={files}
+                    onFilesChange={setFiles}
+                  />
+                </div>
+              </div>
               <div className="mt-auto py-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {suggestions.map((suggestion, index) => (
@@ -226,46 +280,26 @@ export default function ChatPage() {
                       key={index}
                       index={index}
                       title={suggestion.title}
-                      description={suggestion.description}
                       icon={suggestion.icon}
                       onClick={() => handleSuggestionClick(suggestion)}
                     />
                   ))}
                 </div>
               </div>
-              <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center opacity-60">
-                <div
-                  className={cn(
-                    "flex h-20 w-20 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110",
-                    "bg-gradient-to-br from-sky-500 to-blue-600",
-                  )}
-                >
-                  <Image
-                    className="h-12 w-12"
-                    src={"/logos/iconWhite.png"}
-                    alt="Icon"
-                    width={48}
-                    height={48}
-                  />
-                </div>
-                <div className="max-w-md space-y-2">
-                  <h3 className="text-2xl font-semibold text-gray-700">
-                    Comece uma conversa
-                  </h3>
-                  <p className="text-gray-500">
-                    Selecione uma das sugestões abaixo ou digite sua própria
-                    pergunta sobre esta consulta.
-                  </p>
-                </div>
-              </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-4 py-2 pt-12">
-              {messages.length <= 1 && selectedSuggestion && (
-                <div className="flex h-full flex-col items-center justify-center opacity-40">
-                  <selectedSuggestion.icon className="mb-2 h-12 w-12 text-gray-300" />
-                  <p className="text-sm text-gray-400">
-                    Modo {selectedSuggestion.title} ativado
+            <div className="flex min-h-full flex-col gap-4 py-2 pt-12">
+              {/* If just starting a suggestion mode but no messages yet */}
+              {isChatEmpty && selectedSuggestion && (
+                <div className="animate-in fade-in zoom-in-95 flex flex-1 flex-col items-center justify-center duration-500">
+                  <div className="bg-primary mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white">
+                    <selectedSuggestion.icon className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Modo {selectedSuggestion.title} Ativado
+                  </h3>
+                  <p className="mt-1 max-w-xs text-center text-sm text-gray-500">
+                    {selectedSuggestion.prompt.replace(":", "...")}
                   </p>
                 </div>
               )}
@@ -284,45 +318,21 @@ export default function ChatPage() {
           )}
         </div>
 
-        <div className="border-t border-gray-100 bg-gray-50/50">
-          {/* File Preview Area */}
-          {file && (
-            <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white/50 px-4 py-2">
-              <div className="flex flex-1 items-center gap-2 overflow-hidden">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
-                  <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-                </div>
-                <span className="truncate text-xs font-medium text-gray-500">
-                  Áudio anexado
-                </span>
-              </div>
-
-              <div className="h-8 w-32">
-                <AudioPlayer
-                  audioUrl={URL.createObjectURL(file)}
-                  className="h-full w-full"
-                />
-              </div>
-
-              <button
-                onClick={() => setFile(null)}
-                className="rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-200"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-
-          <ChatInput
-            value={inputMessage}
-            onChange={setInputMessage}
-            onSend={() => handleSendMessage()}
-            isRecording={isRecording}
-            onRecordStart={startRecording}
-            onRecordStop={stopRecording}
-            isLoading={typeof loading !== "undefined" ? loading : false}
-          />
-        </div>
+        {(!isChatEmpty || selectedSuggestion) && (
+          <div className="border-t border-gray-100 bg-gray-50/50">
+            <ChatInput
+              value={inputMessage}
+              onChange={setInputMessage}
+              onSend={() => handleSendMessage()}
+              isRecording={isRecording}
+              onRecordStart={startRecording}
+              onRecordStop={stopRecording}
+              isLoading={typeof loading !== "undefined" ? loading : false}
+              files={files}
+              onFilesChange={setFiles}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

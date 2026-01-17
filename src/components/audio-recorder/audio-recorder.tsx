@@ -1,3 +1,4 @@
+import { ClientProps } from "@/@types/general-client";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
@@ -46,11 +47,19 @@ const getMediaTypeFromMetadata = (metadata: {
 interface AudioRecorderProps {
   buttonClassName: string;
   skipToClient?: boolean;
+  customLabel?: string;
+  customIcon?: React.ComponentType<{ className?: string }>;
+  initialClientId?: string;
+  forcePersonalType?: "REMINDER" | "STUDY" | "OTHER";
 }
 
 export function AudioRecorder({
   buttonClassName,
   skipToClient,
+  customLabel,
+  customIcon: CustomIcon,
+  initialClientId,
+  forcePersonalType,
 }: AudioRecorderProps) {
   const { GetRecordings, clients, selectedClient } = useGeneralContext();
   const { PostAPI } = useApiContext();
@@ -58,6 +67,34 @@ export function AudioRecorder({
   const [isCreateClientSheetOpen, setIsCreateClientSheetOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [tempCreatedClient, setTempCreatedClient] =
+    useState<ClientProps | null>(null);
+  const [pendingClientName, setPendingClientName] = useState<string | null>(
+    null,
+  ); // New strategy
+  const resetRecorderRef = useRef(() => {});
+  const {
+    currentStep,
+    setCurrentStep,
+    metadata,
+    updateMetadata,
+    error,
+    setError,
+    validateForm,
+    resetFlow,
+    openSaveDialog,
+  } = useRecordingFlow(resetRecorderRef.current);
+  useEffect(() => {
+    if (pendingClientName && clients.length > 0) {
+      const found = clients.find((c) => c.name === pendingClientName);
+      if (found) {
+        console.log("DEBUG: Found pending client in list:", found);
+        updateMetadata({ selectedClientId: found.id });
+        setPendingClientName(null); // Clear pending
+        setTempCreatedClient(null); // Clear temp fallback if real one exists
+      }
+    }
+  }, [clients, pendingClientName, updateMetadata]);
 
   useEffect(() => {
     setMounted(true);
@@ -78,19 +115,9 @@ export function AudioRecorder({
   // 3. Declaramos o recorder.
   // 4. Atualizamos o placeholder para a função real do recorder.
 
-  const resetRecorderRef = useRef(() => {}); // Placeholder para recorder.resetRecording
+  // Placeholder para recorder.resetRecording
 
-  const {
-    currentStep,
-    setCurrentStep,
-    metadata,
-    updateMetadata,
-    error,
-    setError,
-    validateForm,
-    resetFlow,
-    openSaveDialog,
-  } = useRecordingFlow(resetRecorderRef.current); // ← Passando o placeholder
+  // ← Passando o placeholder
 
   // NOVO: Derivando o tipo de mídia, agora que 'metadata' está disponível
   const currentMediaType = getMediaTypeFromMetadata(metadata);
@@ -656,13 +683,33 @@ export function AudioRecorder({
                           <div className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-4 py-3">
                             <input
                               type="text"
-                              value={
-                                metadata.selectedClientId
-                                  ? clients.find(
-                                      (c) => c.id === metadata.selectedClientId,
-                                    )?.name
-                                  : "Selecione um Paciente"
-                              }
+                              value={(() => {
+                                const foundInList = clients.find(
+                                  (c) => c.id === metadata.selectedClientId,
+                                );
+                                const foundInTemp =
+                                  tempCreatedClient?.id ===
+                                  metadata.selectedClientId
+                                    ? tempCreatedClient
+                                    : null;
+
+                                console.log(
+                                  "DEBUG: Rendering Input - ID:",
+                                  metadata.selectedClientId,
+                                );
+                                console.log(
+                                  "DEBUG: Found in list:",
+                                  foundInList,
+                                );
+                                console.log(
+                                  "DEBUG: Found in temp:",
+                                  foundInTemp,
+                                );
+
+                                return metadata.selectedClientId
+                                  ? foundInList?.name || foundInTemp?.name || ""
+                                  : "Selecione um Paciente";
+                              })()}
                               className="w-full cursor-pointer text-black outline-none"
                               required
                               readOnly
@@ -672,7 +719,7 @@ export function AudioRecorder({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           side="top"
-                          className="z-[9999] h-80 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-scroll"
+                          className="z-[999999] h-80 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-scroll"
                           onWheel={(e) => e.stopPropagation()}
                         >
                           <DropdownMenuItem
@@ -683,9 +730,9 @@ export function AudioRecorder({
                             Cadastrar Novo Paciente
                           </DropdownMenuItem>
                           {clients.length !== 0 ? (
-                            clients.map((client) => (
+                            clients.map((client, index) => (
                               <DropdownMenuItem
-                                key={client.id}
+                                key={client.id || index}
                                 className={cn(
                                   "hover:bg-neutral-200",
                                   metadata.selectedClientId === client.id
@@ -698,7 +745,7 @@ export function AudioRecorder({
                                   })
                                 }
                               >
-                                {client.name}
+                                {client?.name}
                               </DropdownMenuItem>
                             ))
                           ) : (
@@ -993,6 +1040,21 @@ export function AudioRecorder({
           isOpen={isCreateClientSheetOpen}
           onClose={() => setIsCreateClientSheetOpen(false)}
           className="text-black"
+          onClientCreated={(client) => {
+            console.log("DEBUG: AudioRecorder received client:", client);
+            // Fallback for immediate ID if available (unlikely given previous errors)
+            if (client?.id) {
+              updateMetadata({ selectedClientId: client.id });
+            }
+
+            // Strategy: Set name as pending and wait for list update
+            if (client?.name) {
+              console.log("DEBUG: Setting pendingClientName:", client.name);
+              setPendingClientName(client.name);
+              // Also set temp for immediate visual feedback (even without ID)
+              setTempCreatedClient(client);
+            }
+          }}
         />
       )}
     </>
