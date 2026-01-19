@@ -3,6 +3,7 @@
 import { cn } from "@/utils/cn";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlarmClock, Bell, Check, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { FeatureIcon } from "@/components/ui/feature-icon";
 import { useState, useRef, useEffect } from "react";
 
 interface Reminder {
@@ -91,9 +92,7 @@ export function UpcomingReminders({
             {/* Header Clean */}
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 shadow-md shadow-blue-500/20">
-                        <Bell className="h-5 w-5 text-white" />
-                    </div>
+                    <FeatureIcon icon={Bell} className="h-10 w-10 shadow-md shadow-black/5" />
                     <div>
                         <h3 className="text-lg font-bold text-gray-800 tracking-tight">
                             Lembretes
@@ -107,7 +106,7 @@ export function UpcomingReminders({
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleAdd}
-                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-sky-500/25 active:scale-95"
+                        className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-black px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-black/25 active:scale-95"
                     >
                         <Plus className="h-3.5 w-3.5" />
                         Novo
@@ -160,7 +159,7 @@ export function UpcomingReminders({
                                 className={cn(
                                     "group relative flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all duration-200",
                                     reminder.status === "pending"
-                                        ? "border-transparent bg-gray-50/80 hover:border-sky-100 hover:bg-white hover:shadow-sm"
+                                        ? "border-transparent bg-gray-50/80 hover:border-gray-200 hover:bg-white hover:shadow-sm"
                                         : reminder.status === "completed"
                                             ? "border-transparent bg-green-50/40 opacity-75"
                                             : "border-transparent bg-red-50/40 opacity-75"
@@ -177,12 +176,12 @@ export function UpcomingReminders({
                                                 type="time"
                                                 value={tempTime}
                                                 onChange={(e) => setTempTime(e.target.value)}
-                                                className="w-16 rounded bg-gray-50 px-1 py-0.5 text-xs font-semibold text-gray-700 outline-none focus:ring-1 focus:ring-sky-400"
+                                                className="w-16 rounded bg-gray-50 px-1 py-0.5 text-xs font-semibold text-gray-700 outline-none focus:ring-1 focus:ring-gray-400"
                                                 autoFocus
                                             />
                                             <button
                                                 onClick={() => updateTime(reminder.id)}
-                                                className="rounded bg-sky-500 p-0.5 text-white hover:bg-sky-600"
+                                                className="rounded bg-primary p-0.5 text-white hover:opacity-90 transition-opacity"
                                             >
                                                 <Check className="h-3 w-3" />
                                             </button>
@@ -199,7 +198,7 @@ export function UpcomingReminders({
                                             className={cn(
                                                 "flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold transition-colors",
                                                 reminder.status === 'pending'
-                                                    ? "bg-white text-gray-600 shadow-sm ring-1 ring-gray-200 group-hover:text-blue-600 group-hover:ring-sky-200"
+                                                    ? "bg-white text-gray-600 shadow-sm ring-1 ring-gray-200 group-hover:text-primary group-hover:ring-gray-300"
                                                     : reminder.status === 'completed'
                                                         ? "bg-green-100 text-green-700 hover:bg-green-200"
                                                         : "bg-red-100 text-red-700 hover:bg-red-200"

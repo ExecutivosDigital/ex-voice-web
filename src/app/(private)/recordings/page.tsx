@@ -60,7 +60,7 @@ export default function Recordings() {
               className={cn(
                 "flex h-10 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-all",
                 currentType === "CLIENT"
-                  ? "bg-white text-blue-600 shadow-sm ring-1 ring-gray-100"
+                  ? "bg-white text-primary shadow-sm ring-1 ring-gray-100"
                   : "text-gray-500 hover:bg-gray-100/50 hover:text-gray-700",
               )}
             >
@@ -77,7 +77,7 @@ export default function Recordings() {
               className={cn(
                 "flex h-10 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-all",
                 currentType === "REMINDER"
-                  ? "bg-white text-blue-600 shadow-sm ring-1 ring-gray-100"
+                  ? "bg-white text-primary shadow-sm ring-1 ring-gray-100"
                   : "text-gray-500 hover:bg-gray-100/50 hover:text-gray-700",
               )}
             >
@@ -94,7 +94,7 @@ export default function Recordings() {
               className={cn(
                 "flex h-10 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-all",
                 currentType === "STUDY"
-                  ? "bg-white text-blue-600 shadow-sm ring-1 ring-gray-100"
+                  ? "bg-white text-primary shadow-sm ring-1 ring-gray-100"
                   : "text-gray-500 hover:bg-gray-100/50 hover:text-gray-700",
               )}
             >
@@ -111,7 +111,7 @@ export default function Recordings() {
               className={cn(
                 "flex h-10 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-all",
                 currentType === "OTHER"
-                  ? "bg-white text-blue-600 shadow-sm ring-1 ring-gray-100"
+                  ? "bg-white text-primary shadow-sm ring-1 ring-gray-100"
                   : "text-gray-500 hover:bg-gray-100/50 hover:text-gray-700",
               )}
             >

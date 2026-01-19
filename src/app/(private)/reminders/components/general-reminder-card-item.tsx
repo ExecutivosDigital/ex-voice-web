@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Calendar, ChevronRight, Clock, FileAudio } from "lucide-react";
 import moment from "moment";
 import { useRouter } from "next/navigation";
+import { FeatureIcon } from "@/components/ui/feature-icon";
 
 interface Props {
   reminder: RecordingDetailsProps;
@@ -33,9 +34,7 @@ export function GeneralReminderCardItem({ reminder, index }: Props) {
       {/* Header with Icon and Title */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-row items-center justify-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-blue-500/20 transition-transform group-hover:scale-105">
-            <FileAudio className="h-5 w-5 text-white" />
-          </div>
+          <FeatureIcon icon={FileAudio} className="h-10 w-10 shadow-md shadow-black/5" />
           <div className="flex flex-col">
             <h3 className="group-hover:text-primary line-clamp-1 text-base font-bold text-gray-800 transition-colors">
               {reminder.name || "Sem título"}

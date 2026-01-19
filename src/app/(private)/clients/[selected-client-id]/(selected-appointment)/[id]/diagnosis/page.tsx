@@ -7,9 +7,9 @@ export default function DiagnosisPage() {
     <div className="flex w-full flex-col gap-6">
       <div className="flex w-full items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Diagnóstico</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Detalhes</h1>
           <p className="text-sm text-gray-500">
-            Visualize a hipótese diagnóstica e detalhes clínicos.
+            Visualize os detalhes da Reunião.
           </p>
         </div>
       </div>

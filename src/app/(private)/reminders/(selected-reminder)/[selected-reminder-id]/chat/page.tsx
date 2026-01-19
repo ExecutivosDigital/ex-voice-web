@@ -42,10 +42,10 @@ export default function ChatPage() {
 
   const hookPrompt: Prompt | undefined = selectedSuggestion
     ? {
-        id: "transcription-prompt",
-        name: selectedSuggestion.title,
-        prompt: selectedSuggestion.prompt,
-      }
+      id: "transcription-prompt",
+      name: selectedSuggestion.title,
+      prompt: selectedSuggestion.prompt,
+    }
     : selectedPrompt;
 
   const {
@@ -159,9 +159,8 @@ export default function ChatPage() {
 
   return (
     <div
-      className={`flex w-full flex-col gap-6 ${
-        isExpanded ? "" : "h-[calc(100vh-10rem)] overflow-hidden"
-      }`}
+      className={`flex w-full flex-col gap-6 ${isExpanded ? "" : "h-[calc(100vh-10rem)] overflow-hidden"
+        }`}
     >
       {/* Header Standardized - STATIC */}
       <div className="flex w-full items-center justify-between">
@@ -187,9 +186,8 @@ export default function ChatPage() {
 
       {/* Chat Container */}
       <div
-        className={`relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 ease-in-out ${
-          isExpanded ? "h-[95vh]" : "min-h-0 flex-1"
-        }`}
+        className={`relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 ease-in-out ${isExpanded ? "h-[95vh]" : "min-h-0 flex-1"
+          }`}
       >
         {/* Toggle Expand Button - Top Right */}
         <button

@@ -40,10 +40,10 @@ export default function ChatPage() {
 
   const hookPrompt: Prompt | undefined = selectedSuggestion
     ? {
-        id: "appointment-prompt",
-        name: selectedSuggestion.title,
-        prompt: selectedSuggestion.prompt,
-      }
+      id: "appointment-prompt",
+      name: selectedSuggestion.title,
+      prompt: selectedSuggestion.prompt,
+    }
     : selectedPrompt;
 
   const {
@@ -150,17 +150,16 @@ export default function ChatPage() {
   }, [messages.length, selectedRecording]);
 
   const styles = {
-    iconGradient: "bg-gradient-to-br from-sky-500 to-blue-600",
-    border: "border-sky-200",
+    iconGradient: "bg-gradient-to-br from-primary to-black",
+    border: "border-zinc-200",
   };
 
   const isChatEmpty = messages.filter((m) => m.role !== "system").length === 0;
 
   return (
     <div
-      className={`flex w-full flex-col gap-6 ${
-        isExpanded ? "" : "h-[calc(100vh-10rem)] overflow-hidden"
-      }`}
+      className={`flex w-full flex-col gap-6 ${isExpanded ? "" : "h-[calc(100vh-10rem)] overflow-hidden"
+        }`}
     >
       {/* Header Standardized - STATIC */}
       <div className="flex w-full items-center justify-between">
@@ -176,7 +175,7 @@ export default function ChatPage() {
         {!isChatEmpty && (
           <button
             onClick={handleNewChat}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 active:scale-95"
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-black px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-zinc-500/25 transition-all hover:shadow-zinc-500/40 active:scale-95"
           >
             <Plus className="h-4 w-4" />
             Nova Conversa
@@ -186,9 +185,8 @@ export default function ChatPage() {
 
       {/* Chat Container */}
       <div
-        className={`relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 ease-in-out ${
-          isExpanded ? "h-[95vh]" : "min-h-0 flex-1"
-        }`}
+        className={`relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 ease-in-out ${isExpanded ? "h-[95vh]" : "min-h-0 flex-1"
+          }`}
       >
         {/* Toggle Expand Button - Top Right */}
         <button
@@ -236,15 +234,15 @@ export default function ChatPage() {
                 <div className="flex flex-col items-center gap-6">
                   <div
                     className={cn(
-                      "flex h-20 w-20 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110",
+                      "flex h-20 w-32 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 px-4",
                       styles.iconGradient,
                     )}
                   >
                     <Image
-                      className="h-12 w-12"
-                      src={"/logos/iconWhite.png"}
-                      alt="Icon"
-                      width={48}
+                      className="h-full w-full object-contain"
+                      src={"/logos/logo-2A.png"}
+                      alt="Logo"
+                      width={120}
                       height={48}
                     />
                   </div>

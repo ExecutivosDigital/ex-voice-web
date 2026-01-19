@@ -72,7 +72,7 @@ export function AudioRecorder({
   const [pendingClientName, setPendingClientName] = useState<string | null>(
     null,
   ); // New strategy
-  const resetRecorderRef = useRef(() => {});
+  const resetRecorderRef = useRef(() => { });
   const {
     currentStep,
     setCurrentStep,
@@ -689,7 +689,7 @@ export function AudioRecorder({
                                 );
                                 const foundInTemp =
                                   tempCreatedClient?.id ===
-                                  metadata.selectedClientId
+                                    metadata.selectedClientId
                                     ? tempCreatedClient
                                     : null;
 
@@ -724,7 +724,7 @@ export function AudioRecorder({
                         >
                           <DropdownMenuItem
                             onSelect={() => setIsCreateClientSheetOpen(true)}
-                            className="sticky top-0 z-10 mb-2 flex items-center justify-start gap-2 border-b border-gray-100 bg-white py-3 font-semibold text-blue-600 hover:bg-neutral-50"
+                            className="sticky top-0 z-10 mb-2 flex items-center justify-start gap-2 border-b border-gray-100 bg-white py-3 font-semibold text-black hover:bg-neutral-50"
                           >
                             <UserPlus size={16} />
                             Cadastrar Novo Paciente

@@ -40,11 +40,11 @@ export function GeneralClientTableItem({ client }: Props) {
     <TableRow
       onClick={handleNavigation}
       key={client.id}
-      className="group h-20 cursor-pointer border-b border-gray-50 transition-all duration-200 hover:bg-sky-50/30"
+      className="group h-20 cursor-pointer border-b border-gray-50 transition-all duration-200 hover:bg-gray-50"
     >
       <TableCell className="py-4 pl-4 text-start">
         <div className="flex items-center gap-4">
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-blue-500/20 transition-transform group-hover:scale-105">
+          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-black text-white shadow-md shadow-black/20 transition-transform group-hover:scale-105">
             <span className="text-sm font-bold">
               {client.name?.slice(0, 2).toUpperCase()}
             </span>

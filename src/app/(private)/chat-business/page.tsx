@@ -40,10 +40,10 @@ export default function ChatBusiness() {
   // Derive the prompt object for the hook
   const hookPrompt: Prompt | undefined = selectedSuggestion
     ? {
-        id: "business-prompt",
-        name: selectedSuggestion.title,
-        prompt: selectedSuggestion.prompt,
-      }
+      id: "business-prompt",
+      name: selectedSuggestion.title,
+      prompt: selectedSuggestion.prompt,
+    }
     : undefined;
 
   const {
@@ -69,7 +69,7 @@ export default function ChatBusiness() {
 
   const suggestions = [
     {
-      title: "Análise de Exames com Imagem",
+      title: "Análise de Imagens",
       description:
         "Envie a foto de um exame para identificar padrões e transcrever os achados clínicos principais.",
       icon: Camera, // Certifique-se de importar o ícone Camera ou Similar
@@ -85,7 +85,7 @@ export default function ChatBusiness() {
         "Atue como um analista clínico sênior. Com base nos dados do exame de sangue ou laboratorial fornecidos, compare os resultados com os valores de referência padrão. Explique a função de cada biomarcador alterado e quais são as possíveis causas fisiológicas para esses níveis. Apresente as informações de forma estruturada em tópicos. Nota: Ressalte que este relatório não é um diagnóstico definitivo.",
     },
     {
-      title: "Ajuda para Diagnóstico",
+      title: "Ajuda para Detalhes",
       description:
         "Descreva sintomas e histórico para obter uma análise de possíveis hipóteses diagnósticas.",
       icon: Stethoscope, // Certifique-se de importar o ícone Stethoscope
@@ -131,8 +131,8 @@ export default function ChatBusiness() {
     }
   };
   const styles = {
-    iconGradient: "bg-gradient-to-br from-sky-500 to-blue-600",
-    border: "border-sky-200",
+    iconGradient: "bg-gradient-to-br from-primary to-black",
+    border: "border-zinc-200",
   };
 
   const isChatEmpty = messages.length === 0;
@@ -187,7 +187,7 @@ export default function ChatBusiness() {
           <div className="lg:hidden">
             <button
               onClick={handleNewChat}
-              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 active:scale-95"
+              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-black px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-zinc-500/25 transition-all hover:shadow-zinc-500/40 active:scale-95"
             >
               <Plus className="h-4 w-4" />
               Nova Conversa
@@ -197,9 +197,8 @@ export default function ChatBusiness() {
 
         {/* Chat Container - Fixed Layout */}
         <div
-          className={`relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 ease-in-out ${
-            isExpanded ? "h-[90vh]" : "flex-1"
-          }`}
+          className={`relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 ease-in-out ${isExpanded ? "h-[90vh]" : "flex-1"
+            }`}
         >
           {/* Toggle Expand Button - Top Right */}
           <button
@@ -247,16 +246,16 @@ export default function ChatBusiness() {
                   <div className="flex flex-col items-center gap-6">
                     <div
                       className={cn(
-                        "flex h-20 w-20 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110",
+                        "flex h-20 w20 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 px-4",
                         styles.iconGradient,
                       )}
                     >
                       <Image
-                        className="h-12 w-12"
-                        src={"/logos/iconWhite.png"}
-                        alt="Icon"
-                        width={48}
-                        height={48}
+                        className="h-12 w-12 object-contain"
+                        src={"/logos/logo-2A.png"}
+                        alt="Logo"
+                        width={60}
+                        height={60}
                       />
                     </div>
                     <div className="max-w-md space-y-2">

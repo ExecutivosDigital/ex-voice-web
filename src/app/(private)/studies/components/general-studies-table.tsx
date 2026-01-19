@@ -1,5 +1,5 @@
 "use client";
-import { AudioRecorder } from "@/components/audio-recorder/audio-recorder";
+
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import {
   Table,
@@ -10,14 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/blocks/table";
 import { useGeneralContext } from "@/context/GeneralContext";
-import { cn } from "@/utils/cn";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { GeneralStudiesTableItem } from "./general-studies-table-row";
-
-type SortableColumn = "NAME" | "CREATED_AT" | "DURATION" | null;
-
-type SortDirection = "ASC" | "DESC" | null;
 
 export function GeneralStudiesTable() {
   const {
@@ -28,147 +22,80 @@ export function GeneralStudiesTable() {
     recordingsTotalPages,
   } = useGeneralContext();
 
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [sortColumn, setSortColumn] = useState<SortableColumn>(null);
-
-  const GeneralRecordingsColumns = [
-    { key: "NAME", label: "Título da Gravação", sortable: true },
-    { key: "CREATED_AT", label: "Horário da Gravação", sortable: true },
-    { key: "DURATION", label: "Tempo de Gravação", sortable: true },
-    { key: "ACTIONS", label: "Ações", sortable: false },
-  ];
-
-  const applySortToFilters = (
-    column: SortableColumn,
-    direction: SortDirection,
-  ) => {
-    const sortField = direction ? column : undefined;
-    const sortOrder = direction || undefined;
-
-    setRecordingsFilters((prev) => ({
-      ...prev,
-      sortBy: (sortField as SortableColumn | undefined) || undefined,
-      sortDirection: sortOrder || undefined,
-      page: 1,
-    }));
-  };
-
-  const handleSort = (column: SortableColumn) => {
-    if (sortColumn === column) {
-      const next =
-        sortDirection === "ASC"
-          ? "DESC"
-          : sortDirection === "DESC"
-            ? null
-            : "ASC";
-      setSortDirection(next || null);
-      setSortColumn(next ? column : null);
-      applySortToFilters(column, next);
-    } else {
-      setSortColumn(column);
-      setSortDirection("ASC");
-      applySortToFilters(column, "ASC");
-    }
-  };
-
-  const getSortIcon = (column: SortableColumn) => {
-    if (sortColumn !== column)
-      return <ChevronUp className="h-4 w-4 text-gray-300" />;
-    if (sortDirection === "ASC")
-      return <ChevronUp className="h-4 w-4 text-gray-600" />;
-    if (sortDirection === "DESC")
-      return <ChevronDown className="h-4 w-4 text-gray-600" />;
-    return <ChevronUp className="h-4 w-4 text-gray-300" />;
-  };
-
   useEffect(() => {
     setRecordingsFilters((prev) => ({
       ...prev,
-      clientId: undefined,
-      query: undefined,
-      sortBy: undefined,
-      sortDirection: undefined,
       type: "STUDY",
+      clientId: undefined,
       page: 1,
     }));
-  }, []);
+  }, [setRecordingsFilters]);
+
+  const columns = [
+    { label: "Título da Gravação", width: "40%" },
+    { label: "Horário", width: "15%" },
+    { label: "Duração", width: "15%" },
+    { label: "Ações", width: "30%", align: "text-end" as const },
+  ];
+
+  if (isGettingRecordings) {
+    return (
+      <div className="w-full space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-20 animate-pulse rounded-2xl bg-gray-50" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!isGettingRecordings && recordings.length === 0) {
+    return (
+      <div className="flex h-64 items-center justify-center rounded-2xl border-2 border-dashed border-gray-100 bg-white p-12 text-center">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Nenhum estudo encontrado</h3>
+          <p className="mt-2 text-gray-500">
+            Você ainda não possui gravações de estudos.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      {/* <GeneralStudiesTableHeader /> */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <Table wrapperClass="h-full">
-          <TableHeader>
-            <TableRow className="gap-1 bg-slate-100 hover:bg-slate-100">
-              {GeneralRecordingsColumns.map((column) => (
-                <TableHead
-                  key={column.key}
-                  className={cn(
-                    "h-12 text-xs font-semibold tracking-wider text-slate-600 uppercase",
-                    column.sortable &&
-                      "cursor-pointer select-none hover:text-slate-800",
-                  )}
-                  onClick={() =>
-                    column.sortable && handleSort(column.key as SortableColumn)
-                  }
-                >
-                  <div
-                    className={cn(
-                      "flex w-max items-center gap-2",
-                      column.key === "ACTIONS" && "w-full justify-end",
-                    )}
-                  >
-                    {column.label}
-                    {column.sortable &&
-                      getSortIcon(column.key as SortableColumn)}
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody className="relative">
-            {isGettingRecordings
-              ? Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    {GeneralRecordingsColumns.map((col, idx) => (
-                      <TableCell
-                        key={idx}
-                        className="h-14 animate-pulse bg-zinc-50"
-                      />
-                    ))}
-                  </TableRow>
-                ))
-              : !isGettingRecordings && recordings.length !== 0
-                ? recordings.map((row) => (
-                    <GeneralStudiesTableItem key={row.id} recording={row} />
-                  ))
-                : !isGettingRecordings &&
-                  recordings.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={GeneralRecordingsColumns.length}
-                        className="h-24"
-                      >
-                        <div className="flex items-start text-start">
-                          <AudioRecorder buttonClassName="bg-primary hover:bg-primary/95 text-white mx-auto" />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-          </TableBody>
-        </Table>
-        {!isGettingRecordings && recordingsTotalPages > 1 && (
-          <div className="border-t border-t-zinc-200 p-2">
-            <CustomPagination
-              currentPage={recordingsFilters.page}
-              setCurrentPage={(page: number) =>
-                setRecordingsFilters((prev) => ({ ...prev, page }))
-              }
-              pages={recordingsTotalPages}
-            />
-          </div>
-        )}
-      </div>
-    </>
+    <div className="flex w-full flex-col gap-4">
+      <Table wrapperClass="rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-sm">
+        <TableHeader>
+          <TableRow className="bg-gray-50/50">
+            {columns.map((col, i) => (
+              <TableHead
+                key={i}
+                className={`py-4 text-xs font-bold tracking-wider text-gray-400 uppercase ${i === 0 ? "pl-6" : ""
+                  } ${i === columns.length - 1 ? "pr-6 text-end" : "text-start"}`}
+                style={{ width: col.width }}
+              >
+                {col.label}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {recordings.map((recording) => (
+            <GeneralStudiesTableItem key={recording.id} recording={recording} />
+          ))}
+        </TableBody>
+      </Table>
+
+      {!isGettingRecordings && recordingsTotalPages > 1 && (
+        <div className="mt-2 flex justify-center border-t border-gray-100 pt-4">
+          <CustomPagination
+            currentPage={recordingsFilters.page}
+            setCurrentPage={(page) =>
+              setRecordingsFilters((prev) => ({ ...prev, page }))
+            }
+            pages={recordingsTotalPages}
+          />
+        </div>
+      )}
+    </div>
   );
 }

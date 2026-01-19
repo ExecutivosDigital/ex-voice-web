@@ -14,6 +14,7 @@ import {
     Share2,
     User
 } from "lucide-react";
+import { FeatureIcon } from "@/components/ui/feature-icon";
 import { useState } from "react";
 
 interface Recording {
@@ -136,9 +137,7 @@ export function ContentPanel({ className }: ContentPanelProps) {
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 shadow-md shadow-blue-500/20">
-                        <FileText className="h-5 w-5 text-white" />
-                    </div>
+                    <FeatureIcon icon={FileText} className="h-10 w-10 shadow-md shadow-black/5" />
                     <div>
                         <h3 className="text-lg font-bold text-gray-800 tracking-tight">
                             Últimas Gravações
@@ -149,7 +148,7 @@ export function ContentPanel({ className }: ContentPanelProps) {
                     </div>
                 </div>
 
-                <button className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-sky-500/25 active:scale-95">
+                <button className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-black px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-black/25 active:scale-95">
                     Ver todas
                     <ChevronRight className="h-3 w-3" />
                 </button>
@@ -165,7 +164,7 @@ export function ContentPanel({ className }: ContentPanelProps) {
                         placeholder="Buscar..."
                         value={searchTerm}
                         onChange={handleSearch}
-                        className="w-full rounded-lg border border-gray-100 bg-gray-50 py-1.5 pl-8 pr-3 text-xs text-gray-700 outline-none transition-all placeholder:text-gray-400 focus:border-sky-200 focus:bg-white focus:ring-1 focus:ring-sky-200"
+                        className="w-full rounded-lg border border-gray-100 bg-gray-50 py-1.5 pl-8 pr-3 text-xs text-gray-700 outline-none transition-all placeholder:text-gray-400 focus:border-gray-300 focus:bg-white focus:ring-1 focus:ring-gray-300"
                     />
                 </div>
 
@@ -174,14 +173,14 @@ export function ContentPanel({ className }: ContentPanelProps) {
                     <button
                         onClick={prevSlide}
                         disabled={currentIndex === 0}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 transition-all hover:border-sky-200 hover:text-sky-600 disabled:opacity-30 disabled:hover:border-gray-100 disabled:hover:text-gray-400"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 transition-all hover:border-gray-200 hover:text-primary disabled:opacity-30 disabled:hover:border-gray-100 disabled:hover:text-gray-400"
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </button>
                     <button
                         onClick={nextSlide}
                         disabled={currentIndex === maxIndex}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 transition-all hover:border-sky-200 hover:text-sky-600 disabled:opacity-30 disabled:hover:border-gray-100 disabled:hover:text-gray-400"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 transition-all hover:border-gray-200 hover:text-primary disabled:opacity-30 disabled:hover:border-gray-100 disabled:hover:text-gray-400"
                     >
                         <ChevronRight className="h-4 w-4" />
                     </button>
@@ -208,15 +207,15 @@ export function ContentPanel({ className }: ContentPanelProps) {
                             currentRecordings.map((recording) => (
                                 <div
                                     key={recording.id}
-                                    className="group relative flex flex-col justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-sm"
+                                    className="group relative flex flex-col justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:bg-white hover:shadow-sm"
                                 >
                                     {/* Top Section */}
                                     <div className="mb-3 flex items-start justify-between gap-3">
-                                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sky-500 shadow-sm transition-transform group-hover:scale-110 group-hover:bg-sky-500 group-hover:text-white">
+                                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-primary shadow-sm transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
                                             <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
                                         </div>
                                         <div className="flex-1 text-right">
-                                            <span className="inline-block rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700">
+                                            <span className="inline-block rounded-md bg-gray-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-700">
                                                 {recording.type}
                                             </span>
                                         </div>
@@ -224,7 +223,7 @@ export function ContentPanel({ className }: ContentPanelProps) {
 
                                     {/* Middle - Patient & Details */}
                                     <div className="mb-3 space-y-1">
-                                        <h4 className="line-clamp-1 text-sm font-bold text-gray-800 group-hover:text-sky-700">
+                                        <h4 className="line-clamp-1 text-sm font-bold text-gray-800 group-hover:text-primary">
                                             {recording.title}
                                         </h4>
                                         <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -248,7 +247,7 @@ export function ContentPanel({ className }: ContentPanelProps) {
                                         </div>
 
                                         <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                                            <button className="rounded p-1 text-gray-400 hover:bg-sky-50 hover:text-sky-600">
+                                            <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-primary">
                                                 <Share2 className="h-3 w-3" />
                                             </button>
                                         </div>

@@ -3,6 +3,7 @@
 import { cn } from "@/utils/cn";
 import { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
+import { FeatureIcon } from "@/components/ui/feature-icon";
 
 interface KPICardProps {
     title: string;
@@ -17,23 +18,19 @@ interface KPICardProps {
     className?: string;
 }
 
-// Unified style - all variants now use white background with blue accent
+// Unified style - all variants now use white background with neutral accent
 const variantStyles = {
     primary: {
-        iconGradient: "bg-gradient-to-br from-sky-500 to-blue-600",
-        border: "border-sky-200",
+        border: "border-gray-100",
     },
     success: {
-        iconGradient: "bg-gradient-to-br from-sky-500 to-blue-600",
-        border: "border-sky-200",
+        border: "border-gray-100",
     },
     warning: {
-        iconGradient: "bg-gradient-to-br from-sky-500 to-blue-600",
-        border: "border-sky-200",
+        border: "border-gray-100",
     },
     info: {
-        iconGradient: "bg-gradient-to-br from-sky-500 to-blue-600",
-        border: "border-sky-200",
+        border: "border-gray-100",
     },
 };
 
@@ -41,7 +38,7 @@ export function KPICard({
     title,
     value,
     subtitle,
-    icon: Icon,
+    icon,
     trend,
     variant = "primary",
     className,
@@ -87,14 +84,7 @@ export function KPICard({
                     )}
                 </div>
 
-                <div
-                    className={cn(
-                        "flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110",
-                        styles.iconGradient
-                    )}
-                >
-                    <Icon className="h-6 w-6 text-white" />
-                </div>
+                <FeatureIcon icon={icon} />
             </div>
         </motion.div>
     );

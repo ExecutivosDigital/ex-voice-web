@@ -18,10 +18,12 @@ const poppins = Poppins({
 
 export const metadata = {
   title: {
-    default: process.env.PROJECT_NAME || "Health Voice",
+    default: "EX Voice - Meeting Intelligence",
   },
   icons: {
     icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
   },
 };
 export default function RootLayout({

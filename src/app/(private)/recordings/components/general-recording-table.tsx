@@ -104,7 +104,7 @@ export function GeneralRecordingsTable() {
                   className={cn(
                     "h-12 text-xs font-semibold tracking-wider text-slate-600 uppercase",
                     column.sortable &&
-                      "cursor-pointer select-none hover:text-slate-800",
+                    "cursor-pointer select-none hover:text-slate-800",
                   )}
                   onClick={() =>
                     column.sortable && handleSort(column.key as SortableColumn)
@@ -127,32 +127,32 @@ export function GeneralRecordingsTable() {
           <TableBody className="relative">
             {isGettingRecordings
               ? Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    {GeneralRecordingsColumns.map((col, idx) => (
-                      <TableCell
-                        key={idx}
-                        className="h-14 animate-pulse bg-zinc-50"
-                      />
-                    ))}
-                  </TableRow>
-                ))
+                <TableRow key={index}>
+                  {GeneralRecordingsColumns.map((col, idx) => (
+                    <TableCell
+                      key={idx}
+                      className="h-14 animate-pulse bg-zinc-50"
+                    />
+                  ))}
+                </TableRow>
+              ))
               : !isGettingRecordings && recordings.length !== 0
                 ? recordings.map((row) => (
-                    <GeneralRecordingTableItem key={row.id} recording={row} />
-                  ))
+                  <GeneralRecordingTableItem key={row.id} recording={row} />
+                ))
                 : !isGettingRecordings &&
-                  recordings.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={GeneralRecordingsColumns.length}
-                        className="h-24"
-                      >
-                        <div className="flex items-start text-start">
-                          <AudioRecorder buttonClassName="rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 active:scale-95 mx-auto" />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
+                recordings.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={GeneralRecordingsColumns.length}
+                      className="h-24"
+                    >
+                      <div className="flex items-start text-start">
+                        <AudioRecorder buttonClassName="rounded-lg bg-gradient-to-br from-primary to-black px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-black/25 transition-all hover:shadow-black/40 active:scale-95 mx-auto" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
           </TableBody>
         </Table>
         {!isGettingRecordings && recordingsTotalPages > 1 && (

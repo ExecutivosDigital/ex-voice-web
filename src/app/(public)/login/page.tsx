@@ -13,11 +13,11 @@ export default function Login() {
   return (
     <div className="flex min-h-screen w-full bg-white">
       {/* Lado Esquerdo - Branding / Marketing */}
-      <div className="from-primary relative hidden w-1/2 flex-col items-center justify-center bg-gradient-to-br to-blue-700 p-12 lg:flex">
+      <div className="from-primary relative hidden w-1/2 flex-col items-center justify-center bg-gradient-to-br to-black p-12 lg:flex">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-[20%] -left-[10%] h-[30rem] w-[30rem] rounded-full bg-white/10 blur-[120px]" />
-          <div className="absolute -right-[10%] bottom-[20%] h-[30rem] w-[30rem] rounded-full bg-blue-900/20 blur-[120px]" />
+          <div className="absolute -right-[10%] bottom-[20%] h-[30rem] w-[30rem] rounded-full bg-black/20 blur-[120px]" />
         </div>
 
         <div className="relative z-10 flex flex-col items-center gap-12">
@@ -25,10 +25,10 @@ export default function Login() {
 
           <div className="max-w-md text-center">
             <h2 className="mb-2 text-2xl font-bold text-white">
-              Seu Consultório Inteligente
+              Seu Assistente Inteligente
             </h2>
             <p className="text-blue-50">
-              Grave suas consultas e deixe nossa IA gerar prontuários perfeitos
+              Grave suas reuniões e deixe nossa IA gerar resumos perfeitos
               automaticamente.
             </p>
           </div>
@@ -41,11 +41,11 @@ export default function Login() {
           <div className="mb-8 text-center lg:text-left">
             <div className="mb-6 flex justify-center lg:justify-start">
               <Image
-                src="/logos/logo-dark.png"
+                src="/logos/logo-dark.svg"
                 alt="Health Voice"
                 width={200}
                 height={60}
-                className="h-10 w-auto object-contain"
+                className="h-max w-1/2 object-contain"
               />
             </div>
 

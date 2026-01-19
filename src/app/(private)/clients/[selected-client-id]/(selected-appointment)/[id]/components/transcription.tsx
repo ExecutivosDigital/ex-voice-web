@@ -3,16 +3,21 @@
 import { ActionSheet } from "@/components/ui/action-sheet";
 import { RequestTranscription } from "@/components/ui/request-transcription";
 import { WaveformAudioPlayer } from "@/components/ui/waveform-audio-player";
+import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { buildRowsFromSpeeches } from "@/utils/speeches";
-import { Check, Plus, Stethoscope } from "lucide-react";
+import { Check, Mic, Pencil, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 export function Transcription() {
-  const { selectedRecording } = useGeneralContext();
+  const { selectedRecording, setSelectedRecording } = useGeneralContext();
+  const { PutAPI } = useApiContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mainSpeakerId, setMainSpeakerId] = useState<string | null>(null);
+  const [editingSpeakerId, setEditingSpeakerId] = useState<string | null>(null);
+  const [tempSpeakerName, setTempSpeakerName] = useState("");
 
   const rows = useMemo(
     () =>
@@ -56,6 +61,39 @@ export function Transcription() {
     return colors[safeIndex % colors.length];
   };
 
+  const handleSaveSpeakerName = async (speakerId: string) => {
+    if (!selectedRecording) return;
+
+    const updatedSpeakers = selectedRecording.speakers?.map((s) =>
+      s.id === speakerId ? { ...s, name: tempSpeakerName } : s
+    );
+
+    try {
+      const resp = await PutAPI(
+        `/recording/${selectedRecording.id}`,
+        {
+          speakers: updatedSpeakers,
+        },
+        true,
+      );
+
+      if (resp.status === 200) {
+        setSelectedRecording({
+          ...selectedRecording,
+          speakers: updatedSpeakers || [],
+        });
+        toast.success("Nome do locutor atualizado!");
+      } else {
+        toast.error("Erro ao salvar nome do locutor.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao salvar nome do locutor.");
+    } finally {
+      setEditingSpeakerId(null);
+    }
+  };
+
   const getSpeakerInitials = (name: string) => {
     const match = name.match(/\d+/);
     if (match) return match[0];
@@ -68,51 +106,97 @@ export function Transcription() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Organizar Locutores"
-        description="Selecione o locutor principal (médico/profissional) para ajustar a visualização da conversa."
+        description="Selecione o locutor principal (profissional) para ajustar a visualização da conversa."
       >
         <div className="flex w-full flex-col gap-5">
           <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto pr-1">
             {selectedRecording?.speakers?.map((speaker, index) => {
               const isActive = mainSpeakerId === speaker.id;
               return (
-                <button
+                <div
                   key={speaker.id}
-                  onClick={() => setMainSpeakerId(speaker.id)}
                   className={cn(
-                    "flex items-center justify-between rounded-xl border p-3 transition-all",
+                    "group flex items-center justify-between rounded-xl border p-3 transition-all",
                     isActive
-                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                      ? "border-primary bg-zinc-50 ring-1 ring-primary"
                       : "border-slate-200 hover:border-slate-300 hover:bg-slate-50",
                   )}
                 >
-                  <div className="flex items-center gap-3">
-                    <div
+                  <div className="flex flex-1 items-center gap-3">
+                    <button
+                      onClick={() => setMainSpeakerId(speaker.id)}
                       className={cn(
-                        "flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold",
+                        "flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-transform active:scale-95",
                         isActive
-                          ? "bg-blue-600 text-white"
+                          ? "bg-zinc-900 text-white"
                           : getSpeakerColor(index),
                       )}
                     >
                       {isActive ? (
-                        <Stethoscope className="h-4 w-4" />
+                        <Mic className="h-4 w-4" />
                       ) : speaker.name ? (
                         getSpeakerInitials(speaker.name)
                       ) : (
                         index + 1
                       )}
-                    </div>
-                    <span
-                      className={cn(
-                        "text-sm font-medium",
-                        isActive ? "text-blue-900" : "text-slate-700",
-                      )}
-                    >
-                      {speaker.name || `Locutor ${index + 1}`}
-                    </span>
+                    </button>
+
+                    {editingSpeakerId === speaker.id ? (
+                      <div className="flex flex-1 items-center gap-2">
+                        <input
+                          autoFocus
+                          type="text"
+                          className="w-full rounded border border-slate-300 px-2 py-1 text-sm font-medium focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                          value={tempSpeakerName}
+                          onChange={(e) => setTempSpeakerName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter")
+                              handleSaveSpeakerName(speaker.id);
+                            if (e.key === "Escape") setEditingSpeakerId(null);
+                          }}
+                        />
+                        <button
+                          onClick={() => handleSaveSpeakerName(speaker.id)}
+                          className="rounded-full p-1 text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => setEditingSpeakerId(null)}
+                          className="rounded-full p-1 text-rose-600 hover:bg-rose-50 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-1 items-center justify-between">
+                        <button
+                          onClick={() => setMainSpeakerId(speaker.id)}
+                          className={cn(
+                            "flex-1 text-left text-sm font-medium",
+                            isActive ? "text-zinc-900" : "text-slate-700",
+                          )}
+                        >
+                          {speaker.name || `Locutor ${index + 1}`}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingSpeakerId(speaker.id);
+                            setTempSpeakerName(
+                              speaker.name || `Locutor ${index + 1}`,
+                            );
+                          }}
+                          className="ml-2 rounded-full p-1.5 bg-gradient-to-br from-zinc-800/50 to-black/50 text-white shadow-sm transition-all hover:scale-110 active:scale-95"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  {isActive && <Check className="h-5 w-5 text-blue-600" />}
-                </button>
+                  {isActive && !editingSpeakerId && (
+                    <Check className="h-5 w-5 text-zinc-900" />
+                  )}
+                </div>
               );
             })}
           </div>
@@ -120,7 +204,7 @@ export function Transcription() {
           <div className="flex justify-end pt-2">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              className="rounded-lg bg-gradient-to-r from-primary to-black px-5 py-2.5 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-zinc-900/25 active:scale-95"
             >
               Concluir
             </button>
@@ -140,9 +224,8 @@ export function Transcription() {
           <div className="flex flex-1 items-center justify-end">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-3 py-1.5 font-medium text-white transition-all hover:shadow-lg hover:shadow-sky-500/25 active:scale-95"
+              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary to-black px-4 py-2 font-medium text-white transition-all hover:shadow-lg hover:shadow-zinc-900/25 active:scale-95"
             >
-              <Plus className="h-6 w-6" />
               Organizar Locutores
             </button>
           </div>
@@ -162,12 +245,12 @@ export function Transcription() {
                   className={cn(
                     "flex h-8 w-8 min-w-[2rem] items-center justify-center rounded-full text-xs font-bold shadow-sm",
                     isPro
-                      ? "bg-blue-100 text-blue-600"
+                      ? "bg-zinc-100 text-primary"
                       : getSpeakerColor(speech.index),
                   )}
                 >
                   {isPro ? (
-                    <Stethoscope className="h-4 w-4" />
+                    <Mic className="h-4 w-4" />
                   ) : (
                     getSpeakerInitials(speech.name)
                   )}
@@ -189,7 +272,7 @@ export function Transcription() {
                     className={cn(
                       "rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm",
                       isPro
-                        ? "rounded-tr-none bg-blue-600 text-white"
+                        ? "rounded-tr-none bg-gradient-to-r from-primary to-black text-white"
                         : "rounded-tl-none border border-gray-100 bg-white text-gray-700",
                     )}
                   >

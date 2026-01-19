@@ -42,10 +42,10 @@ export default function ChatPage() {
 
   const hookPrompt: Prompt | undefined = selectedSuggestion
     ? {
-        id: "transcription-prompt",
-        name: selectedSuggestion.title,
-        prompt: selectedSuggestion.prompt,
-      }
+      id: "transcription-prompt",
+      name: selectedSuggestion.title,
+      prompt: selectedSuggestion.prompt,
+    }
     : selectedPrompt;
 
   const {
@@ -151,17 +151,16 @@ export default function ChatPage() {
   }, [messages.length, selectedRecording]);
 
   const styles = {
-    iconGradient: "bg-gradient-to-br from-sky-500 to-blue-600",
-    border: "border-sky-200",
+    iconGradient: "bg-gradient-to-br from-primary to-black",
+    border: "border-zinc-200",
   };
 
   const isChatEmpty = messages.filter((m) => m.role !== "system").length === 0;
 
   return (
     <div
-      className={`flex w-full flex-col gap-6 ${
-        isExpanded ? "" : "h-[calc(100vh-10rem)] overflow-hidden"
-      }`}
+      className={`flex w-full flex-col gap-6 ${isExpanded ? "" : "h-[calc(100vh-10rem)] overflow-hidden"
+        }`}
     >
       {/* Header Standardized - STATIC */}
       <div className="flex w-full items-center justify-between">
@@ -177,7 +176,7 @@ export default function ChatPage() {
         {!isChatEmpty && (
           <button
             onClick={handleNewChat}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 active:scale-95"
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-black px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/25 transition-all hover:shadow-black/40 active:scale-95"
           >
             <Plus className="h-4 w-4" />
             Nova Conversa
@@ -187,9 +186,8 @@ export default function ChatPage() {
 
       {/* Chat Container */}
       <div
-        className={`relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 ease-in-out ${
-          isExpanded ? "h-[95vh]" : "min-h-0 flex-1"
-        }`}
+        className={`relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-500 ease-in-out ${isExpanded ? "h-[95vh]" : "min-h-0 flex-1"
+          }`}
       >
         {/* Toggle Expand Button - Top Right */}
         <button
@@ -243,7 +241,7 @@ export default function ChatPage() {
                   >
                     <Image
                       className="h-12 w-12"
-                      src={"/logos/iconWhite.png"}
+                      src={"/logos/logo-2A.png"}
                       alt="Icon"
                       width={48}
                       height={48}
@@ -288,10 +286,9 @@ export default function ChatPage() {
             </div>
           ) : (
             <div className="flex min-h-full flex-col gap-4 py-2 pt-12">
-              {/* If just starting a suggestion mode but no messages yet */}
               {isChatEmpty && selectedSuggestion && (
                 <div className="animate-in fade-in zoom-in-95 flex flex-1 flex-col items-center justify-center duration-500">
-                  <div className="bg-primary mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white">
+                  <div className="bg-gradient-to-br from-primary to-black mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white">
                     <selectedSuggestion.icon className="h-8 w-8" />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900">

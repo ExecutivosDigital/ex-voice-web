@@ -63,14 +63,14 @@ export function ChatSidebar({
         <input
           type="text"
           placeholder="Buscar histórico..."
-          className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pr-3 pl-9 text-sm text-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pr-3 pl-9 text-sm text-gray-700 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
         />
       </div>
 
       {/* New Chat Button */}
       <button
         onClick={onNewChat}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-sky-500/20 transition-all hover:scale-[1.02] hover:shadow-sky-500/30 active:scale-95"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-primary to-black px-4 py-2 text-sm font-medium text-white shadow-lg shadow-zinc-500/20 transition-all hover:scale-[1.02] hover:shadow-zinc-500/30 active:scale-95"
       >
         <Plus className="h-4 w-4" />
         Nova Conversa
@@ -91,7 +91,7 @@ export function ChatSidebar({
                     className={cn(
                       "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-all",
                       item.active
-                        ? "bg-blue-50 text-blue-700"
+                        ? "bg-zinc-100 text-black font-semibold"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                     )}
                   >
@@ -99,7 +99,7 @@ export function ChatSidebar({
                       className={cn(
                         "h-4 w-4 shrink-0",
                         item.active
-                          ? "text-blue-600"
+                          ? "text-black font-semibold"
                           : "text-gray-400 group-hover:text-gray-600",
                       )}
                     />

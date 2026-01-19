@@ -120,7 +120,7 @@ export default function HomePage() {
     {
       title: "Contatos atendidos",
       value: totalContacts,
-      subtitle: "pacientes únicos",
+      subtitle: "Contatos únicos",
       icon: Users,
       variant: "success" as const,
       trend: { value: 5, isPositive: true },

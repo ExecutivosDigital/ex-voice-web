@@ -33,7 +33,7 @@ interface GeneralContextProps {
   setSelectedRecording: React.Dispatch<
     React.SetStateAction<RecordingDetailsProps | null>
   >;
-  // Pacientes (Clients)
+  // Contatos (Clients)
   clients: ClientProps[];
   setClients: React.Dispatch<React.SetStateAction<ClientProps[]>>;
   clientsFilters: FetchClientRequest;

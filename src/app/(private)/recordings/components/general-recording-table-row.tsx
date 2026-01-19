@@ -18,6 +18,7 @@ import { cn } from "@/utils/cn";
 import { ChevronRight } from "lucide-react";
 import moment from "moment";
 import { useRouter } from "next/navigation";
+import { FeatureIcon } from "@/components/ui/feature-icon";
 interface Props {
   recording: RecordingDetailsProps;
 }
@@ -116,20 +117,7 @@ export function GeneralRecordingTableItem({ recording }: Props) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "flex w-max items-center gap-2 rounded-2xl border-2 bg-gradient-to-br from-sky-500 to-blue-600 p-1 text-xs text-white",
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex items-center justify-center rounded-md p-1",
-                  )}
-                >
-                  <Icon className="h-6 w-6" color="white" />
-                </div>
-                {/* {typeStyle.label} */}
-              </div>
+              <FeatureIcon icon={Icon} className="h-10 w-10 rounded-2xl border-2 border-white/10" />
             </TooltipTrigger>
             <TooltipContent
               align="start"

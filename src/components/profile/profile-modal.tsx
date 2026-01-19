@@ -134,7 +134,7 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
       </label>
       <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Icon className="h-4 w-4 text-gray-400 transition-colors group-focus-within:text-blue-500" />
+          <Icon className="h-4 w-4 text-gray-400 transition-colors group-focus-within:text-primary" />
         </div>
         <input
           type={type}
@@ -146,7 +146,7 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
             "w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-3 pl-10 text-sm",
             "text-gray-900 placeholder:text-gray-400",
             "transition-all duration-200",
-            "focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none",
+            "focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none",
             "hover:border-gray-300",
             disabled && "cursor-not-allowed bg-gray-50 text-gray-500",
           )}
@@ -159,11 +159,11 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl overflow-hidden p-0 sm:rounded-3xl">
         {/* Decorative Header */}
-        <div className="relative h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600">
+        <div className="relative h-24 bg-gradient-to-br from-primary via-zinc-800 to-black">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1Ii8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
           <DialogHeader className="absolute right-0 -bottom-12 left-0 z-10 flex flex-col items-center">
             <div className="relative">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-blue-400 to-indigo-500 shadow-xl">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-primary to-black shadow-xl">
                 <UserIcon className="h-10 w-10 text-white" strokeWidth={1.5} />
               </div>
             </div>
@@ -288,11 +288,11 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
                 disabled={isLoading}
                 className={cn(
                   "flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white",
-                  "bg-gradient-to-r from-blue-500 to-indigo-600",
-                  "shadow-lg shadow-blue-500/25",
+                  "bg-gradient-to-r from-primary to-black",
+                  "shadow-lg shadow-primary/25",
                   "transition-all duration-200",
-                  "hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/30",
-                  "focus:ring-4 focus:ring-blue-500/20 focus:outline-none",
+                  "hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/30",
+                  "focus:ring-4 focus:ring-primary/20 focus:outline-none",
                   "disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100",
                 )}
               >

@@ -102,7 +102,7 @@ export function ChatInput({
                   <WaveformAudioPlayer
                     audioUrl={url}
                     barCount={20}
-                    className="border border-blue-100 bg-white py-2 shadow-sm [&_button]:bg-blue-50 [&_button]:text-blue-600 [&_button]:hover:bg-blue-100 [&_span]:text-blue-600 [&_svg]:fill-blue-600 [&_svg]:text-blue-600"
+                    className="border border-zinc-100 bg-white py-2 shadow-sm [&_button]:bg-zinc-50 [&_button]:text-zinc-600 [&_button]:hover:bg-zinc-100 [&_span]:text-zinc-600 [&_svg]:fill-zinc-600 [&_svg]:text-zinc-600"
                     videoDuration="00:00"
                   />
                   <button
@@ -120,7 +120,7 @@ export function ChatInput({
                 key={fileKey}
                 className="group relative flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 shadow-sm"
               >
-                <div className="text-blue-500">{getFileIcon(file)}</div>
+                <div className="text-zinc-500">{getFileIcon(file)}</div>
                 <span className="max-w-[150px] truncate text-xs text-gray-700">
                   {file.name}
                 </span>
@@ -140,7 +140,7 @@ export function ChatInput({
       <div className="relative flex min-w-[80%] items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-3 shadow-sm transition-shadow focus-within:shadow-md">
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg from-sky-500 to-blue-600 transition-all hover:scale-105 hover:bg-gradient-to-br hover:text-white active:scale-95"
+          className="group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg from-primary to-black transition-all hover:scale-105 hover:bg-gradient-to-br hover:text-white active:scale-95"
           title="Anexar arquivos"
         >
           <Paperclip className="h-4 w-4" />
@@ -163,11 +163,10 @@ export function ChatInput({
         <div className="flex items-center gap-2">
           <button
             onClick={handleMicClick}
-            className={`group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg transition-all hover:scale-105 active:scale-95 ${
-              isRecording
-                ? "animate-pulse bg-red-500 hover:bg-red-600"
-                : "text-primary from-sky-500 to-blue-600 hover:bg-gradient-to-br hover:text-white"
-            }`}
+            className={`group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg transition-all hover:scale-105 active:scale-95 ${isRecording
+              ? "animate-pulse bg-red-500 hover:bg-red-600"
+              : "text-primary from-primary to-black hover:bg-gradient-to-br hover:text-white"
+              }`}
           >
             {isRecording ? (
               <Square className="h-4 w-4 fill-current" />
@@ -180,18 +179,17 @@ export function ChatInput({
             disabled={
               (!value.trim() && files.length === 0) || isLoading || isRecording
             }
-            className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-              (value.trim() || files.length > 0) && !isLoading && !isRecording
-                ? "bg-blue-500 text-white hover:bg-blue-600"
-                : "cursor-not-allowed bg-gray-200 text-gray-400"
-            }`}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${(value.trim() || files.length > 0) && !isLoading && !isRecording
+              ? "bg-primary text-white hover:bg-black"
+              : "cursor-not-allowed bg-gray-200 text-gray-400"
+              }`}
           >
             <ArrowUp className="h-5 w-5" />
           </button>
         </div>
       </div>
       <div className="mt-1 text-center text-xs text-gray-400">
-        O HealthVoice pode cometer erros. Considere verificar informações
+        O ExVoice pode cometer erros. Considere verificar informações
         importantes.
       </div>
     </div>

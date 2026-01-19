@@ -3,6 +3,7 @@
 import { cn } from "@/utils/cn";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ExternalLink, Video } from "lucide-react";
+import { FeatureIcon } from "@/components/ui/feature-icon";
 
 interface Meeting {
     id: string;
@@ -90,9 +91,7 @@ export function UpcomingMeetings({
         >
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600">
-                        <Calendar className="h-5 w-5 text-white" />
-                    </div>
+                    <FeatureIcon icon={Calendar} className="h-10 w-10" />
                     <div>
                         <h3 className="text-lg font-semibold text-gray-800">
                             Próximas Reuniões
@@ -104,7 +103,7 @@ export function UpcomingMeetings({
                 {!isConnected && (
                     <button
                         onClick={onConnect}
-                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-sky-500/25"
+                        className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-black px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-black/25"
                     >
                         Conectar
                         <ExternalLink className="h-3 w-3" />
