@@ -1,5 +1,7 @@
 // --- 1. DEFINIÇÃO DOS TIPOS ---
 
+import { AIComponentResponse } from "@/app/(private)/ai-components-preview/types/component-types";
+
 // Tipos para Pacientes (anteriormente Clients)
 export interface ClientProps {
   id: string;
@@ -59,6 +61,8 @@ export interface RecordingDetailsProps {
   type: "CLIENT" | "REMINDER" | "OTHER" | "STUDY"; // Nota: O tipo da gravação ainda usa 'CLIENT' e 'REMINDER'
   transcription?: string | null;
   summary?: string | null;
+  structuredSummary?: AIComponentResponse | null;
+  specificSummary?: AIComponentResponse | null;
   client?: ClientProps | null;
   reminderId?: string | null;
   reminder?: ReminderProps | null;

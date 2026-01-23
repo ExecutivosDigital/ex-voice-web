@@ -378,9 +378,8 @@ export function Header() {
                       "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       !pathname.includes("/chat") &&
                         !pathname.includes("/transcription") &&
-                        !pathname.includes("/diagnosis") &&
                         !pathname.includes("/medical-record") &&
-                        !pathname.includes("/points")
+                        !pathname.includes("/overview")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
                     )}
@@ -391,7 +390,23 @@ export function Header() {
                     }
                   >
                     <GeneralVisionIcon />
-                    Visão Geral
+                    Resumo
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname.includes("/overview")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() =>
+                      router.push(
+                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/overview`,
+                      )
+                    }
+                  >
+                    <GeneralVisionIcon />
+                    Resumo Geral
                   </span>
                   <span
                     className={cn(
@@ -428,22 +443,6 @@ export function Header() {
                   <span
                     className={cn(
                       "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/diagnosis")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/diagnosis`,
-                      )
-                    }
-                  >
-                    <TranscriptionIcon />
-                    Diagnóstico
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                       pathname.includes("/medical-record")
                         ? "border-b-white"
                         : "border-b-white/10 text-white/50",
@@ -455,23 +454,7 @@ export function Header() {
                     }
                   >
                     <TranscriptionIcon />
-                    Prontuário
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/points")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/points`,
-                      )
-                    }
-                  >
-                    <TranscriptionIcon />
-                    Pontos
+                    Prontuário Médico
                   </span>
                 </div>
               </div>
