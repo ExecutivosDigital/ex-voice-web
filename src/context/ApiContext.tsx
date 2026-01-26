@@ -42,7 +42,7 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
     baseURL,
   });
 
-  async function header(auth: boolean) {
+  async function header(auth: boolean, isFormData = false) {
     let token = null;
 
     if (auth) {
@@ -55,17 +55,23 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
       }
     }
 
-    return {
-      headers: {
-        Authorization: token ? `Bearer ${token}` : "",
-        "ngrok-skip-browser-warning": "any",
-      },
+    const headers: Record<string, string> = {
+      Authorization: token ? `Bearer ${token}` : "",
+      "ngrok-skip-browser-warning": "any",
     };
+
+    // Não define Content-Type para FormData, deixa o axios fazer isso automaticamente
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    return { headers };
   }
 
   async function PostAPI(url: string, data: unknown, auth: boolean) {
+    const isFormData = data instanceof FormData;
     const connect = await api
-      .post(url, data, await header(auth))
+      .post(url, data, await header(auth, isFormData))
       .then(({ data }) => ({ status: 200, body: data }))
       .catch((err) => {
         console.error(`❌ API Error [POST] ${url}`, err.response?.data || err);

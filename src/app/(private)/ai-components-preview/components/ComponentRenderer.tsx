@@ -1,27 +1,27 @@
 "use client";
 
-import { AIComponent } from "../../types/component-types";
-import { PrescriptionCard } from "./cards/PrescriptionCard";
-import { ExamsCard } from "./cards/ExamsCard";
-import { ReferralsCard } from "./cards/ReferralsCard";
-import { CertificatesCard } from "./cards/CertificatesCard";
-import { OrientationsCard } from "./cards/OrientationsCard";
-import { ClinicalNotesCard } from "./cards/ClinicalNotesCard";
-import { NextAppointmentsCard } from "./cards/NextAppointmentsCard";
-import { BiometricsCard } from "./cards/BiometricsCard";
+import { AIComponent } from "../types/component-types";
 import { AllergiesCard } from "./cards/AllergiesCard";
+import { BiometricsCard } from "./cards/BiometricsCard";
+import { CertificatesCard } from "./cards/CertificatesCard";
 import { ChronicConditionsCard } from "./cards/ChronicConditionsCard";
-import { MedicationsCard } from "./cards/MedicationsCard";
-import { SocialHistoryCard } from "./cards/SocialHistoryCard";
-import { FamilyHistoryCard } from "./cards/FamilyHistoryCard";
-import { MedicalHistoryTimelineCard } from "./cards/MedicalHistoryTimelineCard";
-import { MainDiagnosisCard } from "./cards/MainDiagnosisCard";
-import { SymptomsCard } from "./cards/SymptomsCard";
-import { RiskFactorsCard } from "./cards/RiskFactorsCard";
-import { TreatmentPlanCard } from "./cards/TreatmentPlanCard";
+import { ClinicalNotesCard } from "./cards/ClinicalNotesCard";
 import { DifferentialDiagnosisCard } from "./cards/DifferentialDiagnosisCard";
-import { SuggestedExamsCard } from "./cards/SuggestedExamsCard";
+import { ExamsCard } from "./cards/ExamsCard";
+import { FamilyHistoryCard } from "./cards/FamilyHistoryCard";
+import { MainDiagnosisCard } from "./cards/MainDiagnosisCard";
+import { MedicalHistoryTimelineCard } from "./cards/MedicalHistoryTimelineCard";
+import { MedicationsCard } from "./cards/MedicationsCard";
+import { NextAppointmentsCard } from "./cards/NextAppointmentsCard";
 import { ObservationsCard } from "./cards/ObservationsCard";
+import { OrientationsCard } from "./cards/OrientationsCard";
+import { PrescriptionCard } from "./cards/PrescriptionCard";
+import { ReferralsCard } from "./cards/ReferralsCard";
+import { RiskFactorsCard } from "./cards/RiskFactorsCard";
+import { SocialHistoryCard } from "./cards/SocialHistoryCard";
+import { SuggestedExamsCard } from "./cards/SuggestedExamsCard";
+import { SymptomsCard } from "./cards/SymptomsCard";
+import { TreatmentPlanCard } from "./cards/TreatmentPlanCard";
 
 interface ComponentRendererProps {
   component: AIComponent;

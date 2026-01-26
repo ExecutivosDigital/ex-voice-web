@@ -1,12 +1,12 @@
 "use client";
 
-import { ActionSheet } from "@/components/ui/action-sheet";
+import { Modal } from "@/components/ui/modal";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { Eye, Loader2, Search, X } from "lucide-react";
+import { PromptIcon } from "@/utils/prompt-icon";
+import { Loader2, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 
 interface PromptOption {
@@ -15,33 +15,25 @@ interface PromptOption {
   content: string;
   type: string;
   source: "USER" | "COMPANY" | "GLOBAL";
+  icon?: string;
 }
 
 export function RequestTranscription() {
   const { selectedRecording, setSelectedRecording } = useGeneralContext();
   const { PutAPI, GetAPI } = useApiContext();
   const [isRequesting, setIsRequesting] = useState(false);
-  const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [prompts, setPrompts] = useState<PromptOption[]>([]);
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPromptForDetail, setSelectedPromptForDetail] =
-    useState<PromptOption | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
-
-  useEffect(() => {
-    if (isActionSheetOpen) {
+    if (isModalOpen) {
       fetchAvailablePrompts();
     } else {
       setSearchQuery("");
-      setSelectedPromptForDetail(null);
     }
-  }, [isActionSheetOpen]);
+  }, [isModalOpen]);
 
   async function fetchAvailablePrompts() {
     setIsLoadingPrompts(true);
@@ -80,28 +72,23 @@ export function RequestTranscription() {
         ...selectedRecording,
         transcriptionStatus: "PENDING",
       });
-      setIsActionSheetOpen(false);
+      setIsModalOpen(false);
       return setIsRequesting(false);
     }
     toast.error("Erro ao solicitar transcrição!");
     setIsRequesting(false);
   }
 
-  function handleOpenActionSheet() {
-    setIsActionSheetOpen(true);
+  function handleOpenModal() {
+    setIsModalOpen(true);
   }
 
-  function handleCloseActionSheet() {
-    setIsActionSheetOpen(false);
+  function handleCloseModal() {
+    setIsModalOpen(false);
   }
 
   function handleSelectPrompt(prompt: PromptOption) {
     HandleRequestTranscription(prompt.id);
-  }
-
-  function handleViewPromptDetail(prompt: PromptOption, e: React.MouseEvent) {
-    e.stopPropagation();
-    setSelectedPromptForDetail(prompt);
   }
 
   function getSourceLabel(source: string) {
@@ -143,7 +130,7 @@ export function RequestTranscription() {
   return (
     <>
       <button
-        onClick={handleOpenActionSheet}
+        onClick={handleOpenModal}
         disabled={
           selectedRecording?.transcriptionStatus === "PENDING" || isRequesting
         }
@@ -166,156 +153,95 @@ export function RequestTranscription() {
         )}
       </button>
 
-      <ActionSheet
-        isOpen={isActionSheetOpen}
-        onClose={handleCloseActionSheet}
-        title="Selecione um prompt"
-        description="Escolha o prompt que será utilizado para a transcrição"
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        size="max-w-4xl h-[90vh]"
+        className="border-gray-200 bg-white"
       >
-        <div className="flex flex-col gap-4">
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Buscar prompts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
+        <div className="flex h-full flex-col overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Selecione um prompt
+              </h2>
+              <p className="text-sm text-gray-500">
+                Escolha o prompt que será utilizado para a transcrição
+              </p>
+            </div>
+            <button
+              onClick={handleCloseModal}
+              className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            >
+              <X size={24} />
+            </button>
           </div>
 
-          {/* Prompts List */}
-          <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
-            {isLoadingPrompts ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="animate-spin text-gray-400" size={24} />
-              </div>
-            ) : filteredPrompts.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">
-                {searchQuery
-                  ? "Nenhum prompt encontrado para esta busca"
-                  : "Nenhum prompt disponível para este tipo de gravação"}
-              </div>
-            ) : (
-              filteredPrompts.map((prompt) => (
-                <div
-                  key={prompt.id}
-                  className={cn(
-                    "flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50",
-                    isRequesting && "opacity-50",
-                  )}
-                >
-                  <div className="flex flex-1 items-center gap-3">
-                    <button
-                      onClick={() => handleSelectPrompt(prompt)}
-                      disabled={isRequesting}
-                      className={cn(
-                        "flex-1 text-left",
-                        isRequesting && "cursor-not-allowed",
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">
-                          {prompt.name}
-                        </span>
-                        <span
-                          className={cn(
-                            "rounded-full px-2 py-0.5 text-xs font-medium",
-                            getSourceColor(prompt.source),
-                          )}
-                        >
-                          {getSourceLabel(prompt.source)}
-                        </span>
-                      </div>
-                    </button>
-                    <button
-                      onClick={(e) => handleViewPromptDetail(prompt, e)}
-                      disabled={isRequesting}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900",
-                        isRequesting && "cursor-not-allowed opacity-50",
-                      )}
-                      title="Ver detalhes do prompt"
-                    >
-                      <Eye size={16} />
-                      <span className="hidden sm:inline">Ver</span>
-                    </button>
-                  </div>
+          {/* Content */}
+          <div className="flex flex-1 flex-col gap-4 overflow-hidden p-6">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Buscar prompts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+
+            {/* Prompts List */}
+            <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-2">
+              {isLoadingPrompts ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="animate-spin text-gray-400" size={24} />
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-      </ActionSheet>
-
-      {/* Modal para exibir detalhes do prompt */}
-      {mounted &&
-        selectedPromptForDetail &&
-        createPortal(
-          <div
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setSelectedPromptForDetail(null);
-              }
-            }}
-            className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-          >
-            <div className="flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-200 p-4">
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-xl font-bold text-gray-900">
-                    {selectedPromptForDetail.name}
-                  </h3>
-                  <span
+              ) : filteredPrompts.length === 0 ? (
+                <div className="py-8 text-center text-gray-500">
+                  {searchQuery
+                    ? "Nenhum prompt encontrado para esta busca"
+                    : "Nenhum prompt disponível para este tipo de gravação"}
+                </div>
+              ) : (
+                filteredPrompts.map((prompt) => (
+                  <button
+                    key={prompt.id}
+                    onClick={() => handleSelectPrompt(prompt)}
+                    disabled={isRequesting}
                     className={cn(
-                      "w-fit rounded-full px-2.5 py-1 text-xs font-medium",
-                      getSourceColor(selectedPromptForDetail.source),
+                      "flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 text-left transition-colors hover:bg-gray-50",
+                      isRequesting && "cursor-not-allowed opacity-50",
                     )}
                   >
-                    {getSourceLabel(selectedPromptForDetail.source)}
-                  </span>
-                </div>
-                <button
-                  onClick={() => setSelectedPromptForDetail(null)}
-                  className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="rounded-lg bg-gray-50 p-4">
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-                    {selectedPromptForDetail.content || "Sem conteúdo"}
-                  </p>
-                </div>
-              </div>
-              <div className="border-t border-gray-200 p-4">
-                <button
-                  onClick={() => {
-                    handleSelectPrompt(selectedPromptForDetail);
-                    setSelectedPromptForDetail(null);
-                  }}
-                  disabled={isRequesting}
-                  className={cn(
-                    "w-full rounded-lg bg-primary px-4 py-2.5 font-semibold text-white transition-colors hover:bg-primary/90",
-                    isRequesting && "cursor-not-allowed opacity-50",
-                  )}
-                >
-                  {isRequesting ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="animate-spin" size={16} />
-                      Processando...
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600">
+                      <PromptIcon
+                        icon={prompt.icon}
+                        size={20}
+                        className="text-white"
+                      />
                     </div>
-                  ) : (
-                    "Usar este prompt"
-                  )}
-                </button>
-              </div>
+                    <div className="flex flex-1 items-center gap-2">
+                      <span className="font-semibold text-gray-900">
+                        {prompt.name}
+                      </span>
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-xs font-medium",
+                          getSourceColor(prompt.source),
+                        )}
+                      >
+                        {getSourceLabel(prompt.source)}
+                      </span>
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
-          </div>,
-          document.body,
-        )}
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

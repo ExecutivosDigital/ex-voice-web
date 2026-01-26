@@ -1,5 +1,6 @@
 "use client";
 import { cn } from "@/utils/cn";
+import { useEffect } from "react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -15,10 +16,22 @@ export function Modal({
   children,
   className,
 }: ModalProps & { className?: string }) {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
   return (
     <div
       className="fixed top-0 right-0 bottom-0 left-0 z-[990] flex w-full cursor-pointer items-center justify-center bg-black/20 p-4 text-center backdrop-blur-[4px] transition-opacity duration-300 ease-in-out"
-      style={{ opacity: isOpen ? 1 : 0 }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -27,10 +40,11 @@ export function Modal({
     >
       <div
         className={cn(
-          "relative z-20 flex flex-col items-center justify-start gap-4 overflow-hidden rounded-md border border-stone-700 bg-stone-800 shadow-md",
+          "relative z-20 flex flex-col overflow-hidden rounded-md border border-stone-700 bg-stone-800 shadow-md",
           size ? size : "h-[85vh] w-[90vw] xl:w-[50vw]",
           className,
         )}
+        onClick={(e) => e.stopPropagation()}
       >
         {children}
       </div>

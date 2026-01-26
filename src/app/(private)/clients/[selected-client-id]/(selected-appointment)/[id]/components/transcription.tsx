@@ -6,12 +6,13 @@ import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { buildRowsFromSpeeches } from "@/utils/speeches";
 import { Check, Plus, Stethoscope } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export function Transcription() {
   const { selectedRecording } = useGeneralContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mainSpeakerId, setMainSpeakerId] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const rows = useMemo(
     () =>
@@ -59,6 +60,25 @@ export function Transcription() {
     const match = name.match(/\d+/);
     if (match) return match[0];
     return name.charAt(0).toUpperCase();
+  };
+
+  // Prevent page scroll when scrolling inside the conversation container
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const isAtTop = scrollTop === 0;
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
+    const isScrollingDown = e.deltaY > 0;
+    const isScrollingUp = e.deltaY < 0;
+
+    // Prevent page scroll if:
+    // - Scrolling down and not at bottom, OR
+    // - Scrolling up and not at top
+    if ((isScrollingDown && !isAtBottom) || (isScrollingUp && !isAtTop)) {
+      e.stopPropagation();
+    }
   };
 
   return (
@@ -127,8 +147,8 @@ export function Transcription() {
         </div>
       </ActionSheet>
 
-      <div className="flex max-h-[calc(100vh-200px)] w-full flex-col gap-6 overflow-y-auto rounded-2xl border border-slate-200 p-4">
-        <div className="flex w-full flex-row items-center justify-between border-b border-b-slate-200 px-4 pt-2 pb-2">
+      <div className="flex w-full h-[calc(100vh-250px)] flex-col rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="flex w-full flex-row items-center justify-between border-b border-b-slate-200 px-4 pt-2 pb-2 bg-white flex-shrink-0">
           <div className="flex-1" />
           {/* {selectedRecording?.audioUrl && (
             <WaveformAudioPlayer
@@ -146,79 +166,85 @@ export function Transcription() {
             </button>
           </div>
         </div>
-        {selectedRecording?.speeches.length !== 0 ? (
-          rows.map((speech) => {
-            const isPro = isProfessional(speech.speakerId);
-            return (
-              <div
-                key={speech.id}
-                className={cn(
-                  "flex w-full gap-3 md:max-w-[85%]",
-                  isPro ? "flex-row-reverse self-end" : "flex-row self-start",
-                )}
-              >
+        <div
+          ref={scrollContainerRef}
+          onWheel={handleWheel}
+          className="flex flex-1 w-full flex-col gap-6 overflow-y-auto overflow-x-hidden p-4 overscroll-contain"
+        >
+          {selectedRecording?.speeches.length !== 0 ? (
+            rows.map((speech) => {
+              const isPro = isProfessional(speech.speakerId);
+              return (
                 <div
+                  key={speech.id}
                   className={cn(
-                    "flex h-8 w-8 min-w-[2rem] items-center justify-center rounded-full text-xs font-bold shadow-sm",
-                    isPro
-                      ? "bg-blue-100 text-blue-600"
-                      : getSpeakerColor(speech.index),
+                    "flex w-full gap-3 md:max-w-[85%]",
+                    isPro ? "flex-row-reverse self-end" : "flex-row self-start",
                   )}
                 >
-                  {isPro ? (
-                    <Stethoscope className="h-4 w-4" />
-                  ) : (
-                    getSpeakerInitials(speech.name)
-                  )}
-                </div>
-
-                <div
-                  className={cn(
-                    "flex flex-col gap-1",
-                    isPro ? "items-end" : "items-start",
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-600">
-                      {speech.name}
-                    </span>
-                    <span className="text-xs text-gray-400">{speech.t}</span>
-                  </div>
                   <div
                     className={cn(
-                      "rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm",
+                      "flex h-8 w-8 min-w-[2rem] items-center justify-center rounded-full text-xs font-bold shadow-sm",
                       isPro
-                        ? "rounded-tr-none bg-blue-600 text-white"
-                        : "rounded-tl-none border border-gray-100 bg-white text-gray-700",
+                        ? "bg-blue-100 text-blue-600"
+                        : getSpeakerColor(speech.index),
                     )}
                   >
-                    {speech.text}
+                    {isPro ? (
+                      <Stethoscope className="h-4 w-4" />
+                    ) : (
+                      getSpeakerInitials(speech.name)
+                    )}
+                  </div>
+
+                  <div
+                    className={cn(
+                      "flex flex-col gap-1",
+                      isPro ? "items-end" : "items-start",
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-gray-600">
+                        {speech.name}
+                      </span>
+                      <span className="text-xs text-gray-400">{speech.t}</span>
+                    </div>
+                    <div
+                      className={cn(
+                        "rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm",
+                        isPro
+                          ? "rounded-tr-none bg-blue-600 text-white"
+                          : "rounded-tl-none border border-gray-100 bg-white text-gray-700",
+                      )}
+                    >
+                      {speech.text}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
-        ) : selectedRecording?.transcription ? (
-          <div className="flex flex-col gap-4 px-10">
-            <p className="text-primary m-auto w-full text-justify text-base font-extrabold">
-              Transcrição Completa
-            </p>
-            <div className="m-auto w-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <p className="text-justify text-base leading-relaxed font-medium text-gray-700">
-                {selectedRecording.transcription}
+              );
+            })
+          ) : selectedRecording?.transcription ? (
+            <div className="flex flex-col gap-4 px-10">
+              <p className="text-primary m-auto w-full text-justify text-base font-extrabold">
+                Transcrição Completa
               </p>
+              <div className="m-auto w-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                <p className="text-justify text-base leading-relaxed font-medium text-gray-700">
+                  {selectedRecording.transcription}
+                </p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            <h1 className="text-primary m-auto w-full text-center text-3xl font-extrabold md:w-max">
-              Transcrição não disponível
-            </h1>
-            <div className="prose prose-sm prose-h1:text-center prose-h1:text-primary prose-h2:text-primary w-full max-w-none">
-              <RequestTranscription />
-            </div>
-          </>
-        )}
+          ) : (
+            <>
+              <h1 className="text-primary m-auto w-full text-center text-3xl font-extrabold md:w-max">
+                Transcrição não disponível
+              </h1>
+              <div className="prose prose-sm prose-h1:text-center prose-h1:text-primary prose-h2:text-primary w-full max-w-none">
+                <RequestTranscription />
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </>
   );

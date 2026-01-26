@@ -3,6 +3,7 @@ import { AuthGuard } from "@/components/auth-guard";
 import { Header } from "@/components/ui/header";
 import { Sidebar } from "@/components/ui/sidebar";
 import { GeneralContextProvider } from "@/context/GeneralContext";
+import { ChatPageProvider } from "@/context/chatContext";
 import { cn } from "@/utils/cn";
 import Lenis from "lenis";
 import { motion } from "framer-motion";
@@ -41,7 +42,8 @@ export default function RootLayout({
   return (
     <AuthGuard>
       <GeneralContextProvider>
-        <div
+        <ChatPageProvider>
+          <div
           className={cn(
             "relative flex w-full flex-col pb-20",
             pathname.includes("/chat") && "pb-0",
@@ -69,6 +71,7 @@ export default function RootLayout({
             {children}
           </motion.div>
         </div>
+        </ChatPageProvider>
       </GeneralContextProvider>
     </AuthGuard>
   );
