@@ -1,6 +1,8 @@
 // --- 1. DEFINIÇÃO DOS TIPOS ---
 
-// Tipos para Clientes (anteriormente Clients)
+import { AIComponentResponse } from "@/app/(private)/ai-components-preview/types/component-types";
+
+// Tipos para Contatos (anteriormente Clients)
 export interface ClientProps {
   id: string;
   name: string;
@@ -11,6 +13,22 @@ export interface ClientProps {
 }
 
 // Tipos para Agendamentos (anteriormente Reminders)
+export interface ReminderRecordingProps {
+  audioUrl: string;
+  createdAt: string;
+  description: string;
+  duration: string;
+  id: string;
+  name: string;
+  reminderId: string;
+  summary: string | null;
+  transcription: string;
+  transcriptionStatus: string;
+  type: string;
+  userId: string;
+  clientId: string | null;
+}
+
 export interface ReminderProps {
   id: string;
   name: string;
@@ -19,19 +37,7 @@ export interface ReminderProps {
   time: string;
   userId: string;
   notificationSended: boolean;
-  recording: {
-    audioUrl: string;
-    createdAt: string;
-    description: string;
-    duration: string;
-    id: string;
-    name: string;
-    reminderId: string;
-    summary: string | null;
-    transcription: string;
-    type: string;
-    userId: string;
-  };
+  recording: ReminderRecordingProps | null;
 }
 
 // Tipos para Gravações
@@ -46,6 +52,7 @@ export interface RecordingSpeakerProps {
   id: string;
   name: string;
   recordingId: string;
+  isProfessional?: boolean;
 }
 
 export interface RecordingDetailsProps {
@@ -59,8 +66,11 @@ export interface RecordingDetailsProps {
   type: "CLIENT" | "REMINDER" | "OTHER" | "STUDY"; // Nota: O tipo da gravação ainda usa 'CLIENT' e 'REMINDER'
   transcription?: string | null;
   summary?: string | null;
-  client?: ClientProps | null; // Renomeado para 'client' mas usando ClientProps
-  reminderId?: string | null; // Renomeado para 'reminderId' mas referente a reminder
+  structuredSummary?: AIComponentResponse | null;
+  specificSummary?: AIComponentResponse | null;
+  client?: ClientProps | null;
+  reminderId?: string | null;
+  reminder?: ReminderProps | null;
   transcriptionId?: string | null;
   speeches: RecordingSpeakerSpeechProps[];
   speakers: RecordingSpeakerProps[];
@@ -83,4 +93,34 @@ export interface FetchClientRequest {
   query?: string;
   sortBy?: "NAME" | "BIRTH_DATE" | "DESCRIPTION" | null;
   sortDirection?: "ASC" | "DESC" | null;
+}
+
+// Tipo para os Query Params de Reminders
+export interface FetchRemindersRequest {
+  page: number;
+  query?: string;
+  sortBy?: "NAME" | "DATE" | "TIME" | null;
+  sortDirection?: "ASC" | "DESC" | null;
+}
+
+// Tipo para estatísticas do dashboard
+export interface DashboardStatsRequest {
+  startDate: string;
+  endDate: string;
+}
+
+export interface DashboardStatsResponse {
+  totalRecordings: number;
+  totalSeconds: number;
+  totalClients: number;
+  recordingsByDay: Array<{
+    date: string;
+    count: number;
+    totalSeconds: number;
+  }>;
+  previousPeriod: {
+    totalRecordings: number;
+    totalSeconds: number;
+    totalClients: number;
+  };
 }

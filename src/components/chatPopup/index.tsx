@@ -169,7 +169,7 @@ export default function ChatWidget() {
                       className="h-full w-full"
                     />
                     <button
-                      onClick={handleSendMessage}
+                      onClick={() => handleSendMessage()}
                       className="bg-primary hover:bg-primary-dark rounded px-2 py-2 text-sm text-white"
                     >
                       <SendHorizonal />

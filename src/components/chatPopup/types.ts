@@ -6,12 +6,19 @@ export interface FileData {
   mimeType: string; // ex: "image/png" ou "application/pdf"
 }
 
+export interface Attachment {
+  url: string;
+  type: string;
+  name: string;
+}
+
 export interface Message {
   role: "user" | "ai" | "system";
   content: string;
   type?: string;
   file?: string;
   name?: string;
+  attachments?: Attachment[];
 }
 export interface ChatHistoryItem {
   messages?: Message[];

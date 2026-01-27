@@ -1,9 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import OpenAI from "openai";
-import { startTransition, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import fixWebmDuration from "webm-duration-fix";
-import { Message, Prompt } from "./types";
+import { Attachment, Message, Prompt } from "./types";
 
 /* ================= OpenRouter via OpenAI SDK ================= */
 const openai = new OpenAI({
@@ -43,6 +50,24 @@ interface UseSectionChatParams {
   selectedPrompt?: Prompt;
 }
 
+export interface UseSectionChatReturn {
+  messages: Message[];
+  setMessages: Dispatch<SetStateAction<Message[]>>;
+  inputMessage: string;
+  setInputMessage: Dispatch<SetStateAction<string>>;
+  files: File[];
+  setFiles: Dispatch<SetStateAction<File[]>>;
+  file: File | null;
+  setFile: (f: File | null) => void;
+  loading: boolean;
+  isRecording: boolean;
+  elapsedTime: string;
+  startRecording: () => Promise<void>;
+  stopRecording: () => void;
+  handleSendMessage: (overrideContent?: string) => Promise<void>;
+  handleAbortStream: () => void;
+}
+
 /* ================= Utils ================= */
 async function fileToDataUrl(file: File): Promise<string> {
   return new Promise((res, rej) => {
@@ -78,11 +103,13 @@ function looksLikeNoAudioSupport(text: string) {
 }
 
 /* ================= Hook ================= */
-export function useSectionChat({ selectedPrompt }: UseSectionChatParams) {
+export function useSectionChat({
+  selectedPrompt,
+}: UseSectionChatParams): UseSectionChatReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
 
   // gravação
   const [isRecording, setIsRecording] = useState(false);
@@ -112,7 +139,7 @@ export function useSectionChat({ selectedPrompt }: UseSectionChatParams) {
       const audioFile = new File([fixed], "gravacao.webm", {
         type: "audio/webm",
       });
-      setFile(audioFile);
+      setFiles((prev) => [...prev, audioFile]); // Append recording to files
       stream.getTracks().forEach((t) => t.stop());
     };
     rec.start();
@@ -182,84 +209,105 @@ export function useSectionChat({ selectedPrompt }: UseSectionChatParams) {
   }
 
   /* ===== Enviar ===== */
-  async function handleSendMessage() {
-    if (loading || (!inputMessage.trim() && !file)) return;
+  async function handleSendMessage(overrideContent?: string) {
+    const textToSend = overrideContent || inputMessage;
+
+    if (loading || (!textToSend.trim() && files.length === 0)) return;
 
     setLoading(true);
 
-    // eco do usuário + placeholder
-    const outgoing: Message[] = [];
-    if (file) {
-      outgoing.push({
-        role: "user",
-        content: "",
-        file: URL.createObjectURL(file),
-        type: file.type,
-        name: file.name,
+    // Prepare attachments for UI
+    const attachments: Attachment[] = [];
+    for (const f of files) {
+      const url = URL.createObjectURL(f);
+      attachments.push({
+        url,
+        type: f.type,
+        name: f.name,
       });
     }
-    if (inputMessage.trim())
-      outgoing.push({ role: "user", content: inputMessage });
+
+    // Echo user message to UI
+    const outgoingMessage: Message = {
+      role: "user",
+      content: textToSend,
+      attachments: attachments.length > 0 ? attachments : undefined,
+    };
+
+    // Legacy support for single file/audio player in Message component if needed,
+    // but we will prefer 'attachments' array.
+    // If it's a single audio file, we might keep legacy props for compatibility if Messages component expects them,
+    // but we plan to update Messages component too.
+    if (files.length === 1 && files[0].type.startsWith("audio/")) {
+      outgoingMessage.file = attachments[0].url;
+      outgoingMessage.type = files[0].type;
+      outgoingMessage.name = files[0].name;
+    }
 
     setMessages((prev) => {
-      const list = [...prev, ...outgoing, { role: "ai", content: "..." }];
+      const list = [...prev, outgoingMessage, { role: "ai", content: "..." }];
       placeholderIndexRef.current = list.length - 1;
       return list as Message[];
     });
 
-    /* monta parts (texto + imagem + áudio base64) */
+    /* Construct Payload for API */
     const parts: Array<TextPart | ImagePart | AudioPart> = [];
     let attemptedAudio = false;
 
-    if (file) {
+    // Process all files
+    for (const file of files) {
       const mime = file.type || "";
       if (mime.startsWith("image/")) {
         const dataUrl = await fileToDataUrl(file);
-        parts.push({
-          type: "text",
-          text: inputMessage.trim()
-            ? inputMessage
-            : "Descreva/responda considerando a imagem:",
-        });
+        parts.push({ type: "image_url", image_url: { url: dataUrl } });
+      } else if (mime === "application/pdf") {
+        // For Gemini via OpenRouter/OpenAI SDK, PDF is often best sent as image_url with data URI
+        // if the model supports it. Standard Gemini supports PDF.
+        // Attempts to send as image_url with application/pdf mime type in data URI.
+        const dataUrl = await fileToDataUrl(file);
         parts.push({ type: "image_url", image_url: { url: dataUrl } });
       } else if (mime.startsWith("audio/")) {
-        const base64 = await fileToBase64NoPrefix(file);
-        const format = audioFormatFromMime(mime);
+        // Workaround for OpenRouter/Gemini: Send audio as a Data URI in 'image_url' or similar structure
+        // if the downstream model supports handling it as a generic file part.
+        // Using `input_audio` often fails if the router/SDK doesn't map it correctly.
+        const dataUrl = await fileToDataUrl(file);
         parts.push({
-          type: "text",
-          text: inputMessage.trim()
-            ? inputMessage
-            : "Please transcribe this audio file, then answer the question.",
-        });
-        parts.push({
-          type: "input_audio",
-          input_audio: { data: base64, format },
+          type: "image_url",
+          image_url: { url: dataUrl },
         });
         attemptedAudio = true;
       } else {
         parts.push({
           type: "text",
-          text: `Arquivo ${mime} anexado (não suportado diretamente). ${inputMessage}`.trim(),
+          text: `[Arquivo anexado: ${file.name} (${mime}) - Conteúdo não enviado diretamente]`,
         });
       }
-    } else if (inputMessage.trim()) {
-      parts.push({ type: "text", text: inputMessage });
     }
 
-    // limpa UI
-    setInputMessage("");
-    setFile(null);
+    if (textToSend.trim()) {
+      parts.push({ type: "text", text: textToSend });
+    } else if (files.length > 0 && parts.length === files.length) {
+      // If only files and no text, and we haven't added text yet
+      // note: image/audio parts don't strictly require text companion in some models, but helpful
+      if (!parts.some((p) => p.type === "text")) {
+        parts.push({
+          type: "text",
+          text: "Por favor, analise os arquivos enviados.",
+        });
+      }
+    }
 
-    // histórico + rodada atual
+    // Clean UI State
+    setInputMessage("");
+    setFiles([]);
+
+    // Histórico + Rodada Atual
     const base = buildHistoryForAPI();
-    const lastUser: ChatMessage =
-      parts.length === 1 && parts[0].type === "text"
-        ? { role: "user", content: (parts[0] as TextPart).text }
-        : { role: "user", content: parts };
+    const lastUser: ChatMessage = { role: "user", content: parts };
 
     const messagesForAPI: ChatMessage[] = [...base, lastUser];
 
-    /* streaming (com fallback) */
+    /* Streaming */
     const runOnce = async (msgs: ChatMessage[]) => {
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -292,20 +340,39 @@ export function useSectionChat({ selectedPrompt }: UseSectionChatParams) {
     try {
       const firstText = await runOnce(messagesForAPI);
 
-      // Se tentamos áudio e a resposta parece que "não suporta áudio", fazemos fallback:
+      // Fallback para áudio se necessário
       if (attemptedAudio && looksLikeNoAudioSupport(firstText)) {
-        const lastAudioMessage = outgoing.find((m) =>
-          m.type?.startsWith("audio"),
-        );
-        if (lastAudioMessage && file) {
-          const transcript = await transcribeWithWhisper(file);
+        // Encontra o primeiro arquivo de áudio para transcrever (limitação do fallback simples)
+        // Idealmente transcreveria todos, mas vamos focar no primeiro para fallback
+        const audioFile = files.find((f) => f.type.startsWith("audio/"));
+
+        if (audioFile) {
+          const transcript = await transcribeWithWhisper(audioFile);
           const base2 = buildHistoryForAPI();
+
+          let previousText = "";
+          // Tenta recuperar o texto que o usuário mandou junto
+          const textPart = parts.find((p) => p.type === "text") as
+            | TextPart
+            | undefined;
+          if (textPart) previousText = textPart.text;
+
           const prompt =
-            (inputMessage || "").trim().length > 0
-              ? `${inputMessage}\n\nTranscrição (ASR):\n${transcript}`
+            previousText.length > 0
+              ? `${previousText}\n\nTranscrição do áudio (ASR):\n${transcript}`
               : `Transcreva e responda ao áudio:\n${transcript}`;
 
-          await runOnce([...base2, { role: "user", content: prompt }]);
+          // Se tiver imagens, mantemos? O fallback complexo exigiria reconstruir tudo.
+          // Simplificação: manda texto + transcrição se falhou o audio nativo.
+          // Recupera imagens se houver
+          const imageParts = parts.filter((p) => p.type === "image_url");
+
+          const content: any[] = [
+            { type: "text", text: prompt },
+            ...imageParts,
+          ];
+
+          await runOnce([...base2, { role: "user", content }]);
         }
       }
     } catch (err) {
@@ -329,13 +396,19 @@ export function useSectionChat({ selectedPrompt }: UseSectionChatParams) {
     setLoading(false);
   }
 
+  /* ===== Compatibilidade (Single File) ===== */
+  const file = files.length > 0 ? files[0] : null;
+  const setFile = (f: File | null) => {
+    setFiles(f ? [f] : []);
+  };
+
   return {
     messages,
     setMessages,
     inputMessage,
     setInputMessage,
-    file,
-    setFile,
+    files,
+    setFiles,
     loading,
     isRecording,
     elapsedTime,
@@ -343,5 +416,8 @@ export function useSectionChat({ selectedPrompt }: UseSectionChatParams) {
     stopRecording,
     handleSendMessage,
     handleAbortStream,
-  } as const;
+    // compat
+    file,
+    setFile,
+  };
 }

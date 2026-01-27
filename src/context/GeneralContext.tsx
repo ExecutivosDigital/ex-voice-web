@@ -1,17 +1,21 @@
 "use client";
 
 import {
-  ClientProps,
-  FetchClientRequest,
-  FetchRecordingsRequest,
-  RecordingDetailsProps,
+    ClientProps,
+    DashboardStatsRequest,
+    DashboardStatsResponse,
+    FetchClientRequest,
+    FetchRecordingsRequest,
+    FetchRemindersRequest,
+    RecordingDetailsProps,
+    ReminderProps,
 } from "@/@types/general-client";
 import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
 import { useApiContext } from "./ApiContext";
 import { useSession } from "./auth"; // Para saber quando buscar dados
@@ -33,7 +37,27 @@ interface GeneralContextProps {
   setSelectedRecording: React.Dispatch<
     React.SetStateAction<RecordingDetailsProps | null>
   >;
-  // Pacientes (Clients)
+  // Dashboard Stats
+  dashboardStats: DashboardStatsResponse | null;
+  isGettingDashboardStats: boolean;
+  GetDashboardStats: (params: DashboardStatsRequest) => Promise<void>;
+  // Lembretes (Reminders)
+  reminders: ReminderProps[];
+  setReminders: React.Dispatch<React.SetStateAction<ReminderProps[]>>;
+  remindersFilters: FetchRemindersRequest;
+  setRemindersFilters: React.Dispatch<
+    React.SetStateAction<FetchRemindersRequest>
+  >;
+  remindersTotalPages: number;
+  setRemindersTotalPages: React.Dispatch<React.SetStateAction<number>>;
+  isGettingReminders: boolean;
+  setIsGettingReminders: React.Dispatch<React.SetStateAction<boolean>>;
+  GetReminders: () => Promise<void>;
+  selectedReminder: ReminderProps | null;
+  setSelectedReminder: React.Dispatch<
+    React.SetStateAction<ReminderProps | null>
+  >;
+  // Contatos (Clients)
   clients: ClientProps[];
   setClients: React.Dispatch<React.SetStateAction<ClientProps[]>>;
   clientsFilters: FetchClientRequest;
@@ -45,6 +69,15 @@ interface GeneralContextProps {
   GetClients: () => Promise<void>;
   selectedClient: ClientProps | null;
   setSelectedClient: React.Dispatch<React.SetStateAction<ClientProps | null>>;
+  newRecordingRequest: {
+    type: "CLIENT" | "PERSONAL";
+    subType?: "REMINDER" | "STUDY" | "OTHER";
+  } | null;
+  openNewRecording: (
+    type: "CLIENT" | "PERSONAL",
+    subType?: "REMINDER" | "STUDY" | "OTHER",
+  ) => void;
+  resetNewRecordingRequest: () => void;
 }
 
 const GeneralContext = createContext<GeneralContextProps | undefined>(
@@ -81,7 +114,21 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
   const [selectedRecording, setSelectedRecording] =
     useState<RecordingDetailsProps | null>(null);
 
-  // --- Estados para Pacientes (Clients) ---
+  // --- Estados para Dashboard Stats ---
+  const [dashboardStats, setDashboardStats] =
+    useState<DashboardStatsResponse | null>(null);
+  const [isGettingDashboardStats, setIsGettingDashboardStats] = useState(false);
+
+  // --- Estados para Lembretes (Reminders) ---
+  const [reminders, setReminders] = useState<ReminderProps[]>([]);
+  const [isGettingReminders, setIsGettingReminders] = useState(true);
+  const [remindersFilters, setRemindersFilters] =
+    useState<FetchRemindersRequest>({ page: 1 });
+  const [remindersTotalPages, setRemindersTotalPages] = useState(0);
+  const [selectedReminder, setSelectedReminder] =
+    useState<ReminderProps | null>(null);
+
+  // --- Estados para Contatos (Clients) ---
   const [clients, setClients] = useState<ClientProps[]>([]);
   const [isGettingClients, setIsGettingClients] = useState(true);
   const [clientsFilters, setClientsFilters] = useState<FetchClientRequest>({
@@ -91,6 +138,23 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
   const [selectedClient, setSelectedClient] = useState<ClientProps | null>(
     null,
   );
+
+  // --- Estado para Trigger Global de Nova Gravação ---
+  const [newRecordingRequest, setNewRecordingRequest] = useState<{
+    type: "CLIENT" | "PERSONAL";
+    subType?: "REMINDER" | "STUDY" | "OTHER";
+  } | null>(null);
+
+  const openNewRecording = useCallback(
+    (type: "CLIENT" | "PERSONAL", subType?: "REMINDER" | "STUDY" | "OTHER") => {
+      setNewRecordingRequest({ type, subType });
+    },
+    [],
+  );
+
+  const resetNewRecordingRequest = useCallback(() => {
+    setNewRecordingRequest(null);
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buildQueryString = (params: Record<string, any>): string => {
@@ -133,13 +197,36 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
     }
   }, [GetAPI, recordingsFilters]); // Depende do filtro
 
+  const GetDashboardStats = useCallback(
+    async (params: DashboardStatsRequest) => {
+      setIsGettingDashboardStats(true);
+      try {
+        const queryString = buildQueryString(params);
+        const response = await GetAPI(`/recording/stats?${queryString}`, true);
+        console.log("GetDashboardStats response", response);
+        if (response.status === 200) {
+          setDashboardStats(response.body);
+        } else {
+          console.error("Erro ao buscar stats:", response.status);
+          setDashboardStats(null);
+        }
+      } catch (error) {
+        console.error("Erro no GetDashboardStats:", error);
+        setDashboardStats(null);
+      } finally {
+        setIsGettingDashboardStats(false);
+      }
+    },
+    [GetAPI],
+  );
+
   const GetClients = useCallback(async () => {
     setIsGettingClients(true);
     try {
       const queryString = buildQueryString(clientsFilters);
       // Endpoint: /client (ou /client, ajuste se necessário)
       const response = await GetAPI(`/client?${queryString}`, true);
-
+      console.log("response", response);
       if (response.status === 200) {
         // A API retorna 'clients', mas salvamos em 'clients'
         setClients(response.body.clients || []);
@@ -157,6 +244,29 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
       setIsGettingClients(false);
     }
   }, [GetAPI, clientsFilters]); // Depende do filtro
+
+  const GetReminders = useCallback(async () => {
+    setIsGettingReminders(true);
+    try {
+      const queryString = buildQueryString(remindersFilters);
+      const response = await GetAPI(`/reminder?${queryString}`, true);
+      console.log("GetReminders response", response);
+      if (response.status === 200) {
+        setReminders(response.body.reminders || []);
+        setRemindersTotalPages(response.body.pages || 0);
+      } else {
+        console.error("Erro ao buscar lembretes:", response.status);
+        setReminders([]);
+        setRemindersTotalPages(0);
+      }
+    } catch (error) {
+      console.error("Erro no GetReminders:", error);
+      setReminders([]);
+      setRemindersTotalPages(0);
+    } finally {
+      setIsGettingReminders(false);
+    }
+  }, [GetAPI, remindersFilters]); // Depende do filtro
 
   useEffect(() => {
     if (profile) {
@@ -180,6 +290,12 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
     }
   }, [clientsFilters, GetClients, profile]);
 
+  useEffect(() => {
+    if (profile) {
+      GetReminders();
+    }
+  }, [remindersFilters, GetReminders, profile]);
+
   return (
     <GeneralContext.Provider
       value={{
@@ -195,7 +311,23 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
         GetRecordings,
         selectedRecording,
         setSelectedRecording,
-        // Pacientes
+        // Dashboard Stats
+        dashboardStats,
+        isGettingDashboardStats,
+        GetDashboardStats,
+        // Lembretes
+        reminders,
+        setReminders,
+        remindersFilters,
+        setRemindersFilters,
+        remindersTotalPages,
+        setRemindersTotalPages,
+        isGettingReminders,
+        setIsGettingReminders,
+        GetReminders,
+        selectedReminder,
+        setSelectedReminder,
+        // Contatos
         clients,
         setClients,
         clientsFilters,
@@ -207,6 +339,10 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
         GetClients,
         selectedClient,
         setSelectedClient,
+        // Trigger de Nova Gravação
+        newRecordingRequest,
+        openNewRecording,
+        resetNewRecordingRequest,
       }}
     >
       {children}

@@ -8,6 +8,7 @@ import config from "../utils/amplify.json";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
 
+console.log(baseURL);
 interface ApiContextProps {
   PostAPI: (
     url: string,
@@ -42,7 +43,7 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
     baseURL,
   });
 
-  async function header(auth: boolean) {
+  async function header(auth: boolean, isFormData = false) {
     let token = null;
 
     if (auth) {
@@ -55,64 +56,77 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
       }
     }
 
-    return {
-      headers: {
-        Authorization: token ? `Bearer ${token}` : "",
-        "ngrok-skip-browser-warning": "any",
-      },
+    const headers: Record<string, string> = {
+      Authorization: token ? `Bearer ${token}` : "",
+      "ngrok-skip-browser-warning": "any",
     };
+
+    // Não define Content-Type para FormData, deixa o axios fazer isso automaticamente
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    return { headers };
   }
 
   async function PostAPI(url: string, data: unknown, auth: boolean) {
+    const isFormData = data instanceof FormData;
     const connect = await api
-      .post(url, data, await header(auth))
+      .post(url, data, await header(auth, isFormData))
       .then(({ data }) => ({ status: 200, body: data }))
-      .catch((err) => ({
-        status: err.response?.status || 500,
-        body: err.response?.data || "Erro desconhecido",
-      }));
-    return connect.status === 500
-      ? { status: 500, body: "Ops! algo deu errado, tente novamente" }
-      : connect;
+      .catch((err) => {
+        console.error(`❌ API Error [POST] ${url}`, err.response?.data || err);
+        return {
+          status: err.response?.status || 500,
+          body: err.response?.data || "Erro desconhecido",
+        };
+      });
+    return connect;
   }
 
   async function GetAPI(url: string, auth: boolean) {
     const connect = await api
       .get(url, await header(auth))
       .then(({ data }) => ({ status: 200, body: data }))
-      .catch((err) => ({
-        status: err.response?.status || 500,
-        body: err.response?.data || "Erro desconhecido",
-      }));
-    return connect.status === 500
-      ? { status: 500, body: "Ops! algo deu errado, tente novamente" }
-      : connect;
+      .catch((err) => {
+        console.error(`❌ API Error [GET] ${url}`, err.response?.data || err);
+        return {
+          status: err.response?.status || 500,
+          body: err.response?.data || "Erro desconhecido",
+        };
+      });
+    return connect;
   }
 
   async function PutAPI(url: string, data: unknown, auth: boolean) {
     const connect = await api
       .put(url, data, await header(auth))
       .then(({ data }) => ({ status: 200, body: data }))
-      .catch((err) => ({
-        status: err.response?.status || 500,
-        body: err.response?.data || "Erro desconhecido",
-      }));
-    return connect.status === 500
-      ? { status: 500, body: "Ops! algo deu errado, tente novamente" }
-      : connect;
+      .catch((err) => {
+        console.error(`❌ API Error [PUT] ${url}`, err.response?.data || err);
+        return {
+          status: err.response?.status || 500,
+          body: err.response?.data || "Erro desconhecido",
+        };
+      });
+    return connect;
   }
 
   async function DeleteAPI(url: string, auth: boolean) {
     const connect = await api
       .delete(url, await header(auth))
       .then(({ data }) => ({ status: 200, body: data }))
-      .catch((err) => ({
-        status: err.response?.status || 500,
-        body: err.response?.data || "Erro desconhecido",
-      }));
-    return connect.status === 500
-      ? { status: 500, body: "Ops! algo deu errado, tente novamente" }
-      : connect;
+      .catch((err) => {
+        console.error(
+          `❌ API Error [DELETE] ${url}`,
+          err.response?.data || err,
+        );
+        return {
+          status: err.response?.status || 500,
+          body: err.response?.data || "Erro desconhecido",
+        };
+      });
+    return connect;
   }
 
   return (

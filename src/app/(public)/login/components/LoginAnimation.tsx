@@ -37,7 +37,7 @@ const SuccessNotification = () => (
     </div>
     <div>
       <p className="text-sm font-semibold text-white">Transcrição Concluída</p>
-      <p className="text-xs text-blue-200">Resumo gerado em 3s</p>
+      <p className="text-xs text-gray-200">Resumo gerado em 3s</p>
     </div>
   </motion.div>
 );
