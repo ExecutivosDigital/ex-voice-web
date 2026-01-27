@@ -190,7 +190,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="bg-primary z-10 flex w-full flex-col gap-4 px-4 pb-20 text-white">
+    <header className="bg-gradient-to-br from-primary to-black z-10 flex w-full flex-col gap-4 px-4 pb-20 text-white">
       <ProfileModal
         isOpen={isProfileModalOpen}
         onOpenChange={setIsProfileModalOpen}
