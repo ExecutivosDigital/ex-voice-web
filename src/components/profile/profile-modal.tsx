@@ -32,6 +32,110 @@ interface FormData {
   postalCode: string;
 }
 
+// Funções de máscara
+const maskCPFCNPJ = (value: string): string => {
+  const numbers = value.replace(/\D/g, "");
+
+  if (numbers.length <= 11) {
+    // CPF: 000.000.000-00
+    return numbers
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  } else {
+    // CNPJ: 00.000.000/0000-00
+    return numbers
+      .substring(0, 14)
+      .replace(/(\d{2})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1/$2")
+      .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+  }
+};
+
+const maskPhone = (value: string): string => {
+  const numbers = value.replace(/\D/g, "");
+
+  if (numbers.length > 11) {
+    // Com código do país: +55 (00) 00000-0000
+    const limited = numbers.substring(0, 13);
+    return limited
+      .replace(/(\d{2})(\d)/, "+$1 ($2")
+      .replace(/(\d{2})\s\((\d{2})(\d)/, "$1 ($2) $3")
+      .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+  } else if (numbers.length > 10) {
+    // Celular sem código do país: (00) 00000-0000
+    return numbers
+      .substring(0, 11)
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+  } else {
+    // Telefone fixo: (00) 0000-0000
+    return numbers
+      .substring(0, 10)
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+  }
+};
+
+const maskPostalCode = (value: string): string => {
+  const numbers = value.replace(/\D/g, "").substring(0, 8);
+  return numbers.replace(/(\d{5})(\d{1,3})$/, "$1-$2");
+};
+
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  icon: React.ElementType;
+  type?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  mask?: (value: string) => string;
+}
+
+function InputField({
+  label,
+  value,
+  onChange,
+  icon: Icon,
+  type = "text",
+  placeholder,
+  disabled = false,
+  mask,
+}: InputFieldProps) {
+  return (
+    <div className="group relative">
+      <label className="mb-1.5 block text-xs font-medium text-gray-700">
+        {label}
+      </label>
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <Icon className="h-4 w-4 text-gray-400 transition-colors group-focus-within:text-blue-500" />
+        </div>
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => {
+            const newValue = mask ? mask(e.target.value) : e.target.value;
+            onChange(newValue);
+          }}
+          disabled={disabled}
+          placeholder={placeholder}
+          className={cn(
+            "w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-3 pl-10 text-sm",
+            "text-gray-900 placeholder:text-gray-400",
+            "transition-all duration-200",
+            "focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none",
+            "hover:border-gray-300",
+            disabled && "cursor-not-allowed bg-gray-50 text-gray-500",
+          )}
+        />
+      </div>
+    </div>
+  );
+}
+
 interface ProfileModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -63,11 +167,11 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
       setFormData({
         name: profile.name || "",
         email: profile.email || "",
-        cpfCnpj: profile.cpfCnpj || "",
-        mobilePhone: profile.mobilePhone || "",
+        cpfCnpj: profile.cpfCnpj ? maskCPFCNPJ(profile.cpfCnpj) : "",
+        mobilePhone: profile.mobilePhone ? maskPhone(profile.mobilePhone) : "",
         address: profile.address || "",
         addressNumber: profile.addressNumber || "",
-        postalCode: profile.postalCode || "",
+        postalCode: profile.postalCode ? maskPostalCode(profile.postalCode) : "",
       });
       setSaveStatus("idle");
       setErrorMessage("");
@@ -113,48 +217,6 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
     }
   };
 
-  const InputField = ({
-    label,
-    field,
-    icon: Icon,
-    type = "text",
-    placeholder,
-    disabled = false,
-  }: {
-    label: string;
-    field: keyof FormData;
-    icon: React.ElementType;
-    type?: string;
-    placeholder?: string;
-    disabled?: boolean;
-  }) => (
-    <div className="group relative">
-      <label className="mb-1.5 block text-xs font-medium text-gray-700">
-        {label}
-      </label>
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Icon className="h-4 w-4 text-gray-400 transition-colors group-focus-within:text-blue-500" />
-        </div>
-        <input
-          type={type}
-          value={formData[field]}
-          onChange={(e) => handleInputChange(field, e.target.value)}
-          disabled={disabled}
-          placeholder={placeholder}
-          className={cn(
-            "w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-3 pl-10 text-sm",
-            "text-gray-900 placeholder:text-gray-400",
-            "transition-all duration-200",
-            "focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none",
-            "hover:border-gray-300",
-            disabled && "cursor-not-allowed bg-gray-50 text-gray-500",
-          )}
-        />
-      </div>
-    </div>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl overflow-hidden p-0 sm:rounded-3xl">
@@ -191,14 +253,16 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
 
               <InputField
                 label="Nome completo"
-                field="name"
+                value={formData.name}
+                onChange={(value) => handleInputChange("name", value)}
                 icon={UserIcon}
                 placeholder="Seu nome"
               />
 
               <InputField
                 label="E-mail"
-                field="email"
+                value={formData.email}
+                onChange={(value) => handleInputChange("email", value)}
                 icon={Mail}
                 type="email"
                 placeholder="seu@email.com"
@@ -207,16 +271,20 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
 
               <InputField
                 label="CPF/CNPJ"
-                field="cpfCnpj"
+                value={formData.cpfCnpj}
+                onChange={(value) => handleInputChange("cpfCnpj", value)}
                 icon={Hash}
                 placeholder="000.000.000-00"
+                mask={maskCPFCNPJ}
               />
 
               <InputField
                 label="Telefone"
-                field="mobilePhone"
+                value={formData.mobilePhone}
+                onChange={(value) => handleInputChange("mobilePhone", value)}
                 icon={Phone}
                 placeholder="(00) 00000-0000"
+                mask={maskPhone}
               />
 
               <div className="col-span-full mt-2">
@@ -230,7 +298,8 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
               <div className="col-span-full">
                 <InputField
                   label="Endereço"
-                  field="address"
+                  value={formData.address}
+                  onChange={(value) => handleInputChange("address", value)}
                   icon={MapPin}
                   placeholder="Rua, Avenida..."
                 />
@@ -238,16 +307,19 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
 
               <InputField
                 label="Número"
-                field="addressNumber"
+                value={formData.addressNumber}
+                onChange={(value) => handleInputChange("addressNumber", value)}
                 icon={Hash}
                 placeholder="123"
               />
 
               <InputField
                 label="CEP"
-                field="postalCode"
+                value={formData.postalCode}
+                onChange={(value) => handleInputChange("postalCode", value)}
                 icon={MapPin}
                 placeholder="00000-000"
+                mask={maskPostalCode}
               />
             </div>
 

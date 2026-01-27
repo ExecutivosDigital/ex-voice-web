@@ -55,11 +55,26 @@ export function DateRangePicker({
   // Quick select options
   const quickSelects = [
     {
+      label: "Hoje",
+      action: () => {
+        const today = new Date();
+        onDateRangeChange({ from: today, to: today });
+      },
+    },
+    {
+      label: "Ontem",
+      action: () => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        onDateRangeChange({ from: yesterday, to: yesterday });
+      },
+    },
+    {
       label: "Últimos 7 dias",
       action: () => {
         const today = new Date();
         const from = new Date(today);
-        from.setDate(today.getDate() - 7);
+        from.setDate(today.getDate() - 6); // 6 dias atrás + hoje = 7 dias
         onDateRangeChange({ from, to: today });
       },
     },
@@ -68,7 +83,7 @@ export function DateRangePicker({
       action: () => {
         const today = new Date();
         const from = new Date(today);
-        from.setDate(today.getDate() - 30);
+        from.setDate(today.getDate() - 29); // 29 dias atrás + hoje = 30 dias
         onDateRangeChange({ from, to: today });
       },
     },

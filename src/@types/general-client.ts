@@ -13,6 +13,22 @@ export interface ClientProps {
 }
 
 // Tipos para Agendamentos (anteriormente Reminders)
+export interface ReminderRecordingProps {
+  audioUrl: string;
+  createdAt: string;
+  description: string;
+  duration: string;
+  id: string;
+  name: string;
+  reminderId: string;
+  summary: string | null;
+  transcription: string;
+  transcriptionStatus: string;
+  type: string;
+  userId: string;
+  clientId: string | null;
+}
+
 export interface ReminderProps {
   id: string;
   name: string;
@@ -21,19 +37,7 @@ export interface ReminderProps {
   time: string;
   userId: string;
   notificationSended: boolean;
-  recording: {
-    audioUrl: string;
-    createdAt: string;
-    description: string;
-    duration: string;
-    id: string;
-    name: string;
-    reminderId: string;
-    summary: string | null;
-    transcription: string;
-    type: string;
-    userId: string;
-  };
+  recording: ReminderRecordingProps | null;
 }
 
 // Tipos para Gravações
@@ -48,6 +52,7 @@ export interface RecordingSpeakerProps {
   id: string;
   name: string;
   recordingId: string;
+  isProfessional?: boolean;
 }
 
 export interface RecordingDetailsProps {
@@ -88,4 +93,34 @@ export interface FetchClientRequest {
   query?: string;
   sortBy?: "NAME" | "BIRTH_DATE" | "DESCRIPTION" | null;
   sortDirection?: "ASC" | "DESC" | null;
+}
+
+// Tipo para os Query Params de Reminders
+export interface FetchRemindersRequest {
+  page: number;
+  query?: string;
+  sortBy?: "NAME" | "DATE" | "TIME" | null;
+  sortDirection?: "ASC" | "DESC" | null;
+}
+
+// Tipo para estatísticas do dashboard
+export interface DashboardStatsRequest {
+  startDate: string;
+  endDate: string;
+}
+
+export interface DashboardStatsResponse {
+  totalRecordings: number;
+  totalSeconds: number;
+  totalClients: number;
+  recordingsByDay: Array<{
+    date: string;
+    count: number;
+    totalSeconds: number;
+  }>;
+  previousPeriod: {
+    totalRecordings: number;
+    totalSeconds: number;
+    totalClients: number;
+  };
 }

@@ -1,5 +1,5 @@
 "use client";
-import { CreateClientSheet } from "@/components/ui/create-client-sheet";
+import { AudioRecorder } from "@/components/audio-recorder/audio-recorder";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { debounce } from "lodash";
 import { Plus, Search } from "lucide-react";
@@ -29,8 +29,7 @@ export default function Clients() {
     setLocalQuery(e.target.value);
     debouncedHandleStopTyping(e.target.value);
   };
-  const [isCreateClientSheetOpen, setIsCreateClientSheetOpen] = useState(false);
-  const onOpenNewClient = () => setIsCreateClientSheetOpen(true);
+
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="mb-4 flex w-full flex-row items-center justify-between gap-2">
@@ -53,22 +52,16 @@ export default function Clients() {
               />
             </div>
           </div>
-          <button
-            onClick={onOpenNewClient}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 active:scale-95"
-          >
-            <Plus className="h-4 w-4" />
-            Nova Gravação
-          </button>
+          <AudioRecorder
+            buttonClassName="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 active:scale-95"
+            skipToClient={true}
+            customLabel="Nova Gravação"
+            customIcon={Plus}
+            initialClientId={selectedClient?.id}
+          />
         </div>
       </div>
       <SelectedClientTable />
-      {isCreateClientSheetOpen && (
-        <CreateClientSheet
-          isOpen={isCreateClientSheetOpen}
-          onClose={() => setIsCreateClientSheetOpen(false)}
-        />
-      )}
     </div>
   );
 }

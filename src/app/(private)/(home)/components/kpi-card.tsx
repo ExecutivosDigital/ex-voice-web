@@ -82,7 +82,7 @@ export function KPICard({
                                 {trend.isPositive ? "+" : "-"}
                                 {Math.abs(trend.value)}%
                             </span>
-                            <span className="text-xs text-gray-400">vs. mês anterior</span>
+                            <span className="text-xs text-gray-400">vs. período anterior</span>
                         </div>
                     )}
                 </div>

@@ -1,20 +1,22 @@
 "use client";
 
+import { RecordingDetailsProps } from "@/@types/general-client";
+import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     Calendar,
     ChevronLeft,
     ChevronRight,
-    Clock,
     FileText,
-    MoreVertical,
+    Loader2,
     Play,
     Search,
     Share2,
     User
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface Recording {
     id: string;
@@ -32,77 +34,71 @@ interface ContentPanelProps {
     className?: string;
 }
 
-// Mock data expandido
-const mockRecordings: Recording[] = [
-    {
-        id: "1",
-        title: "Consulta de Rotina - Anamnese Inicial",
-        patient: "Maria Silva",
-        date: "Hoje",
-        time: "14:30",
-        duration: "45min",
-        type: "Consulta",
-        tags: ["Cardiologia", "Primeira visita"],
-        description: "Paciente relata cansaço leve e histórico familiar..."
-    },
-    {
-        id: "2",
-        title: "Acompanhamento Pós-Cirúrgico",
-        patient: "João Santos",
-        date: "Hoje",
-        time: "10:15",
-        duration: "20min",
-        type: "Retorno",
-        tags: ["Ortopedia", "Pós-op"],
-        description: "Cicatrização evoluindo bem, sem queixas de dor..."
-    },
-    {
-        id: "3",
-        title: "Avaliação de Exames Laboratoriais",
-        patient: "Ana Costa",
-        date: "Ontem",
-        time: "16:45",
-        duration: "30min",
-        type: "Análise",
-        tags: ["Endocrinologia"],
-        description: "Resultados TSH normalizados, ajustar dosagem..."
-    },
-    {
-        id: "4",
-        title: "Discussão de Caso Clínico",
-        patient: "Pedro Lima",
-        date: "Ontem",
-        time: "09:00",
-        duration: "60min",
-        type: "Reunião",
-        tags: ["Neurologia", "Complexo"],
-        description: "Caso complexo de enxaqueca crônica refratária..."
-    },
-    {
-        id: "5",
-        title: "Retorno Mensal - Hipertensão",
-        patient: "Carlos Souza",
-        date: "14 Jan",
-        time: "11:00",
-        duration: "15min",
-        type: "Consulta",
-        tags: ["Cardiologia"],
-        description: "PA controlada, manter medicação atual..."
+// Helper para formatar data relativa
+const formatRelativeDate = (date: Date): string => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const recordingDate = new Date(date);
+    const recordingDay = new Date(recordingDate.getFullYear(), recordingDate.getMonth(), recordingDate.getDate());
+
+    if (recordingDay.getTime() === today.getTime()) {
+        return "Hoje";
+    } else if (recordingDay.getTime() === yesterday.getTime()) {
+        return "Ontem";
+    } else {
+        return recordingDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
     }
-];
+};
+
+// Helper para formatar tipo
+const formatType = (type: string): string => {
+    switch (type) {
+        case "CLIENT": return "Consulta";
+        case "REMINDER": return "Lembrete";
+        case "STUDY": return "Estudo";
+        case "OTHER": return "Outro";
+        default: return type;
+    }
+};
 
 export function ContentPanel({ className }: ContentPanelProps) {
+    const router = useRouter();
+    const { recordings: apiRecordings, isGettingRecordings } = useGeneralContext();
     const [searchTerm, setSearchTerm] = useState("");
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    // Converter gravações da API para o formato local e pegar os últimos 10
+    const recordings: Recording[] = useMemo(() => {
+        return apiRecordings
+            .slice(0, 10) // Últimas 10 gravações
+            .map((rec: RecordingDetailsProps) => {
+                const createdAt = new Date(rec.createdAt);
+                return {
+                    id: rec.id,
+                    title: rec.name,
+                    patient: rec.client?.name || "—",
+                    date: formatRelativeDate(createdAt),
+                    time: createdAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+                    duration: rec.duration,
+                    type: formatType(rec.type),
+                    tags: [formatType(rec.type)],
+                    description: rec.description,
+                };
+            });
+    }, [apiRecordings]);
+
     // Filtra gravações
-    const filteredRecordings = mockRecordings.filter(rec =>
+    const filteredRecordings = recordings.filter(rec =>
         rec.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         rec.patient.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const CARDS_PER_VIEW = 2;
-    const maxIndex = Math.max(0, Math.ceil(filteredRecordings.length / CARDS_PER_VIEW) - 1);
+    const totalPages = Math.max(1, Math.ceil(filteredRecordings.length / CARDS_PER_VIEW));
+    const maxIndex = Math.max(0, totalPages - 1);
 
     const nextSlide = () => {
         if (currentIndex < maxIndex) setCurrentIndex(p => p + 1);
@@ -122,6 +118,38 @@ export function ContentPanel({ className }: ContentPanelProps) {
         currentIndex * CARDS_PER_VIEW,
         (currentIndex + 1) * CARDS_PER_VIEW
     );
+
+    // Página atual para exibição (1-indexed)
+    const currentPage = currentIndex + 1;
+
+    const handleViewAll = () => {
+        router.push("/recordings");
+    };
+
+    const handleRecordingClick = (recordingId: string, type: string) => {
+        // Navegar para a página correta baseado no tipo
+        const recording = apiRecordings.find(r => r.id === recordingId);
+        if (!recording) return;
+
+        switch (recording.type) {
+            case "CLIENT":
+                if (recording.client?.id) {
+                    router.push(`/clients/${recording.client.id}/appointment/${recordingId}`);
+                }
+                break;
+            case "REMINDER":
+                if (recording.reminderId) {
+                    router.push(`/reminders/${recording.reminderId}`);
+                }
+                break;
+            case "STUDY":
+                router.push(`/studies/${recordingId}`);
+                break;
+            case "OTHER":
+                router.push(`/others/${recordingId}`);
+                break;
+        }
+    };
 
     return (
         <motion.div
@@ -149,7 +177,10 @@ export function ContentPanel({ className }: ContentPanelProps) {
                     </div>
                 </div>
 
-                <button className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-sky-500/25 active:scale-95">
+                <button 
+                    onClick={handleViewAll}
+                    className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-sky-500/25 active:scale-95"
+                >
                     Ver todas
                     <ChevronRight className="h-3 w-3" />
                 </button>
@@ -169,22 +200,29 @@ export function ContentPanel({ className }: ContentPanelProps) {
                     />
                 </div>
 
-                {/* Navigation Buttons */}
-                <div className="flex items-center gap-1">
-                    <button
-                        onClick={prevSlide}
-                        disabled={currentIndex === 0}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 transition-all hover:border-sky-200 hover:text-sky-600 disabled:opacity-30 disabled:hover:border-gray-100 disabled:hover:text-gray-400"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <button
-                        onClick={nextSlide}
-                        disabled={currentIndex === maxIndex}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 transition-all hover:border-sky-200 hover:text-sky-600 disabled:opacity-30 disabled:hover:border-gray-100 disabled:hover:text-gray-400"
-                    >
-                        <ChevronRight className="h-4 w-4" />
-                    </button>
+                {/* Navigation Buttons with Page Indicator */}
+                <div className="flex items-center gap-2">
+                    {filteredRecordings.length > 0 && (
+                        <span className="text-xs font-medium text-gray-400">
+                            {currentPage}/{totalPages}
+                        </span>
+                    )}
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={prevSlide}
+                            disabled={currentIndex === 0 || filteredRecordings.length === 0}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 transition-all hover:border-sky-200 hover:text-sky-600 disabled:opacity-30 disabled:hover:border-gray-100 disabled:hover:text-gray-400"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        <button
+                            onClick={nextSlide}
+                            disabled={currentIndex === maxIndex || filteredRecordings.length === 0}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 transition-all hover:border-sky-200 hover:text-sky-600 disabled:opacity-30 disabled:hover:border-gray-100 disabled:hover:text-gray-400"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -199,7 +237,12 @@ export function ContentPanel({ className }: ContentPanelProps) {
                         transition={{ duration: 0.2 }}
                         className="grid h-full grid-cols-1 gap-4 sm:grid-cols-2"
                     >
-                        {currentRecordings.length === 0 ? (
+                        {isGettingRecordings ? (
+                            <div className="col-span-2 flex h-full flex-col items-center justify-center text-gray-400">
+                                <Loader2 className="mb-2 h-8 w-8 animate-spin text-sky-500" />
+                                <p className="text-sm">Carregando gravações...</p>
+                            </div>
+                        ) : currentRecordings.length === 0 ? (
                             <div className="col-span-2 flex h-full flex-col items-center justify-center text-gray-400">
                                 <Search className="mb-2 h-8 w-8 opacity-20" />
                                 <p className="text-sm">Nenhuma gravação encontrada</p>
@@ -208,7 +251,8 @@ export function ContentPanel({ className }: ContentPanelProps) {
                             currentRecordings.map((recording) => (
                                 <div
                                     key={recording.id}
-                                    className="group relative flex flex-col justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-sm"
+                                    onClick={() => handleRecordingClick(recording.id, recording.type)}
+                                    className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-sm"
                                 >
                                     {/* Top Section */}
                                     <div className="mb-3 flex items-start justify-between gap-3">

@@ -1,49 +1,49 @@
 "use client";
 
-import { RecordingDetailsProps } from "@/@types/general-client";
+import { ReminderProps } from "@/@types/general-client";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
-import { cn } from "@/utils/cn";
-import { Check, X, Bell, Clock, Type } from "lucide-react";
+import { Check, X, Bell, Clock, Type, Calendar } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import moment from "moment";
 
 interface EditReminderModalProps {
     isOpen: boolean;
     onClose: () => void;
-    recording: RecordingDetailsProps;
+    reminder: ReminderProps;
 }
 
 export function EditReminderModal({
     isOpen,
     onClose,
-    recording,
+    reminder,
 }: EditReminderModalProps) {
     const { PutAPI } = useApiContext();
-    const { GetRecordings } = useGeneralContext();
+    const { GetReminders } = useGeneralContext();
     const [loading, setLoading] = useState(false);
-    const [time, setTime] = useState(recording.reminder?.time || "");
-    const [text, setText] = useState(recording.reminder?.description || recording.name || "");
+    const [time, setTime] = useState(reminder.time || "");
+    const [date, setDate] = useState(moment(reminder.date).format("YYYY-MM-DD"));
+    const [name, setName] = useState(reminder.name || "");
+    const [description, setDescription] = useState(reminder.description || "");
 
     if (!isOpen) return null;
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!recording.reminderId) {
-            toast.error("Este lembrete não possui um agendamento vinculado.");
-            return;
-        }
 
         setLoading(true);
         try {
-            const response = await PutAPI(`/reminder/${recording.reminderId}`, {
+            const response = await PutAPI(`/reminder/${reminder.id}`, {
                 time,
-                description: text,
+                date: new Date(date).toISOString(),
+                name,
+                description,
             }, true);
 
             if (response.status === 200) {
                 toast.success("Lembrete atualizado com sucesso!");
-                GetRecordings();
+                GetReminders();
                 onClose();
             } else {
                 toast.error("Erro ao atualizar lembrete.");
@@ -83,26 +83,56 @@ export function EditReminderModal({
                 <form onSubmit={handleSave} className="flex flex-col gap-5">
                     <div className="space-y-2">
                         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                            <Clock className="h-4 w-4 text-blue-500" />
-                            Horário do Lembrete
+                            <Type className="h-4 w-4 text-blue-500" />
+                            Nome do Lembrete
                         </label>
                         <input
-                            type="time"
-                            value={time}
-                            onChange={(e) => setTime(e.target.value)}
-                            className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-lg font-medium text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
+                            placeholder="Nome do lembrete..."
                             required
                         />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Calendar className="h-4 w-4 text-blue-500" />
+                                Data
+                            </label>
+                            <input
+                                type="date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Clock className="h-4 w-4 text-blue-500" />
+                                Horário
+                            </label>
+                            <input
+                                type="time"
+                                value={time}
+                                onChange={(e) => setTime(e.target.value)}
+                                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
+                                required
+                            />
+                        </div>
                     </div>
 
                     <div className="space-y-2">
                         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                             <Type className="h-4 w-4 text-blue-500" />
-                            Texto do Lembrete
+                            Descrição
                         </label>
                         <textarea
-                            value={text}
-                            onChange={(e) => setText(e.target.value)}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
                             rows={3}
                             className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
                             placeholder="Descreva o que deve ser lembrado..."

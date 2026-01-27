@@ -51,6 +51,7 @@ interface AudioRecorderProps {
   customIcon?: React.ComponentType<{ className?: string }>;
   initialClientId?: string;
   forcePersonalType?: "REMINDER" | "STUDY" | "OTHER";
+  skipNewRecordingRequest?: boolean; // Se true, não escuta o newRecordingRequest do contexto
 }
 
 export function AudioRecorder({
@@ -60,8 +61,9 @@ export function AudioRecorder({
   customIcon: CustomIcon,
   initialClientId,
   forcePersonalType,
+  skipNewRecordingRequest = false,
 }: AudioRecorderProps) {
-  const { GetRecordings, clients, selectedClient } = useGeneralContext();
+  const { GetRecordings, clients, selectedClient, newRecordingRequest, resetNewRecordingRequest } = useGeneralContext();
   const { PostAPI } = useApiContext();
   const { uploadMedia, formatDurationForAPI } = useRecordingUpload();
   const [isCreateClientSheetOpen, setIsCreateClientSheetOpen] = useState(false);
@@ -338,6 +340,32 @@ export function AudioRecorder({
     resetFlow();
   }, []);
 
+  // Escutar o newRecordingRequest do contexto para abrir automaticamente
+  // Apenas instâncias sem skipNewRecordingRequest processam os requests
+  useEffect(() => {
+    if (skipNewRecordingRequest || !newRecordingRequest || currentStep !== "idle") {
+      return;
+    }
+    
+    const { type, subType } = newRecordingRequest;
+    
+    // Reset o request ANTES de abrir a sheet
+    resetNewRecordingRequest();
+    
+    if (type === "PERSONAL" && subType) {
+      // Gravação pessoal com tipo específico (REMINDER, STUDY, OTHER)
+      updateMetadata({
+        recordingType: "PERSONAL",
+        personalRecordingType: subType,
+        consultationType: null,
+      });
+      setCurrentStep("save-dialog");
+    } else if (type === "CLIENT") {
+      // Consulta - abre o dialog de cliente
+      openSaveDialog("CLIENT");
+    }
+  }, [newRecordingRequest, currentStep, skipNewRecordingRequest, resetNewRecordingRequest, updateMetadata, openSaveDialog]);
+
   useEffect(() => {
     const isSheetOpen = currentStep !== "idle";
     const body = document.body;
@@ -355,53 +383,80 @@ export function AudioRecorder({
 
   useEffect(() => {
     if (skipToClient) {
-      updateMetadata({ ...metadata, selectedClientId: selectedClient?.id });
+      // Se initialClientId foi fornecido, usa ele; senão usa o selectedClient do contexto
+      const clientId = initialClientId || selectedClient?.id;
+      if (clientId) {
+        updateMetadata({ ...metadata, selectedClientId: clientId });
+      }
     }
-  }, [skipToClient]);
+  }, [skipToClient, initialClientId, selectedClient?.id]);
+
+  // Renderizar botão customizado quando skipToClient é true (sem dropdown)
+  const renderTriggerButton = () => {
+    const IconComponent = CustomIcon || Mic;
+    const label = customLabel || "Nova Gravação";
+    
+    if (skipToClient) {
+      return (
+        <div
+          onClick={() => handleDropdownOpenChange(true)}
+          className={cn(
+            "flex cursor-pointer items-center gap-2 rounded-3xl px-4 py-2 transition",
+            buttonClassName,
+          )}
+        >
+          <IconComponent size={20} />
+          {label}
+        </div>
+      );
+    }
+    
+    return (
+      <DropdownMenu
+        open={isDropdownOpen}
+        onOpenChange={handleDropdownOpenChange}
+      >
+        <DropdownMenuTrigger asChild>
+          <div
+            className={cn(
+              "flex items-center gap-2 rounded-3xl px-4 py-2 transition",
+              buttonClassName,
+            )}
+          >
+            <IconComponent size={20} />
+            {label}
+            <ChevronDown size={20} />
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onSelect={() => openSaveDialog("CLIENT")}>
+            <div className="flex items-center gap-2">
+              <Video size={18} className="text-blue-600" />
+              <div>
+                <p className="font-semibold text-gray-800">Consulta</p>
+                <p className="text-xs text-gray-500">Presencial ou Online</p>
+              </div>
+            </div>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => openSaveDialog("PERSONAL")}>
+            <div className="flex items-center gap-2">
+              <Mic size={18} className="text-green-600" />
+              <div>
+                <p className="font-semibold text-gray-800">Pessoal</p>
+                <p className="text-xs text-gray-500">
+                  Lembretes, estudos, etc.
+                </p>
+              </div>
+            </div>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
 
   return (
     <>
-      {currentStep === "idle" && (
-        <DropdownMenu
-          open={isDropdownOpen}
-          onOpenChange={handleDropdownOpenChange}
-        >
-          <DropdownMenuTrigger asChild>
-            <div
-              className={cn(
-                "flex items-center gap-2 rounded-3xl px-4 py-2 transition",
-                buttonClassName,
-              )}
-            >
-              <Mic size={20} />
-              Nova Gravação
-              <ChevronDown size={20} />
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onSelect={() => openSaveDialog("CLIENT")}>
-              <div className="flex items-center gap-2">
-                <Video size={18} className="text-blue-600" />
-                <div>
-                  <p className="font-semibold text-gray-800">Consulta</p>
-                  <p className="text-xs text-gray-500">Presencial ou Online</p>
-                </div>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => openSaveDialog("PERSONAL")}>
-              <div className="flex items-center gap-2">
-                <Mic size={18} className="text-green-600" />
-                <div>
-                  <p className="font-semibold text-gray-800">Pessoal</p>
-                  <p className="text-xs text-gray-500">
-                    Lembretes, estudos, etc.
-                  </p>
-                </div>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+      {currentStep === "idle" && renderTriggerButton()}
 
       {mounted &&
         createPortal(
@@ -529,7 +584,7 @@ export function AudioRecorder({
                           className={cn(
                             "group rounded-lg border-2 p-4 transition-all",
                             metadata.personalRecordingType === "STUDY"
-                              ? "border-blue-600 bg-blue-50" // Mantendo a cor selecionada como azul (padrão do sistema) ou você quer verde? O user pediu hover. Vou manter selecionado como azul para consistência, mas o hover verde.
+                              ? "border-blue-600 bg-blue-50"
                               : "border-gray-300 hover:border-green-600 hover:bg-green-50",
                           )}
                         >
@@ -693,19 +748,6 @@ export function AudioRecorder({
                                     ? tempCreatedClient
                                     : null;
 
-                                console.log(
-                                  "DEBUG: Rendering Input - ID:",
-                                  metadata.selectedClientId,
-                                );
-                                console.log(
-                                  "DEBUG: Found in list:",
-                                  foundInList,
-                                );
-                                console.log(
-                                  "DEBUG: Found in temp:",
-                                  foundInTemp,
-                                );
-
                                 return metadata.selectedClientId
                                   ? foundInList?.name || foundInTemp?.name || ""
                                   : "Selecione um Paciente";
@@ -762,7 +804,7 @@ export function AudioRecorder({
                     onClick={handleStartRecording}
                     className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-4 font-semibold text-white transition-colors hover:bg-blue-700"
                   >
-                    {currentMediaType === "video" ? ( // Usa currentMediaType
+                    {currentMediaType === "video" ? (
                       <>
                         <Video size={20} />
                         Continuar
@@ -936,7 +978,7 @@ export function AudioRecorder({
                 </div>
 
                 <div className="space-y-6">
-                  {currentMediaType === "video" && ( // Usa currentMediaType
+                  {currentMediaType === "video" && (
                     <div className="overflow-hidden rounded-lg bg-black">
                       <video
                         ref={videoPreviewRef}
@@ -949,7 +991,7 @@ export function AudioRecorder({
                     </div>
                   )}
 
-                  {currentMediaType === "audio" && ( // Usa currentMediaType
+                  {currentMediaType === "audio" && (
                     <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-12">
                       <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-100">
                         <Volume2 size={40} className="text-blue-600" />
@@ -977,8 +1019,7 @@ export function AudioRecorder({
                         <p className="text-lg font-bold text-gray-800">
                           {currentMediaType === "video"
                             ? "Vídeo + Áudio"
-                            : "Áudio"}{" "}
-                          {/* Usa currentMediaType */}
+                            : "Áudio"}
                         </p>
                       </div>
                     </div>

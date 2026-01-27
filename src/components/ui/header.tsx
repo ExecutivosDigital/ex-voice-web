@@ -832,7 +832,8 @@ export function Header() {
           )}
         </div>
         <div className="flex items-center justify-between gap-1 md:hidden">
-          <AudioRecorder buttonClassName="bg-white/50 hover:bg-white/20" />
+          {/* Mobile: usa classes CSS para estilizar diferente, mas reutiliza a instância desktop via portal */}
+          <AudioRecorder buttonClassName="bg-white/50 hover:bg-white/20" skipNewRecordingRequest={true} />
         </div>
       </div>
     </header>

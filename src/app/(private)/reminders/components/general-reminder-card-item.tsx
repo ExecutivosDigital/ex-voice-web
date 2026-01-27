@@ -1,27 +1,27 @@
 "use client";
 
-import { RecordingDetailsProps } from "@/@types/general-client";
+import { ReminderProps } from "@/@types/general-client";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { motion } from "framer-motion";
-import { AlarmClock, ChevronRight, FileAudio, Pencil } from "lucide-react";
+import { AlarmClock, Calendar, ChevronRight, FileAudio, Pencil } from "lucide-react";
 import moment from "moment";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { EditReminderModal } from "./edit-reminder-modal";
 
 interface Props {
-  reminder: RecordingDetailsProps;
+  reminder: ReminderProps;
   index: number;
 }
 
 export function GeneralReminderCardItem({ reminder, index }: Props) {
-  const { setSelectedRecording } = useGeneralContext();
+  const { setSelectedReminder } = useGeneralContext();
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleNavigation = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setSelectedRecording(reminder);
+    setSelectedReminder(reminder);
     router.push(`/reminders/${reminder.id}`);
   };
 
@@ -57,10 +57,10 @@ export function GeneralReminderCardItem({ reminder, index }: Props) {
 
           <div className="flex flex-col items-end">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-              Gravado em
+              Data do Lembrete
             </span>
             <span className="text-xs font-semibold text-gray-500">
-              {moment(reminder.createdAt).format("DD/MM/YYYY")}
+              {moment(reminder.date).format("DD/MM/YYYY")}
             </span>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function GeneralReminderCardItem({ reminder, index }: Props) {
                   Lembrar às:
                 </span>
                 <span className="text-lg font-bold text-gray-900">
-                  {reminder.reminder?.time || "--:--"}
+                  {reminder.time || "--:--"}
                 </span>
               </div>
             </div>
@@ -95,7 +95,14 @@ export function GeneralReminderCardItem({ reminder, index }: Props) {
         {/* Footer / Action */}
         <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-5">
           <span className="group-hover:text-primary/80 text-xs font-semibold text-gray-400">
-            {moment(reminder.createdAt).locale("pt-br").fromNow()}
+            {reminder.recording ? (
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {moment(reminder.recording.createdAt).locale("pt-br").fromNow()}
+              </span>
+            ) : (
+              "Sem gravação"
+            )}
           </span>
 
           <button
@@ -111,7 +118,7 @@ export function GeneralReminderCardItem({ reminder, index }: Props) {
       <EditReminderModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        recording={reminder}
+        reminder={reminder}
       />
     </>
   );

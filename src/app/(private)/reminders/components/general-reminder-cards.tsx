@@ -1,61 +1,73 @@
 "use client";
 
+import { ReminderProps } from "@/@types/general-client";
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { AnimatePresence, motion } from "framer-motion";
-import debounce from "lodash.debounce";
 import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { GeneralReminderCardItem } from "./general-reminder-card-item";
 
 export function GeneralRemindersCards() {
   const {
-    recordings,
-    isGettingRecordings,
-    recordingsFilters,
-    setRecordingsFilters,
-    recordingsTotalPages,
+    reminders,
+    isGettingReminders,
+    remindersFilters,
+    setRemindersFilters,
+    remindersTotalPages,
   } = useGeneralContext();
 
-  // Reset filters on mount
-  useEffect(() => {
-    setRecordingsFilters((prev) => ({
-      ...prev,
-      clientId: undefined,
-      query: undefined,
-      sortBy: undefined,
-      sortDirection: undefined,
-      type: "REMINDER",
-      page: 1,
-    }));
-  }, []);
+  // Aplicar filtros e ordenação localmente
+  const filteredAndSortedReminders = useMemo(() => {
+    let result = [...reminders];
 
-  const [localQuery, setLocalQuery] = useState("");
+    // Filtro de busca (query)
+    if (remindersFilters.query) {
+      const query = remindersFilters.query.toLowerCase();
+      result = result.filter(
+        (reminder) =>
+          reminder.name.toLowerCase().includes(query) ||
+          reminder.description.toLowerCase().includes(query)
+      );
+    }
 
-  const handleStopTyping = (value: string) => {
-    setRecordingsFilters((prev) => ({
-      ...prev,
-      query: value,
-      page: 1,
-    }));
-  };
+    // Ordenação
+    if (remindersFilters.sortBy) {
+      result.sort((a, b) => {
+        let comparison = 0;
 
-  const debouncedHandleStopTyping = useState(() =>
-    debounce(handleStopTyping, 1000),
-  )[0];
+        switch (remindersFilters.sortBy) {
+          case "NAME":
+            comparison = a.name.localeCompare(b.name);
+            break;
+          case "DATE":
+            comparison =
+              new Date(a.date).getTime() - new Date(b.date).getTime();
+            break;
+          case "TIME":
+            comparison = (a.time || "").localeCompare(b.time || "");
+            break;
+          default:
+            comparison = 0;
+        }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalQuery(e.target.value);
-    debouncedHandleStopTyping(e.target.value);
-  };
+        return remindersFilters.sortDirection === "DESC"
+          ? -comparison
+          : comparison;
+      });
+    }
+
+    return result;
+  }, [reminders, remindersFilters.query, remindersFilters.sortBy, remindersFilters.sortDirection]);
+
+  const hasResults = filteredAndSortedReminders.length > 0;
+  const showEmptyState = !isGettingReminders && !hasResults;
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Controls */}
-
       {/* Cards Grid */}
       <div className="min-h-[400px]">
-        {isGettingRecordings ? (
+        {isGettingReminders ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, index) => (
               <div
@@ -64,13 +76,13 @@ export function GeneralRemindersCards() {
               />
             ))}
           </div>
-        ) : recordings.length > 0 ? (
+        ) : hasResults ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <AnimatePresence mode="popLayout">
-              {recordings.map((recording, index) => (
+              {filteredAndSortedReminders.map((reminder, index) => (
                 <GeneralReminderCardItem
-                  key={recording.id}
-                  reminder={recording}
+                  key={reminder.id}
+                  reminder={reminder}
                   index={index}
                 />
               ))}
@@ -87,10 +99,14 @@ export function GeneralRemindersCards() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
-                Nenhum lembrete encontrado
+                {remindersFilters.query
+                  ? "Nenhum lembrete encontrado para esta busca"
+                  : "Nenhum lembrete encontrado"}
               </h3>
               <p className="text-sm text-gray-500">
-                Crie uma nova gravação para começar.
+                {remindersFilters.query
+                  ? "Tente buscar por outro termo."
+                  : "Crie um novo lembrete para começar."}
               </p>
             </div>
           </motion.div>
@@ -98,14 +114,14 @@ export function GeneralRemindersCards() {
       </div>
 
       {/* Pagination */}
-      {!isGettingRecordings && recordingsTotalPages > 1 && (
+      {!isGettingReminders && remindersTotalPages > 1 && (
         <div className="flex justify-center p-4">
           <CustomPagination
-            currentPage={recordingsFilters.page}
+            currentPage={remindersFilters.page}
             setCurrentPage={(page) =>
-              setRecordingsFilters((prev) => ({ ...prev, page }))
+              setRemindersFilters((prev) => ({ ...prev, page }))
             }
-            pages={recordingsTotalPages}
+            pages={remindersTotalPages}
           />
         </div>
       )}

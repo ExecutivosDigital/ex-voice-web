@@ -84,10 +84,21 @@ export function UpcomingMeetings({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
             className={cn(
-                "flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm",
+                "relative flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm overflow-hidden",
                 className
             )}
         >
+            {/* Overlay "Em Breve" */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-2">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 shadow-lg">
+                        <Calendar className="h-8 w-8 text-white" />
+                    </div>
+                    <span className="text-xl font-bold text-gray-800">Em Breve</span>
+                    <span className="text-sm text-gray-500">Integração com Google Agenda</span>
+                </div>
+            </div>
+
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600">

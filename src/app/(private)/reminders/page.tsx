@@ -6,22 +6,21 @@ import { ArrowUpDown, Plus, Search } from "lucide-react";
 import { useCallback, useState } from "react";
 import { GeneralRemindersCards } from "./components/general-reminder-cards";
 
-type SortableColumn = "NAME" | "CREATED_AT" | "DURATION" | null;
+type SortableColumn = "NAME" | "DATE" | "TIME" | null;
 type SortDirection = "ASC" | "DESC" | null;
+
 export default function Reminders() {
-  const { setRecordingsFilters, openNewRecording } = useGeneralContext();
+  const { setRemindersFilters, openNewRecording } = useGeneralContext();
   const [localQuery, setLocalQuery] = useState("");
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [sortColumn, setSortColumn] = useState<SortableColumn>(null);
 
   const handleStopTyping = (value: string) => {
-    setRecordingsFilters({
+    setRemindersFilters((prev) => ({
+      ...prev,
       query: value,
       page: 1,
-      type: undefined,
-      sortDirection: null,
-      sortBy: null,
-    });
+    }));
   };
 
   const debouncedHandleStopTyping = useCallback(
@@ -33,6 +32,7 @@ export default function Reminders() {
     setLocalQuery(e.target.value);
     debouncedHandleStopTyping(e.target.value);
   };
+
   const handleSort = (column: SortableColumn) => {
     const nextDirection =
       sortColumn === column && sortDirection === "ASC" ? "DESC" : "ASC";
@@ -40,7 +40,7 @@ export default function Reminders() {
     setSortDirection(nextDirection);
     setSortColumn(column);
 
-    setRecordingsFilters((prev) => ({
+    setRemindersFilters((prev) => ({
       ...prev,
       sortBy: column || undefined,
       sortDirection: nextDirection || undefined,
@@ -59,10 +59,10 @@ export default function Reminders() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-1">
             <button
-              onClick={() => handleSort("CREATED_AT")}
+              onClick={() => handleSort("DATE")}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all hover:bg-white hover:shadow-sm",
-                sortColumn === "CREATED_AT"
+                sortColumn === "DATE"
                   ? "text-primary bg-white shadow-sm"
                   : "text-gray-500",
               )}
@@ -71,16 +71,16 @@ export default function Reminders() {
               Data
             </button>
             <button
-              onClick={() => handleSort("DURATION")}
+              onClick={() => handleSort("TIME")}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all hover:bg-white hover:shadow-sm",
-                sortColumn === "DURATION"
+                sortColumn === "TIME"
                   ? "text-primary bg-white shadow-sm"
                   : "text-gray-500",
               )}
             >
               <ArrowUpDown className="h-3.5 w-3.5" />
-              Duração
+              Horário
             </button>
           </div>
 

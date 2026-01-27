@@ -1,11 +1,14 @@
 "use client";
 
+import { ReminderProps } from "@/@types/general-client";
+import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlarmClock, Bell, Check, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { AlarmClock, Bell, Check, ChevronLeft, ChevronRight, Loader2, Plus, X } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 
-interface Reminder {
+interface LocalReminder {
     id: string;
     text: string;
     time: string;
@@ -13,33 +16,52 @@ interface Reminder {
 }
 
 interface UpcomingRemindersProps {
-    reminders?: Reminder[];
     className?: string;
 }
-
-// Mock data inicial
-const mockReminders: Reminder[] = [
-    { id: "1", text: "Ligar para Maria Silva", time: "09:00", status: "pending" },
-    { id: "2", text: "Revisão de prontuário", time: "10:30", status: "pending" },
-    { id: "3", text: "Relatório mensal", time: "11:00", status: "pending" },
-    { id: "4", text: "Confirmar Dra. Ana", time: "14:00", status: "pending" },
-    { id: "5", text: "Preparar reunião", time: "15:30", status: "pending" },
-    { id: "6", text: "Responder e-mails", time: "16:00", status: "pending" },
-    { id: "7", text: "Exames Pedro Lima", time: "17:00", status: "pending" },
-    { id: "8", text: "Prescrições semana", time: "18:00", status: "pending" },
-];
 
 const ITEMS_PER_PAGE = 6;
 
 export function UpcomingReminders({
-    reminders: initialReminders = mockReminders,
     className,
 }: UpcomingRemindersProps) {
-    const [reminders, setReminders] = useState<Reminder[]>(initialReminders);
+    const router = useRouter();
+    const { reminders: apiReminders, isGettingReminders } = useGeneralContext();
+    
+    // Filtrar apenas os lembretes de hoje
+    const todayReminders = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        return apiReminders
+            .filter((reminder: ReminderProps) => {
+                const reminderDate = new Date(reminder.date);
+                reminderDate.setHours(0, 0, 0, 0);
+                return reminderDate >= today && reminderDate < tomorrow;
+            })
+            .map((reminder: ReminderProps): LocalReminder => ({
+                id: reminder.id,
+                text: reminder.name,
+                time: reminder.time,
+                status: "pending" as const,
+            }))
+            .sort((a, b) => a.time.localeCompare(b.time));
+    }, [apiReminders]);
+
+    const [localStatuses, setLocalStatuses] = useState<Record<string, "pending" | "completed" | "cancelled">>({});
     const [currentPage, setCurrentPage] = useState(0);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [tempTime, setTempTime] = useState<string>("");
     const timeInputRef = useRef<HTMLInputElement>(null);
+
+    // Combinar dados da API com status local
+    const reminders = useMemo(() => {
+        return todayReminders.map(reminder => ({
+            ...reminder,
+            status: localStatuses[reminder.id] || reminder.status,
+        }));
+    }, [todayReminders, localStatuses]);
 
     const totalPages = Math.ceil(reminders.length / ITEMS_PER_PAGE);
     const paginatedReminders = reminders.slice(
@@ -58,24 +80,17 @@ export function UpcomingReminders({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const updateStatus = (id: string, status: Reminder["status"]) => {
-        setReminders(prev => prev.map(r => (r.id === id ? { ...r, status } : r)));
+    const updateStatus = (id: string, status: LocalReminder["status"]) => {
+        setLocalStatuses(prev => ({ ...prev, [id]: status }));
     };
 
     const updateTime = (id: string) => {
-        setReminders(prev => prev.map(r => (r.id === id ? { ...r, time: tempTime } : r)));
+        // TODO: Implementar atualização via API
         setEditingId(null);
     };
 
     const handleAdd = () => {
-        const newReminder: Reminder = {
-            id: `new-${Date.now()}`,
-            text: "Novo lembrete",
-            time: "12:00",
-            status: "pending",
-        };
-        setReminders(prev => [newReminder, ...prev]);
-        setCurrentPage(0);
+        router.push("/reminders");
     };
 
     return (
@@ -137,7 +152,16 @@ export function UpcomingReminders({
             {/* Lista Refatorada */}
             <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-1 custom-scrollbar">
                 <AnimatePresence mode="popLayout">
-                    {paginatedReminders.length === 0 ? (
+                    {isGettingReminders ? (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-gray-300"
+                        >
+                            <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+                            <p className="text-sm font-medium text-gray-400">Carregando lembretes...</p>
+                        </motion.div>
+                    ) : paginatedReminders.length === 0 ? (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -146,7 +170,7 @@ export function UpcomingReminders({
                             <div className="rounded-full bg-gray-50 p-4">
                                 <Bell className="h-8 w-8 opacity-50" />
                             </div>
-                            <p className="text-sm font-medium">Lista vazia</p>
+                            <p className="text-sm font-medium">Nenhum lembrete para hoje</p>
                         </motion.div>
                     ) : (
                         paginatedReminders.map((reminder, index) => (

@@ -4,19 +4,19 @@ import { useGeneralContext } from "@/context/GeneralContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function ChatLayout({
+export default function ReminderLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { selectedRecording } = useGeneralContext();
+  const { selectedReminder } = useGeneralContext();
   const router = useRouter();
 
   useEffect(() => {
-    if (!selectedRecording) {
+    if (!selectedReminder) {
       router.push("/reminders");
     }
-  }, [selectedRecording]);
+  }, [selectedReminder]);
 
   return <>{children}</>;
 }

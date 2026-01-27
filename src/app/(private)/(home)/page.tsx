@@ -1,7 +1,8 @@
 "use client";
 
-import { Activity, Clock, Mic, Users } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useGeneralContext } from "@/context/GeneralContext";
+import { Activity, Clock, Loader2, Mic, Users } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { ContentPanel } from "./components/content-panel";
 import { DateRangePicker } from "./components/date-range-picker";
@@ -11,57 +12,20 @@ import { UpcomingMeetings } from "./components/upcoming-meetings";
 import { UpcomingReminders } from "./components/upcoming-reminders";
 import { CompleteRegistrationModal } from "./components/complete-registration-modal";
 
-// Mock data - será substituído por dados reais da API
-const generateMockChartData = (dateRange: DateRange | undefined) => {
-  const days: {
-    date: string;
-    recordings: number;
-    duration: number;
-    contacts: number;
-  }[] = [];
-
-  if (!dateRange?.from || !dateRange?.to) {
-    // Default: últimos 7 dias
-    const today = new Date();
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      const recordings = Math.floor(Math.random() * 15) + 1;
-      days.push({
-        date: date.toLocaleDateString("pt-BR", {
-          day: "2-digit",
-          month: "short",
-        }),
-        recordings: recordings,
-        duration: recordings * (Math.floor(Math.random() * 30) + 15), // 15-45 mins per recording
-        contacts: Math.floor(recordings * 0.8), // 80% unique contacts
-      });
-    }
-    return days;
-  }
-
-  const diffTime = Math.abs(dateRange.to.getTime() - dateRange.from.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-  for (let i = 0; i < Math.min(diffDays, 30); i++) {
-    const date = new Date(dateRange.from);
-    date.setDate(dateRange.from.getDate() + i);
-    const recordings = Math.floor(Math.random() * 15) + 1;
-    days.push({
-      date: date.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "short",
-      }),
-      recordings: recordings,
-      duration: recordings * (Math.floor(Math.random() * 30) + 15),
-      contacts: Math.floor(recordings * 0.8),
-    });
-  }
-
-  return days;
+// Helper para formatar data para API (YYYY-MM-DD)
+const formatDateForAPI = (date: Date): string => {
+  console.log("date", date);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  console.log("response date", `${year}-${month}-${day}`);
+  return `${year}-${month}-${day}`;
 };
 
 export default function HomePage() {
+  const { dashboardStats, isGettingDashboardStats, GetDashboardStats } =
+    useGeneralContext();
+
   // Date range state - default to last 7 days
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const today = new Date();
@@ -70,72 +34,155 @@ export default function HomePage() {
     return { from, to: today };
   });
 
-  // Generate chart data based on date range
-  const chartData = useMemo(
-    () => generateMockChartData(dateRange),
-    [dateRange],
-  );
+  // Buscar stats quando dateRange mudar
+  const fetchStats = useCallback(() => {
+    if (dateRange?.from) {
+      // Se não tiver "to", usar o mesmo dia que "from" (seleção de um único dia)
+      const startDate = formatDateForAPI(dateRange.from);
+      const endDate = formatDateForAPI(dateRange.to || dateRange.from);
+      
+      console.log(`[HomePage] Fetching stats: ${startDate} to ${endDate}`);
+      
+      GetDashboardStats({
+        startDate,
+        endDate,
+      });
+    }
+  }, [dateRange, GetDashboardStats]);
 
-  // Calculate KPIs based on chart data
-  const totalRecordings = useMemo(
-    () => chartData.reduce((acc, day) => acc + day.recordings, 0),
-    [chartData],
-  );
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
-  const totalDurationMinutes = useMemo(
-    () => chartData.reduce((acc, day) => acc + day.duration, 0),
-    [chartData],
-  );
+  // Converter dados da API para o formato do gráfico
+  const chartData = useMemo(() => {
+    if (!dashboardStats?.recordingsByDay) {
+      return [];
+    }
 
-  const totalContacts = useMemo(
-    () => chartData.reduce((acc, day) => acc + day.contacts, 0),
-    [chartData],
-  );
+    return dashboardStats.recordingsByDay.map((day) => {
+      console.log(day, "day");
+      const date = new Date(day.date + "T00:00:00");
+      console.log(date, "date");
+      console.log(date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "short",
+      }), "date.toLocaleDateString");
+      return {
+        date: date.toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "short",
+        }),
+        recordings: day.count,
+      };
+    });
 
-  const totalHours = Math.floor(totalDurationMinutes / 60);
-  const totalMinutes = totalDurationMinutes % 60;
+  }, [dashboardStats]);
 
-  const avgDurationPerContact = useMemo(() => {
-    if (totalContacts === 0) return 0;
-    return totalDurationMinutes / 60 / totalContacts;
-  }, [totalDurationMinutes, totalContacts]);
+  // KPIs baseados nos dados reais
+  const totalRecordings = dashboardStats?.totalRecordings || 0;
+  const totalSeconds = dashboardStats?.totalSeconds || 0;
+  const totalClients = dashboardStats?.totalClients || 0;
 
-  // Mock KPI data - será substituído por dados reais
+  // Formatar tempo gravado (mostrar minutos se for menos de 1 hora)
+  const formatDuration = (seconds: number): string => {
+    if (seconds === 0) return "0m";
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  };
+
+  const formattedTotalDuration = formatDuration(totalSeconds);
+
+  const avgSecondsPerClient = useMemo(() => {
+    if (totalClients === 0) return 0;
+    return totalSeconds / totalClients;
+  }, [totalSeconds, totalClients]);
+
+  const formattedAvgDuration = formatDuration(avgSecondsPerClient);
+
+  // Calcular trends (comparação com período anterior)
+  const calculateTrend = (
+    current: number,
+    previous: number,
+  ): { value: number; isPositive: boolean } => {
+    if (previous === 0) {
+      return { value: current > 0 ? 100 : 0, isPositive: current > 0 };
+    }
+    const percentChange = ((current - previous) / previous) * 100;
+    return {
+      value: Math.abs(Math.round(percentChange)),
+      isPositive: percentChange >= 0,
+    };
+  };
+
+  const recordingsTrend = useMemo(() => {
+    return calculateTrend(
+      totalRecordings,
+      dashboardStats?.previousPeriod?.totalRecordings || 0,
+    );
+  }, [totalRecordings, dashboardStats]);
+
+  const hoursTrend = useMemo(() => {
+    return calculateTrend(
+      totalSeconds,
+      dashboardStats?.previousPeriod?.totalSeconds || 0,
+    );
+  }, [totalSeconds, dashboardStats]);
+
+  const clientsTrend = useMemo(() => {
+    return calculateTrend(
+      totalClients,
+      dashboardStats?.previousPeriod?.totalClients || 0,
+    );
+  }, [totalClients, dashboardStats]);
+
+  // KPIs
   const kpis = [
     {
       title: "Quantidade de gravação",
-      value: totalRecordings,
+      value: isGettingDashboardStats ? "..." : totalRecordings,
       subtitle: "no período selecionado",
       icon: Mic,
       variant: "primary" as const,
-      trend: { value: 12, isPositive: true },
+      trend: recordingsTrend,
     },
     {
-      title: "Horas gravadas",
-      value: `${totalHours}h ${totalMinutes}m`,
+      title: "Tempo gravado",
+      value: isGettingDashboardStats ? "..." : formattedTotalDuration,
       subtitle: "total acumulado",
       icon: Clock,
       variant: "warning" as const,
-      trend: { value: 8, isPositive: true },
+      trend: hoursTrend,
     },
     {
       title: "Contatos atendidos",
-      value: totalContacts,
+      value: isGettingDashboardStats ? "..." : totalClients,
       subtitle: "pacientes únicos",
       icon: Users,
       variant: "success" as const,
-      trend: { value: 5, isPositive: true },
+      trend: clientsTrend,
     },
     {
-      title: "Horas gravadas por contato",
-      value: `${avgDurationPerContact.toFixed(1)}h`,
+      title: "Tempo por contato",
+      value: isGettingDashboardStats
+        ? "..."
+        : totalClients > 0 ? formattedAvgDuration : "—",
       subtitle: "média por contato",
       icon: Activity,
       variant: "info" as const,
-      trend: { value: 2, isPositive: false },
+      trend: { value: 0, isPositive: true }, // Este não tem trend específico
     },
   ];
-
+  console.log(chartData, "chartData");
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="mb-4 flex w-full flex-row items-center justify-between gap-2">
@@ -165,10 +212,14 @@ export default function HomePage() {
       {/* Charts and Meetings Section */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Recordings Chart - takes 2 columns */}
-        <RecordingsChart
-          data={chartData}
-          className="min-h-[400px] lg:col-span-2"
-        />
+        <div className="relative min-h-[400px] lg:col-span-2">
+          {isGettingDashboardStats && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/80">
+              <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+            </div>
+          )}
+          <RecordingsChart data={chartData} className="h-full" />
+        </div>
 
         {/* Upcoming Meetings - takes 1 column */}
         <UpcomingMeetings className="min-h-[400px]" />
