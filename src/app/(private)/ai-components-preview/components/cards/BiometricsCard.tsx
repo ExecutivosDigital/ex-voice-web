@@ -39,7 +39,7 @@ export function BiometricsCard({
 
   return (
     <div
-      className={`h-full w-full max-w-[500px] rounded-2xl border ${styles.border} bg-white p-4 shadow-sm`}
+      className={`h-full w-full min-w-0 rounded-2xl border ${styles.border} bg-white p-4 shadow-sm`}
     >
       <div className="mb-4 flex items-center gap-3">
         <div

@@ -240,6 +240,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
       setAvailableRecording(0);
       setTotalRecording(0);
       invalidateSessionCache();
+    } finally {
+      // Evita loading eterno no AuthGuard após logout
+      setLoading(false);
     }
   }, [invalidateSessionCache]);
 

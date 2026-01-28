@@ -151,7 +151,7 @@ export default function ChatPage() {
   }, [messages.length, selectedRecording]);
 
   const styles = {
-    iconGradient: "bg-gradient-to-br from-gray-500 to-gray-600",
+    iconGradient: "bg-gradient-to-r from-neutral-500 to-neutral-900",
     border: "border-gray-200",
   };
 
@@ -177,7 +177,7 @@ export default function ChatPage() {
         {!isChatEmpty && (
           <button
             onClick={handleNewChat}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95"
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95"
           >
             <Plus className="h-4 w-4" />
             Nova Conversa

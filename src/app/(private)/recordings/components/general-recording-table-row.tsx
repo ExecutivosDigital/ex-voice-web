@@ -7,7 +7,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/blocks/tooltip";
 import {
-  ContactsIcon,
   NotesIcon,
   OtherIcon,
   StudyIcon,
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/custom-icons";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Video } from "lucide-react";
 import moment from "moment";
 import { useRouter } from "next/navigation";
 interface Props {
@@ -72,8 +71,8 @@ export function GeneralRecordingTableItem({ recording }: Props) {
     switch (recording.type) {
       case "CLIENT":
         return {
-          label: "Consulta",
-          icon: ContactsIcon,
+          label: "Contato",
+          icon: Video,
           className: "text-white",
         };
       case "REMINDER":
@@ -118,7 +117,7 @@ export function GeneralRecordingTableItem({ recording }: Props) {
             <TooltipTrigger asChild>
               <div
                 className={cn(
-                  "flex w-max items-center gap-2 rounded-2xl border-2 bg-gradient-to-br from-gray-500 to-gray-600 p-1 text-xs text-white",
+                  "flex w-max items-center gap-2 rounded-2xl border-2 bg-gradient-to-r from-neutral-500 to-neutral-900 p-1 text-xs text-white",
                 )}
               >
                 <div

@@ -19,7 +19,7 @@ export function ObservationsCard({
   const Icon = getIcon("info");
 
   return (
-    <div className="h-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+    <div className="h-full w-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center gap-3">
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}

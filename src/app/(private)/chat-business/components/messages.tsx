@@ -75,7 +75,7 @@ export function Messages({ message }: Props) {
     <div className="">
       {isUser ? (
         <div className="group mr-2 mb-4 ml-auto flex max-w-[calc(100%-8px)] flex-col items-end justify-end gap-1 lg:mb-2 xl:mb-4 xl:max-w-[calc(100%-50px)]">
-          <div className="flex min-w-10 flex-col gap-1 rounded-2xl rounded-br-none bg-gray-500 p-3 text-white shadow-sm">
+          <div className="flex min-w-10 flex-col gap-1 rounded-2xl rounded-br-none bg-gradient-to-r from-neutral-500 to-neutral-900 p-3 text-white shadow-sm shadow-gray-500/20">
             {/* Text Content */}
             {message.content && (
               <div className="group flex items-center gap-1">

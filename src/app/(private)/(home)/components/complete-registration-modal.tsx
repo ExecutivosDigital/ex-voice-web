@@ -38,10 +38,13 @@ export function CompleteRegistrationModal() {
     // Image Carousel State
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const images = [
-        "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=1920&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1537368910025-700350fe46c7?q=80&w=1920&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=1920&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1582750433449-648ed127bb54?q=80&w=1920&auto=format&fit=crop"
+        "/imagens/handsome-businessman-com-laptop-na-mesa_23-2147689170.avif",
+        "/imagens/pexels-edwardeyer-8336244.jpg",
+        "/imagens/pexels-edwardeyer-19787808.jpg",
+        "/imagens/pexels-estevam-foto-20714753-16778621.jpg",
+        "/imagens/pexels-felicity-tai-7964522.jpg",
+        "/imagens/pexels-shkrabaanthony-7163364.jpg",
+        "/imagens/pexels-stephanie-lima-455905576-16051533.jpg",
     ];
 
     useEffect(() => {
@@ -49,7 +52,7 @@ export function CompleteRegistrationModal() {
             setCurrentImageIndex((prev) => (prev + 1) % images.length);
         }, 1400);
         return () => clearInterval(timer);
-    }, []);
+    }, [images.length]);
 
     // Check if user needs to complete registration
     useEffect(() => {
@@ -134,10 +137,10 @@ export function CompleteRegistrationModal() {
 
                     <div className="absolute bottom-10 left-10 z-20 text-white max-w-md pr-8">
                         <h3 className="text-3xl font-bold leading-tight tracking-tight">
-                            A revolução do <br /> atendimento médico.
+                            Mais nova Meeting <br /> Ingelligence do Brasil.
                         </h3>
                         <p className="mt-4 text-base text-gray-100 opacity-90 leading-relaxed font-light">
-                            Junte-se a milhares de profissionais que transformaram sua rotina clínica com a Health Voice.
+                            Junte-se a milhares de profissionais que transformaram sua rotina de reuniões com a Executivo' Voice.
                         </p>
                     </div>
 
@@ -172,11 +175,11 @@ export function CompleteRegistrationModal() {
                     <div className="mx-auto w-full max-w-sm">
 
                         <div className="mb-8 flex flex-col items-center text-center md:items-start md:text-left">
-                            {/* Branding with logo-dark.png */}
+                            {/* Branding with logo-dark.svg */}
                             <div className="mb-6">
                                 <Image
-                                    src="/logos/logo-dark.png"
-                                    alt="Health Voice Logo"
+                                    src="/logos/logo-dark.svg"
+                                    alt="Executivo Voice Logo"
                                     width={180}
                                     height={50}
                                     className="h-auto w-auto max-h-[45px]"

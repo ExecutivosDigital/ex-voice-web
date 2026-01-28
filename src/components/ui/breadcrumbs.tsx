@@ -149,7 +149,7 @@ export function BreadCrumbs() {
       </div>
       <div className="flex w-full flex-row items-center justify-between">
         <div className="hidden flex-1 items-center justify-end gap-2 self-end md:flex">
-          <AudioRecorder buttonClassName="bg-gradient-to-r from-gray-500 to-gray-600 text-white" />
+          <AudioRecorder buttonClassName="bg-gradient-to-r from-neutral-500 to-neutral-900 text-white" />
         </div>
       </div>
     </div>

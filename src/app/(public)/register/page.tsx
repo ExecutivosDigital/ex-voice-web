@@ -8,11 +8,11 @@ export default function Register() {
     return (
         <div className="flex min-h-screen w-full bg-white">
             {/* Esquerda - Branding / Marketing */}
-            <div className="from-primary relative hidden w-1/2 flex-col items-center justify-center bg-gradient-to-br to-gray-700 p-12 lg:flex">
+            <div className="from-primary relative hidden w-1/2 flex-col items-center justify-center bg-gradient-to-br to-black p-12 lg:flex">
                 {/* Background Effects */}
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute top-[20%] -left-[10%] h-[30rem] w-[30rem] rounded-full bg-white/10 blur-[120px]" />
-                    <div className="absolute -right-[10%] bottom-[20%] h-[30rem] w-[30rem] rounded-full bg-gray-900/20 blur-[120px]" />
+                    <div className="absolute -right-[10%] bottom-[20%] h-[30rem] w-[30rem] rounded-full bg-black/20 blur-[120px]" />
                 </div>
 
                 <div className="relative z-10 flex flex-col items-center gap-12">
@@ -23,7 +23,7 @@ export default function Register() {
                             Evolua seu Atendimento
                         </h2>
                         <p className="text-gray-50">
-                            Cadastre-se para acessar a tecnologia que transforma suas consultas em registros perfeitos.
+                            Cadastre-se para acessar a tecnologia que transforma suas conversas em registros inteligentes.
                         </p>
                     </div>
                 </div>
@@ -35,11 +35,11 @@ export default function Register() {
                     <div className="mb-8 text-center lg:text-left">
                         <div className="mb-6 flex justify-center lg:justify-start">
                             <Image
-                                src="/logos/logo-dark.png"
+                                src="/logos/logo-dark.svg"
                                 alt="Health Voice"
                                 width={200}
                                 height={60}
-                                className="h-10 w-auto object-contain"
+                                className="h-max w-1/2 object-contain"
                             />
                         </div>
 

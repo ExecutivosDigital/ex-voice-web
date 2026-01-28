@@ -150,7 +150,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
   // Verificar se components existe e é um array
   if (!section.components || !Array.isArray(section.components) || section.components.length === 0) {
     return (
-      <section className="mb-10">
+      <section className="mb-10 w-full">
         <div className="mb-6 flex items-start justify-between border-b border-gray-100 pb-4">
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-gray-900">{section.title}</h2>
@@ -170,7 +170,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
   const totalGridComponents = gridComponents.length;
 
   return (
-    <section className="mb-10">
+    <section className="mb-10 w-full">
       {/* Header da Seção */}
       <div className="mb-6 flex items-start justify-between border-b border-gray-100 pb-4">
         <div className="flex-1">
@@ -181,10 +181,10 @@ export function SectionRenderer({ section }: SectionRendererProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex w-full flex-col gap-6">
         {/* Componentes de largura total - Um abaixo do outro */}
         {fullWidth.length > 0 && (
-          <div className="flex flex-col gap-6">
+          <div className="flex w-full flex-col gap-6">
             {fullWidth.map((component, idx) => (
               <ComponentRenderer key={`full-${idx}`} component={component} />
             ))}
@@ -194,15 +194,11 @@ export function SectionRenderer({ section }: SectionRendererProps) {
         {/* Grid inteligente para componentes restantes */}
         {gridComponents.length > 0 && (
           <div 
-            className={`grid gap-4 md:gap-6 ${
-              totalGridComponents === 1 
-                ? 'justify-items-start' // Alinha à esquerda quando há apenas 1 componente
-                : ''
-            }`}
+            className="grid w-full gap-4 md:gap-6"
             style={{
               gridTemplateColumns: totalGridComponents === 1 
-                ? 'max-content' // Se há apenas 1 componente, usa apenas o espaço necessário
-                : 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', // Múltiplos componentes = grid flexível
+                ? '1fr' // 1 componente = uma coluna que ocupa 100%
+                : 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
             }}
           >
             {gridComponents.map(({ component, span }, idx) => {

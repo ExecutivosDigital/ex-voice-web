@@ -7,13 +7,13 @@ import { cn } from "@/utils/cn";
 import { generalPrompt } from "@/utils/prompts";
 import {
     ArrowLeft,
-    BookOpen, // Resumir
-    ClipboardList, // Prontuário
-    FileText, // Prescrições
+    ClipboardList,
+    Database,
+    Heart,
     Maximize2,
     Minimize2,
     Plus,
-    Stethoscope,
+    ScrollText,
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -61,31 +61,31 @@ export default function ChatPage() {
 
   const suggestions = [
     {
-      title: "Resumir Consulta",
-      description: "Resuma os principais pontos discutidos durante a consulta.",
-      icon: BookOpen,
-      prompt: "Resuma os principais pontos discutidos nesta consulta médica.",
+      title: "Resumir Conversa",
+      description: "Resuma os principais pontos discutidos durante a conversa.",
+      icon: ScrollText,
+      prompt: "Resuma os principais pontos discutidos nesta conversa.",
     },
     {
-      title: "Extrair Prescrições",
-      description: "Liste medicamentos e dosagens mencionadas.",
-      icon: FileText,
+      title: "Extrair Dados",
+      description: "Liste as informações mais relevantes da conversa.",
+      icon: Database,
       prompt:
-        "Liste todos os medicamentos e prescrições mencionadas na consulta.",
+        "Liste todas as informações mais relevantes da conversa.",
     },
     {
-      title: "Análise de Sintomas",
-      description: "Identifique e analise os sintomas relatados pelo Contato.",
-      icon: Stethoscope,
+      title: "Análise de Sentimento",
+      description: "Identifique e analise o sentimento geral da conversa.",
+      icon: Heart,
       prompt:
-        "Identifique e analise os sintomas relatados pelo Contato na transcrição.",
+        "Identifique e analise o sentimento geral da conversa.",
     },
     {
-      title: "Gerar Prontuário",
-      description: "Estruture as informações para inserção no prontuário.",
+      title: "Gerar Próximos Passos",
+      description: "Estruture os próximos passos para o Contato.",
       icon: ClipboardList,
       prompt:
-        "Organize as informações desta consulta em formato de prontuário médico (SOAP).",
+        "Estruture os próximos passos para o Contato, considerando o contexto da conversa.",
     },
   ];
 
@@ -139,7 +139,7 @@ export default function ChatPage() {
   }, [engine.messages.length, selectedRecording, engine.setMessages]);
 
   const styles = {
-    iconGradient: "bg-gradient-to-br from-gray-500 to-gray-600",
+    iconGradient: "bg-gradient-to-r from-neutral-500 to-neutral-900",
     border: "border-gray-200",
   };
 
@@ -155,7 +155,7 @@ export default function ChatPage() {
       <div className="flex w-full items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Assistente Médico
+            Assistente Executivo
           </h1>
           <p className="text-sm text-gray-500">
             Analisando: {selectedRecording?.name || "Consulta"}
@@ -165,7 +165,7 @@ export default function ChatPage() {
         {!isChatEmpty && (
           <button
             onClick={handleNewChat}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95"
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95"
           >
             <Plus className="h-4 w-4" />
             Nova Conversa

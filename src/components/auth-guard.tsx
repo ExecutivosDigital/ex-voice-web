@@ -2,52 +2,33 @@
 "use client";
 
 import { useSession } from "@/context/auth";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  fallback?: React.ReactNode; // Opcional: loading customizado
+  fallback?: React.ReactNode;
 }
 
 export function AuthGuard({ children, fallback }: AuthGuardProps) {
   const { profile, loading, checkSession } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const hasRedirected = useRef(false); // ← Evita múltiplos redirecionamentos
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
     const validateSession = async () => {
-      console.log("entrou aqui");
-      // ✅ Aguarda loading inicial
-
-      // ✅ Evita redirecionar múltiplas vezes
       if (hasRedirected.current) return;
 
-      console.log("passou 1");
-
-      // ✅ Verifica sessão
       const isValid = await checkSession();
 
-      console.log("passou 2");
-      console.log("isValid: ", isValid);
-
       if (!isValid || !profile) {
-        console.log("entrou aqui 2");
-        // ✅ Pequeno delay para dar tempo do login finalizar
         await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // ✅ Revalida após o delay
         const recheckValid = await checkSession();
 
-        console.log("recheckValid: ", recheckValid);
-
-        console.log("passou 3");
-
         if (!recheckValid) {
-          console.log("entrou aqui 3");
           hasRedirected.current = true;
           router.push("/login");
         }
@@ -65,14 +46,23 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     );
   }
 
-  // Usuário autenticado, mostra conteúdo com animação de entrada
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        key="content"
+        initial={{ opacity: 0, scale: 0.98, filter: "blur(8px)" }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+        }}
+        exit={{
+          opacity: 0,
+          scale: 0.98,
+          filter: "blur(4px)",
+          transition: { duration: 0.3 },
+        }}
       >
         {children}
       </motion.div>
@@ -81,14 +71,16 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
 }
 
 const loadingMessages = [
-  "Preparando seu ambiente de trabalho...",
-  "Verificando suas credenciais...",
+  "Preparando seu ambiente...",
+  "Verificando credenciais...",
   "Sincronizando dados...",
   "Quase lá...",
 ];
 
 function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
   const [messageIndex, setMessageIndex] = useState(0);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -97,142 +89,216 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [8, -8]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-8, 8]);
+
   if (fallback) return <>{fallback}</>;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      exit={{
+        opacity: 0,
+        scale: 1.05,
+        transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+      }}
       transition={{ duration: 0.5 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-white via-neutral-500 to-black"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-[#0a0a0b]"
+      onMouseMove={(e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 2;
+        const y = (e.clientY / window.innerHeight - 0.5) * 2;
+        mouseX.set(x);
+        mouseY.set(y);
+      }}
+      onMouseLeave={() => {
+        mouseX.set(0);
+        mouseY.set(0);
+      }}
     >
-      {/* Background Animated Shapes */}
+      {/* Grid de fundo com perspectiva */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <motion.div
-          animate={{
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-            scale: [1, 1.1, 1],
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(247, 206, 70, 0.15) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(247, 206, 70, 0.15) 1px, transparent 1px)
+            `,
+            backgroundSize: "60px 60px",
+            transform: "perspective(500px) rotateX(60deg)",
+            transformOrigin: "center top",
           }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -top-20 -left-20 h-96 w-96 rounded-full bg-black/30 blur-3xl"
         />
         <motion.div
           animate={{
-            x: [0, -30, 0],
-            y: [0, 50, 0],
+            opacity: [0.4, 0.7, 0.4],
             scale: [1, 1.2, 1],
           }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2,
-          }}
-          className="absolute top-1/2 -right-20 h-80 w-80 rounded-full bg-neutral-200/30 blur-3xl"
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FFCC00]/5 blur-[120px]"
         />
         <motion.div
           animate={{
-            x: [0, 40, 0],
-            y: [0, -40, 0],
-            scale: [1, 1.1, 1],
+            x: ["-50%", "0%", "-50%"],
+            y: ["-30%", "0%", "-30%"],
           }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 5,
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -right-1/4 -top-1/4 h-[400px] w-[400px] rounded-full bg-neutral-800/20 blur-[80px]"
+        />
+        <motion.div
+          animate={{
+            x: ["0%", "-30%", "0%"],
+            y: ["0%", "20%", "0%"],
           }}
-          className="absolute -bottom-20 left-1/3 h-[500px] w-[500px] rounded-full bg-neutral-100/40 blur-3xl"
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -bottom-1/4 -left-1/4 h-[350px] w-[350px] rounded-full bg-[#F7CE46]/10 blur-[100px]"
         />
       </div>
 
-      {/* Main Content Card */}
-      <div className="relative z-10 flex flex-col items-center gap-10 p-8">
-        {/* Logo Section */}
-        <div className="relative">
+      {/* Conteúdo central */}
+      <div className="relative z-10 flex flex-col items-center gap-14 px-6">
+        {/* Logo com efeito 3D */}
+        <motion.div
+          style={{
+            perspective: "1200px",
+            rotateX,
+            rotateY,
+            transformStyle: "preserve-3d",
+          }}
+          className="relative flex items-center justify-center"
+        >
+          {/* Brilho atrás da logo */}
           <motion.div
             animate={{
-              scale: [1, 1.05, 1],
-              rotate: [0, 5, -5, 0],
+              opacity: [0.3, 0.6, 0.3],
+              scale: [1, 1.15, 1],
             }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="absolute inset-0 rounded-full bg-gradient-to-tr from-neutral-800/20 to-black/20 blur-xl"
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute h-48 w-80 rounded-full bg-[#FFCC00]/20 blur-[60px]"
+            style={{ transform: "translateZ(-40px)" }}
           />
+          {/* Sombra/reflexo 3D */}
           <motion.div
-            initial={{ scale: 0.8, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative flex h-32 w-32 items-center justify-center rounded-3xl bg-black/40 shadow-2xl ring-1 ring-black/40 backdrop-blur-md sm:h-40 sm:w-40"
+            animate={{
+              opacity: [0.15, 0.25, 0.15],
+            }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute -bottom-4 left-1/2 h-8 w-56 -translate-x-1/2 rounded-full bg-black/50 blur-xl"
+            style={{
+              transform: "translateZ(-60px) rotateX(80deg) scaleY(0.3)",
+              transformStyle: "preserve-3d",
+            }}
+          />
+          {/* Container da logo com glass e profundidade */}
+          <motion.div
+            initial={{ opacity: 0, y: 30, rotateX: -20 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              rotateX: 0,
+              transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] },
+            }}
+            className="relative"
+            style={{
+              transformStyle: "preserve-3d",
+              transform: "translateZ(20px)",
+            }}
           >
-            <Image
-              src="/logos/icon.png"
-              alt="Health Voice Logo"
-              width={160}
-              height={160}
-              className="h-20 w-20 object-contain drop-shadow-md sm:h-24 sm:w-24"
-              priority
-            />
-          </motion.div>
-        </div>
-
-        {/* Loading Indicators */}
-        <div className="flex flex-col items-center gap-6">
-          {/* Progress Bar Container */}
-          <div className="relative h-2 w-64 overflow-hidden rounded-full bg-gray-200/50 sm:w-80">
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-black via-neutral-800 to-neutral-500"
-              initial={{ x: "-100%" }}
-              animate={{ x: "100%" }}
+              animate={{
+                rotateY: [0, 5, -5, 0],
+                scale: [1, 1.02, 1],
+              }}
               transition={{
+                duration: 6,
                 repeat: Infinity,
-                duration: 1.5,
+                ease: "easeInOut",
+              }}
+              className="relative flex items-center justify-center rounded-2xl bg-black/30 p-8 shadow-2xl ring-1 ring-white/10 backdrop-blur-xl"
+              style={{
+                transformStyle: "preserve-3d",
+                boxShadow:
+                  "0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.05)",
+              }}
+            >
+              <Image
+                src="/logos/logo2.png"
+                alt="Executivo's Digital - Software House & Business"
+                width={280}
+                height={112}
+                className="h-16 w-auto object-contain drop-shadow-lg sm:h-20 md:h-24"
+                priority
+                style={{ transform: "translateZ(40px)" }}
+              />
+            </motion.div>
+          </motion.div>
+        </motion.div>
+
+        {/* Indicador de progresso e mensagem */}
+        <div className="flex flex-col items-center gap-8">
+          {/* Barra de progresso moderna */}
+          <div className="relative h-[3px] w-72 overflow-hidden rounded-full bg-white/10 sm:w-80">
+            <motion.div
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#FFCC00] via-[#F7CE46] to-[#FFCC00]"
+              initial={{ width: "0%" }}
+              animate={{
+                width: ["0%", "85%", "90%", "85%"],
+              }}
+              transition={{
+                duration: 2.5,
+                repeat: Infinity,
                 ease: "easeInOut",
               }}
             />
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              animate={{ x: ["-100%", "100%"] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              style={{ width: "50%" }}
+            />
           </div>
 
-          {/* Dynamic Text with Gradient */}
-          <div className="h-8 overflow-hidden text-center">
+          {/* Mensagens com transição */}
+          <div className="h-12 overflow-hidden text-center">
             <AnimatePresence mode="wait">
-              <motion.div
+              <motion.p
                 key={messageIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-                className="flex flex-col items-center gap-1"
+                initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  filter: "blur(0px)",
+                  transition: { duration: 0.35 },
+                }}
+                exit={{
+                  opacity: 0,
+                  y: -16,
+                  filter: "blur(4px)",
+                  transition: { duration: 0.25 },
+                }}
+                className="text-sm font-medium tracking-wide text-neutral-400 sm:text-base"
               >
-                <p className="bg-gradient-to-r from-neutral-700 to-black bg-clip-text text-lg font-bold text-transparent sm:text-xl">
-                  {loadingMessages[messageIndex]}
-                </p>
-                <p className="text-xs font-medium text-gray-400">
-                  Por favor, aguarde...
-                </p>
-              </motion.div>
+                {loadingMessages[messageIndex]}
+              </motion.p>
             </AnimatePresence>
           </div>
         </div>
       </div>
 
-      {/* Footer Text */}
+      {/* Rodapé */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="absolute bottom-8 flex flex-col items-center gap-2 text-center"
+        transition={{ delay: 0.6 }}
+        className="absolute bottom-8 flex flex-col items-center gap-3"
       >
-        <div className="h-1 w-12 rounded-full bg-gradient-to-r from-neutral-400 to-neutral-600" />
-        <p className="text-xs font-medium tracking-wider text-gray-400 uppercase">
+        <motion.div
+          animate={{ scaleX: [0.8, 1, 0.8] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="h-[2px] w-16 rounded-full bg-gradient-to-r from-transparent via-[#FFCC00]/60 to-transparent"
+        />
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
           EX Voice Security
         </p>
       </motion.div>

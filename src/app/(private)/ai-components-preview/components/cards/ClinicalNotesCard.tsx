@@ -23,7 +23,7 @@ export function ClinicalNotesCard({
   const sections = data.sections || [];
 
   return (
-    <section>
+    <section className="w-full">
       <div className="mb-4 flex items-center gap-3">
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${styles.gradientFrom} ${styles.gradientTo} text-white shadow-md ${styles.shadow}`}
@@ -32,7 +32,7 @@ export function ClinicalNotesCard({
         </div>
         <h2 className="text-xl font-bold text-gray-900">{title}</h2>
       </div>
-      <div className={`rounded-2xl border border-gray-200 bg-gray-50 p-6`}>
+      <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-6">
         {sections.length > 0 ? (
           <div className="space-y-4">
             {sections.map((section, idx) => (

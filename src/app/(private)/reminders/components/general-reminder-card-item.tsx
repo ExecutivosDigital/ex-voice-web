@@ -42,7 +42,7 @@ export function GeneralReminderCardItem({ reminder, index }: Props) {
         {/* Header with Icon, Title and Date */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-row items-center justify-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-500 to-gray-400 text-white shadow-lg shadow-gray-500/20 transition-transform group-hover:scale-105">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-neutral-500 to-neutral-900 text-white shadow-lg shadow-gray-500/20 transition-transform group-hover:scale-105">
               <FileAudio className="h-6 w-6 text-white" />
             </div>
             <div className="flex flex-col">

@@ -221,11 +221,11 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl overflow-hidden p-0 sm:rounded-3xl">
         {/* Decorative Header */}
-        <div className="relative h-24 bg-gradient-to-br from-gray-500 via-gray-600 to-gray-600">
+        <div className="relative h-24 bg-gradient-to-r from-neutral-500 to-neutral-900">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1Ii8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
           <DialogHeader className="absolute right-0 -bottom-12 left-0 z-10 flex flex-col items-center">
             <div className="relative">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-gray-400 to-gray-500 shadow-xl">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-gradient-to-r from-neutral-500 to-neutral-900 shadow-xl">
                 <UserIcon className="h-10 w-10 text-white" strokeWidth={1.5} />
               </div>
             </div>
@@ -360,7 +360,7 @@ export function ProfileModal({ isOpen, onOpenChange }: ProfileModalProps) {
                 disabled={isLoading}
                 className={cn(
                   "flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white",
-                  "bg-gradient-to-r from-gray-500 to-gray-600",
+                  "bg-gradient-to-r from-neutral-500 to-neutral-900",
                   "shadow-lg shadow-gray-500/25",
                   "transition-all duration-200",
                   "hover:scale-[1.02] hover:shadow-xl hover:shadow-gray-500/30",

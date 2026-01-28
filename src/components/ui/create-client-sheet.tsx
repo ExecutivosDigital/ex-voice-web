@@ -3,7 +3,7 @@ import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { maskDate } from "@/utils/masks";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useForm, UseFormReturn } from "react-hook-form";
@@ -158,13 +158,16 @@ export function CreateClientSheet({
       )}
     >
       <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+        <h2 className="mb-6 text-xl font-semibold text-gray-900">
+          Adicionar Contato
+        </h2>
         <Form {...form}>
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-text-100">Nome do Cliente</FormLabel>
+                <FormLabel className="text-text-100">Nome do Contato</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Digite..."
@@ -190,7 +193,8 @@ export function CreateClientSheet({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-text-100">
-                  Data de Nascimento do Cliente
+                  Data de Nascimento do Contato{" "}
+                  <span className="font-normal text-gray-500">(opcional)</span>
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -212,7 +216,8 @@ export function CreateClientSheet({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-text-100">
-                  Descrição do Cliente
+                  Descrição do Contato{" "}
+                  <span className="font-normal text-gray-500">(opcional)</span>
                 </FormLabel>
                 <FormControl>
                   <Textarea
@@ -239,14 +244,16 @@ export function CreateClientSheet({
               onClick={() => handleNext(form)}
               disabled={isLoading}
               className={cn(
-                "border-primary bg-primary hover:text-primary my-4 flex h-10 min-w-40 items-center justify-center rounded-md border px-2 font-semibold text-white transition duration-200 hover:bg-transparent",
-                isLoading && "text-primary bg-white",
+                "my-4 flex h-10 min-w-40 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 px-4 py-2.5 font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95 disabled:opacity-70 disabled:active:scale-100",
               )}
             >
               {isLoading ? (
-                <Loader2 className="animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Criar Cliente"
+                <>
+                  <Plus className="h-4 w-4" />
+                  Adicionar Contato
+                </>
               )}
             </button>
           </div>

@@ -43,7 +43,7 @@ export function GeneralClientTableItem({ client }: Props) {
     >
       <TableCell className="py-4 pl-4 text-start">
         <div className="flex items-center gap-4">
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 text-white shadow-md shadow-gray-500/20 transition-transform group-hover:scale-105">
+          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 text-white shadow-md shadow-gray-500/20 transition-transform group-hover:scale-105">
             <span className="text-sm font-bold">
               {client.name?.slice(0, 2).toUpperCase()}
             </span>

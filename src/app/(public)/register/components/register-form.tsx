@@ -12,6 +12,7 @@ import {
     LockIcon,
     Mail,
     User,
+    UserPlus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -364,7 +365,7 @@ const RegisterForm = () => {
                 <button
                     onClick={form.handleSubmit(handleRegister)}
                     disabled={isCreating}
-                    className="w-full rounded-xl bg-primary px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-gray-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 px-4 py-3 font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 disabled:active:scale-100"
                 >
                     {isCreating ? (
                         <>
@@ -372,7 +373,10 @@ const RegisterForm = () => {
                             <span>Criando conta...</span>
                         </>
                     ) : (
-                        "Criar minha conta"
+                        <>
+                            <UserPlus size={20} />
+                            <span>Criar minha conta</span>
+                        </>
                     )}
                 </button>
 

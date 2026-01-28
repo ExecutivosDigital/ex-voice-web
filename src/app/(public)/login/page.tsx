@@ -1,13 +1,49 @@
 "use client";
+import { useSession } from "@/context/auth";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import ForgotPassword from "./components/forgot";
 import SignIn from "./components/login";
 import LoginAnimation from "./components/LoginAnimation";
 
+const REMEMBER_ME_KEY = "login_remember_me";
+
 export default function Login() {
+  const router = useRouter();
+  const { checkSession } = useSession();
   const [forgot, setForgot] = useState<boolean>(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Se já estiver logado, redireciona para home (não precisa digitar email/senha de novo)
+  useEffect(() => {
+    let cancelled = false;
+    const go = async () => {
+      try {
+        const isAuthenticated = await checkSession();
+        if (!cancelled && isAuthenticated) {
+          router.replace("/");
+        }
+      } catch {
+        // ignorar
+      }
+    };
+    go();
+    return () => {
+      cancelled = true;
+    };
+  }, [checkSession, router]);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined" && localStorage.getItem(REMEMBER_ME_KEY) === "true") {
+        setRememberMe(true);
+      }
+    } catch {
+      // ignorar
+    }
+  }, []);
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -62,7 +98,7 @@ export default function Login() {
             {forgot ? (
               <ForgotPassword onClick={() => setForgot(false)} />
             ) : (
-              <SignIn onClick={() => setForgot(true)} />
+              <SignIn onClick={() => setForgot(true)} rememberMe={rememberMe} setRememberMe={setRememberMe} />
             )}
 
             <div className="mt-8 text-center text-sm text-gray-600">

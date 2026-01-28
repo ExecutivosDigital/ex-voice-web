@@ -441,7 +441,7 @@ export function AudioRecorder({
             <div className="flex items-center gap-2">
               <Video size={18} className="text-gray-600" />
               <div>
-                <p className="font-semibold text-gray-800">Consulta</p>
+                <p className="font-semibold text-gray-800">Gravação</p>
                 <p className="text-xs text-gray-500">Presencial ou Online</p>
               </div>
             </div>
@@ -485,7 +485,7 @@ export function AudioRecorder({
                 <div className="mb-6 flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-800">
                     {metadata.recordingType === "CLIENT"
-                      ? "Nova Consulta"
+                      ? "Nova Conversa"
                       : "Nova Gravação Pessoal"}
                   </h2>
                   <button
@@ -556,10 +556,10 @@ export function AudioRecorder({
                             })
                           }
                           className={cn(
-                            "group rounded-lg border-2 p-4 transition-all",
+                            "group rounded-lg border-2 p-4 transition-all duration-200",
                             metadata.personalRecordingType === "REMINDER"
-                              ? "border-gray-600 bg-gray-50"
-                              : "border-gray-300 hover:border-gray-600 hover:bg-gray-50",
+                              ? "border-gray-600 bg-gray-100 shadow-sm"
+                              : "border-gray-300 hover:border-gray-500 hover:bg-gray-50 hover:shadow-sm active:scale-[0.98]",
                           )}
                         >
                           <Lightbulb
@@ -590,10 +590,10 @@ export function AudioRecorder({
                             updateMetadata({ personalRecordingType: "STUDY" })
                           }
                           className={cn(
-                            "group rounded-lg border-2 p-4 transition-all",
+                            "group rounded-lg border-2 p-4 transition-all duration-200",
                             metadata.personalRecordingType === "STUDY"
-                              ? "border-gray-600 bg-gray-50"
-                              : "border-gray-300 hover:border-green-600 hover:bg-green-50",
+                              ? "border-gray-600 bg-gray-100 shadow-sm"
+                              : "border-gray-300 hover:border-green-500 hover:bg-green-50/80 hover:shadow-sm active:scale-[0.98]",
                           )}
                         >
                           <Pen
@@ -624,10 +624,10 @@ export function AudioRecorder({
                             updateMetadata({ personalRecordingType: "OTHER" })
                           }
                           className={cn(
-                            "group rounded-lg border-2 p-4 transition-all",
+                            "group rounded-lg border-2 p-4 transition-all duration-200",
                             metadata.personalRecordingType === "OTHER"
-                              ? "border-gray-600 bg-gray-50"
-                              : "border-gray-300 hover:border-orange-600 hover:bg-orange-50",
+                              ? "border-gray-600 bg-gray-100 shadow-sm"
+                              : "border-gray-300 hover:border-orange-500 hover:bg-orange-50/80 hover:shadow-sm active:scale-[0.98]",
                           )}
                         >
                           <TriangleAlert
@@ -668,10 +668,10 @@ export function AudioRecorder({
                             updateMetadata({ consultationType: "IN_PERSON" })
                           }
                           className={cn(
-                            "group rounded-lg border-2 p-4 transition-all",
+                            "group rounded-lg border-2 p-4 transition-all duration-200",
                             metadata.consultationType === "IN_PERSON"
-                              ? "border-gray-600 bg-gray-50"
-                              : "border-gray-300 hover:border-gray-600 hover:bg-gray-50",
+                              ? "border-gray-600 bg-gray-100 shadow-sm"
+                              : "border-gray-300 hover:border-gray-500 hover:bg-gray-50 hover:shadow-sm active:scale-[0.98]",
                           )}
                         >
                           <Mic
@@ -703,10 +703,10 @@ export function AudioRecorder({
                             updateMetadata({ consultationType: "ONLINE" })
                           }
                           className={cn(
-                            "group w-full flex-1 rounded-lg border-2 p-4 transition-all",
+                            "group w-full flex-1 rounded-lg border-2 p-4 transition-all duration-200",
                             metadata.consultationType === "ONLINE"
-                              ? "border-gray-600 bg-gray-50"
-                              : "border-gray-300 hover:border-gray-600 hover:bg-gray-50",
+                              ? "border-gray-600 bg-gray-100 shadow-sm"
+                              : "border-gray-300 hover:border-gray-500 hover:bg-gray-50 hover:shadow-sm active:scale-[0.98]",
                           )}
                         >
                           <Video
@@ -743,7 +743,14 @@ export function AudioRecorder({
                       </label>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <div className="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-4 py-3">
+                          <div
+                            className={cn(
+                              "flex w-full cursor-pointer items-center gap-2 rounded-lg border px-4 py-3 transition-all duration-200",
+                              metadata.selectedClientId
+                                ? "border-neutral-400 bg-neutral-100 text-neutral-800 shadow-sm"
+                                : "border-gray-300 hover:border-gray-400 hover:bg-gray-50/80",
+                            )}
+                          >
                             <input
                               type="text"
                               value={(() => {
@@ -760,11 +767,24 @@ export function AudioRecorder({
                                   ? foundInList?.name || foundInTemp?.name || ""
                                   : "Selecione um Contato";
                               })()}
-                              className="w-full cursor-pointer text-black outline-none"
+                              className={cn(
+                                "w-full cursor-pointer bg-transparent outline-none",
+                                metadata.selectedClientId
+                                  ? "text-neutral-800"
+                                  : "text-gray-500",
+                              )}
                               required
                               readOnly
                             />
-                            <ChevronDown size={20} className="text-gray-600" />
+                            <ChevronDown
+                              size={20}
+                              className={cn(
+                                "flex-shrink-0",
+                                metadata.selectedClientId
+                                  ? "text-neutral-600"
+                                  : "text-gray-500",
+                              )}
+                            />
                           </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
@@ -805,12 +825,17 @@ export function AudioRecorder({
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      {!metadata.selectedClientId && (
+                        <p className="mt-1.5 text-xs italic text-red-500">
+                          Selecione ou Cadastre um Contato*
+                        </p>
+                      )}
                     </div>
                   )}
 
                   <button
                     onClick={handleStartRecording}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-600 py-4 font-semibold text-white transition-colors hover:bg-gray-700"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 py-4 font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-[0.98]"
                   >
                     {currentMediaType === "video" ? (
                       <>
@@ -908,7 +933,7 @@ export function AudioRecorder({
                     </button>
                     <button
                       onClick={handleStartVideoRecording}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gray-600 py-4 font-semibold text-white transition-colors hover:bg-gray-700"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 py-4 font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-[0.98]"
                     >
                       <Video size={20} />
                       Iniciar Gravação
@@ -928,7 +953,7 @@ export function AudioRecorder({
                     onClick={() => {
                       recorder.stopRecording();
                     }}
-                    className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-red-700"
+                    className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 px-4 py-2 font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-[0.98]"
                   >
                     <Pause size={20} />
                     Parar
@@ -1053,7 +1078,7 @@ export function AudioRecorder({
                     </button>
                     <button
                       onClick={handleConfirmRecording}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 py-4 font-semibold text-white transition-colors hover:bg-green-700"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 py-4 font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-[0.98]"
                     >
                       <Send size={20} />
                       Confirmar e Enviar

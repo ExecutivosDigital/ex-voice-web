@@ -38,7 +38,7 @@ export function MedicationsCard({
   
   return (
     <div
-      className={`h-full w-full ${itemCount <= 2 ? 'max-w-[450px]' : ''} rounded-2xl border ${styles.border} ${styles.bg} p-4 shadow-sm`}
+      className={`h-full w-full min-w-0 rounded-2xl border ${styles.border} ${styles.bg} p-4 shadow-sm`}
     >
       <div className="mb-4 flex items-center gap-3">
         <div

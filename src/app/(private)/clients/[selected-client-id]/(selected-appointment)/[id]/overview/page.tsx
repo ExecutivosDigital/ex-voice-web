@@ -13,7 +13,7 @@ export default function OverviewPage() {
           </p>
         </div>
       </div>
-      <div>
+      <div className="w-full">
         <Overview />
       </div>
     </div>

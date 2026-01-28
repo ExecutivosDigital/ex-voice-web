@@ -148,7 +148,7 @@ export function GeneralRecordingsTable() {
                         className="h-24"
                       >
                         <div className="flex items-start text-start">
-                          <AudioRecorder buttonClassName="rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95 mx-auto" />
+                          <AudioRecorder buttonClassName="rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95 mx-auto" />
                         </div>
                       </TableCell>
                     </TableRow>

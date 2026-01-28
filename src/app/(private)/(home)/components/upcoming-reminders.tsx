@@ -106,7 +106,7 @@ export function UpcomingReminders({
             {/* Header Clean */}
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-500 to-gray-600 shadow-md shadow-gray-500/20">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 shadow-md shadow-gray-500/20">
                         <Bell className="h-5 w-5 text-white" />
                     </div>
                     <div>
@@ -122,7 +122,7 @@ export function UpcomingReminders({
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleAdd}
-                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-gray-500/25 active:scale-95"
+                        className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-black px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-gray-500/25 active:scale-95"
                     >
                         <Plus className="h-3.5 w-3.5" />
                         Novo

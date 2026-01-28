@@ -53,10 +53,10 @@ const formatRelativeDate = (date: Date): string => {
     }
 };
 
-// Helper para formatar tipo
+// Helper para formatar tipo (tag exibida nos cards)
 const formatType = (type: string): string => {
     switch (type) {
-        case "CLIENT": return "Consulta";
+        case "CLIENT": return "Contato";
         case "REMINDER": return "Lembrete";
         case "STUDY": return "Estudo";
         case "OTHER": return "Outro";
@@ -134,7 +134,7 @@ export function ContentPanel({ className }: ContentPanelProps) {
         switch (recording.type) {
             case "CLIENT":
                 if (recording.client?.id) {
-                    router.push(`/clients/${recording.client.id}/appointment/${recordingId}`);
+                    router.push(`/clients/${recording.client.id}/${recordingId}`);
                 }
                 break;
             case "REMINDER":
@@ -164,7 +164,7 @@ export function ContentPanel({ className }: ContentPanelProps) {
             {/* Header */}
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-500 to-gray-600 shadow-md shadow-gray-500/20">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 shadow-md shadow-gray-500/20">
                         <FileText className="h-5 w-5 text-white" />
                     </div>
                     <div>
@@ -179,7 +179,7 @@ export function ContentPanel({ className }: ContentPanelProps) {
 
                 <button 
                     onClick={handleViewAll}
-                    className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-500 to-gray-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-gray-500/25 active:scale-95"
+                    className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-gray-500/25 active:scale-95"
                 >
                     Ver todas
                     <ChevronRight className="h-3 w-3" />

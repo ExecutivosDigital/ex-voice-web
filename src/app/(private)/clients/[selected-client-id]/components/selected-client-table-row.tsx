@@ -30,7 +30,7 @@ export function SelectedPatientTableItem({ recording }: Props) {
     >
       <TableCell className="w-[40%] py-4 pl-6 text-start">
         <div className="flex items-center gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-500 to-gray-600 shadow-md shadow-gray-500/20 transition-transform duration-300 group-hover:scale-110 group-hover:shadow-gray-500/30">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 shadow-md shadow-gray-500/20 transition-transform duration-300 group-hover:scale-110 group-hover:shadow-gray-500/30">
             <ContactsIcon className="h-5 w-5 text-white" />
           </div>
           <div className="flex flex-col">

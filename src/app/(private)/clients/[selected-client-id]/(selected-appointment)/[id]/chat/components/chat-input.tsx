@@ -140,7 +140,7 @@ export function ChatInput({
       <div className="relative flex min-w-[80%] items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-3 shadow-sm transition-shadow focus-within:shadow-md">
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg from-gray-500 to-gray-600 transition-all hover:scale-105 hover:bg-gradient-to-br hover:text-white active:scale-95"
+          className="group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-all hover:scale-105 hover:opacity-90 active:scale-95"
           title="Anexar arquivos"
         >
           <Paperclip className="h-4 w-4" />
@@ -166,7 +166,7 @@ export function ChatInput({
             className={`group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg transition-all hover:scale-105 active:scale-95 ${
               isRecording
                 ? "animate-pulse bg-red-500 hover:bg-red-600"
-                : "text-primary from-gray-500 to-gray-600 hover:bg-gradient-to-br hover:text-white"
+                : "bg-gradient-to-r from-neutral-500 to-neutral-900 text-white hover:opacity-90"
             }`}
           >
             {isRecording ? (
@@ -191,7 +191,7 @@ export function ChatInput({
         </div>
       </div>
       <div className="mt-1 text-center text-xs text-gray-400">
-        O HealthVoice pode cometer erros. Considere verificar informações
+        O ExVoice pode cometer erros. Considere verificar informações
         importantes.
       </div>
     </div>

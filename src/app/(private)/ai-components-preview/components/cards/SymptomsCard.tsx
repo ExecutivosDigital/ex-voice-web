@@ -32,16 +32,9 @@ export function SymptomsCard({
 
   const displayItems = isGenericFormat ? items : legacyItems;
 
-  // Calcular se precisa de mais espaço baseado no conteúdo
-  const itemCount = displayItems.length;
-  const hasManyTags = displayItems.some(item => 
-    (item.metadata && item.metadata.length > 1) || 
-    ('tags' in item && item.tags && item.tags.length > 1)
-  );
-  
   return (
     <div
-      className={`h-full w-full ${itemCount >= 3 || hasManyTags ? 'max-w-none' : 'max-w-[500px]'} rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md`}
+      className="h-full w-full min-w-0 max-w-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
     >
       <div className="mb-5 flex items-center gap-3 border-b border-gray-50 pb-4">
         <div

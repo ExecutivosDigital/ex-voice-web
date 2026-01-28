@@ -7,7 +7,6 @@ import { ChatPageProvider } from "@/context/chatContext";
 import { cn } from "@/utils/cn";
 import Lenis from "lenis";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 // coment
@@ -51,12 +50,6 @@ export default function RootLayout({
         >
           <Header />
           <Sidebar />
-          <Image
-            src="/pattern.png"
-            alt="Background"
-            fill
-            className="absolute h-full w-full object-cover opacity-[1%]"
-          />
 
           <motion.div
             key={pathname}

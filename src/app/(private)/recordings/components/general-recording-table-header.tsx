@@ -44,7 +44,7 @@ export function GeneralRecordingsTableHeader() {
       <AudioRecorder
         customLabel="Nova Gravação"
         customIcon={Plus}
-        buttonClassName="bg-gradient-to-r from-gray-500 to-gray-600 px-4 py-2.5 rounded-lg text-sm font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95"
+        buttonClassName="bg-gradient-to-r from-neutral-500 to-neutral-900 px-4 py-2.5 rounded-lg text-sm font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95"
       /> */}
     </div>
   );

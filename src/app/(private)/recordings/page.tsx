@@ -2,7 +2,7 @@
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { debounce } from "lodash";
-import { Bell, Folder, GraduationCap, Search, Stethoscope } from "lucide-react";
+import { Bell, Folder, GraduationCap, Search, Video } from "lucide-react";
 import { useCallback, useState } from "react";
 import { GeneralRecordingsTable } from "./components/general-recording-table";
 
@@ -64,13 +64,13 @@ export default function Recordings() {
                   : "text-gray-500 hover:bg-gray-100/50 hover:text-gray-700",
               )}
             >
-              <Stethoscope
+              <Video
                 className={cn(
                   "h-3.5 w-3.5",
                   currentType === "CLIENT" && "fill-current",
                 )}
               />
-              Consulta
+              Contato
             </button>
             <button
               onClick={() => handleTypeFilter("REMINDER")}

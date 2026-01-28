@@ -254,7 +254,7 @@ export function Transcription() {
     <>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-lg overflow-hidden p-0 sm:rounded-2xl">
-          <div className="bg-gradient-to-br from-gray-600 to-gray-700 px-6 py-5">
+          <div className="bg-gradient-to-r from-neutral-600 to-neutral-900 px-6 py-5">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-xl font-bold text-white">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">

@@ -23,7 +23,7 @@ export function PromptsCarousel({
   }
 
   const styles = {
-    iconGradient: "bg-gradient-to-br from-gray-500 to-gray-600",
+    iconGradient: "bg-gradient-to-r from-neutral-500 to-neutral-900",
     border: "border-gray-500",
   };
 

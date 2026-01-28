@@ -14,7 +14,7 @@ import { z } from "zod";
 import config from "../../../../utils/amplify.json";
 
 // Importações de UI (shadcn/ui e lucide)
-import { Eye, EyeOff, Loader2, LockIcon, Mail } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, Loader2, LockIcon, Mail } from "lucide-react";
 import Field from "./field"; // Assumindo que este componente exista
 import { Form, FormField, FormItem, FormMessage } from "./form"; // Assumindo que este componente exista
 
@@ -27,6 +27,8 @@ import { useSession } from "@/context/auth"; // ← ADICIONE ISSO
 // Props do componente
 type SignInProps = {
   onClick: () => void; // Para "Esqueceu a senha?"
+  rememberMe: boolean;
+  setRememberMe: (value: boolean) => void;
 };
 
 // Schema de validação do Zod (sem alteração)
@@ -37,7 +39,10 @@ const FormSchema = z.object({
 
 type FormData = z.infer<typeof FormSchema>;
 
-const SignIn = ({ onClick }: SignInProps) => {
+const REMEMBER_ME_KEY = "login_remember_me";
+const SAVED_EMAIL_KEY = "login_email";
+
+const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
   const { handleGetProfile, waitForTokens } = useSession();
   const router = useRouter();
   Amplify.configure(config);
@@ -54,6 +59,21 @@ const SignIn = ({ onClick }: SignInProps) => {
       password: "",
     },
   });
+
+  // Carregar "Lembrar de mim" e email salvos ao montar (client-side)
+  useEffect(() => {
+    try {
+      const savedRemember = localStorage.getItem(REMEMBER_ME_KEY);
+      const savedEmail = localStorage.getItem(SAVED_EMAIL_KEY);
+      if (savedRemember === "true" && savedEmail) {
+        setRememberMe(true);
+        form.reset({ email: savedEmail, password: "" });
+      }
+    } catch {
+      // localStorage indisponível (SSR)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Efeito para "ouvir" eventos de autenticação do Amplify
   useEffect(() => {
@@ -116,6 +136,19 @@ const SignIn = ({ onClick }: SignInProps) => {
 
         await handleGetProfile(true);
         await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // Persistir email e preferência "Lembrar de mim"
+        try {
+          if (rememberMe) {
+            localStorage.setItem(REMEMBER_ME_KEY, "true");
+            localStorage.setItem(SAVED_EMAIL_KEY, email.trim());
+          } else {
+            localStorage.removeItem(REMEMBER_ME_KEY);
+            localStorage.removeItem(SAVED_EMAIL_KEY);
+          }
+        } catch {
+          // ignorar falha no localStorage
+        }
 
         toast.success("Login efetuado com sucesso!");
         router.push("/");
@@ -233,27 +266,57 @@ const SignIn = ({ onClick }: SignInProps) => {
           )}
         />
 
-        <div className="flex justify-end">
-          <span
-            className="hover:text-primary cursor-pointer text-sm text-gray-500 transition hover:underline"
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-600 transition-colors hover:text-gray-900">
+            <span className="relative flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-md border-2 border-gray-300 transition-all has-[:checked]:border-0">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setRememberMe(checked);
+                  try {
+                    if (checked) {
+                      localStorage.setItem(REMEMBER_ME_KEY, "true");
+                    } else {
+                      localStorage.removeItem(REMEMBER_ME_KEY);
+                      localStorage.removeItem(SAVED_EMAIL_KEY);
+                    }
+                  } catch {
+                    // ignorar
+                  }
+                }}
+                className="peer sr-only"
+              />
+              <span className="absolute inset-0 hidden rounded-md bg-gradient-to-r from-neutral-500 to-neutral-900 transition-opacity peer-checked:block" />
+              <Check className="relative z-10 h-3 w-3 text-white opacity-0 transition-opacity peer-checked:opacity-100" strokeWidth={3} />
+            </span>
+            <span>Lembrar de mim</span>
+          </label>
+          <button
+            type="button"
             onClick={onClick}
+            className="text-sm text-gray-500 transition hover:text-primary hover:underline"
           >
             Esqueceu a senha?
-          </span>
+          </button>
         </div>
 
         <button
           type="submit"
           disabled={isLoggingIn}
-          className="bg-primary flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-neutral-500 disabled:cursor-not-allowed disabled:opacity-70"
+          className="group flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 px-5 py-3.5 font-semibold text-white shadow-lg shadow-gray-500/25 transition-all duration-200 hover:shadow-xl hover:shadow-gray-500/30 hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:active:scale-100"
         >
           {isLoggingIn ? (
             <>
-              <Loader2 className="animate-spin" size={20} />
+              <Loader2 className="h-5 w-5 animate-spin" />
               <span>Entrando...</span>
             </>
           ) : (
-            "Entrar na conta"
+            <>
+              <span>Entrar na conta</span>
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+            </>
           )}
         </button>
 

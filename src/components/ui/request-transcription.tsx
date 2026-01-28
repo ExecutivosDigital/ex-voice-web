@@ -215,7 +215,7 @@ export function RequestTranscription() {
                       isRequesting && "cursor-not-allowed opacity-50",
                     )}
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-gray-500 to-gray-600">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900">
                       <PromptIcon
                         icon={prompt.icon}
                         size={20}
