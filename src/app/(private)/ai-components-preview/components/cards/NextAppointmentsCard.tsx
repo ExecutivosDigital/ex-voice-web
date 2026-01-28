@@ -63,6 +63,7 @@ export function NextAppointmentsCard({
                   appt.time && { label: "Hora", value: appt.time },
                 ].filter(Boolean) as Array<{ label: string; value: string }>,
                 tags: appt.notes ? [appt.notes] : [],
+                status: undefined,
               }))
             : [];
 
