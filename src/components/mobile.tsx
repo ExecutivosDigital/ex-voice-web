@@ -10,11 +10,11 @@ const MobileAppBlocker = () => {
   return (
     // A classe 'md:hidden' garante que isso só apareça em telas menores que o breakpoint 'md' do Tailwind (tablets/celulares)
     // 'fixed inset-0 z-[9999]' garante que fique por cima de tudo e o usuário não consiga sair.
-    <div className="fixed inset-0 z-[9999] flex touch-none flex-col items-center justify-center overscroll-none bg-[#0070f3] p-6 text-center select-none md:hidden">
-      {/* Background Decorativo (Círculos sutis para dar textura similar ao header) */}
-      <div className="pointer-events-none absolute top-0 left-0 h-full w-full overflow-hidden opacity-10">
-        <div className="absolute top-[-10%] left-[-10%] h-64 w-64 rounded-full bg-white mix-blend-overlay blur-3xl"></div>
-        <div className="absolute right-[-10%] bottom-[-10%] h-80 w-80 rounded-full bg-white mix-blend-overlay blur-3xl"></div>
+    <div className="fixed inset-0 z-[9999] flex touch-none flex-col items-center justify-center overscroll-none bg-gradient-to-br from-primary to-black p-6 text-center select-none md:hidden">
+      {/* Background Decorativo (igual ao /Login - círculos blur) */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute top-[20%] -left-[10%] h-[30rem] w-[30rem] rounded-full bg-white/10 blur-[120px]" />
+        <div className="absolute -right-[10%] bottom-[20%] h-[30rem] w-[30rem] rounded-full bg-black/20 blur-[120px]" />
       </div>
 
       {/* Conteúdo Principal */}
@@ -39,7 +39,7 @@ const MobileAppBlocker = () => {
             navegador do celular.
             <br />
             <br />
-            <span className="font-medium text-[#0070f3]">
+            <span className="font-medium text-primary">
               Baixe nosso aplicativo para continuar.
             </span>
           </p>
@@ -48,7 +48,7 @@ const MobileAppBlocker = () => {
           <div className="flex w-full flex-col gap-3">
             {/* Botão Apple Store */}
             <a
-              href="https://apps.apple.com/us/app/health-voice/id6754345791"
+              href="https://apps.apple.com/br/app/executivos-voice/id6754694679"
               className="group flex w-full items-center justify-center gap-3 rounded-xl bg-black px-4 py-3 text-white shadow-lg transition-all hover:bg-gray-900 active:scale-95"
             >
               <Image
@@ -68,7 +68,7 @@ const MobileAppBlocker = () => {
 
             {/* Botão Google Play Store */}
             <a
-              href="https://play.google.com/store/apps/details?id=com.executivos.healthvoice"
+              href="https://play.google.com/store/apps/details?id=com.executivos.exvoice  "
               className="group flex w-full items-center justify-center gap-3 rounded-xl bg-black px-4 py-3 text-white shadow-lg transition-all hover:bg-gray-900 active:scale-95"
             >
               {/* Ícone Google Play SVG Manual */}

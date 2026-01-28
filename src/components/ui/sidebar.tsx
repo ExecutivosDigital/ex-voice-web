@@ -46,7 +46,7 @@ export function Sidebar() {
             <button
               onClick={() =>
                 window.open(
-                  "https://play.google.com/store/apps/details?id=com.executivos.healthvoice",
+                  "https://play.google.com/store/apps/details?id=com.executivos.exvoice",
                   "_blank",
                 )
               }
@@ -64,7 +64,7 @@ export function Sidebar() {
             <button
               onClick={() =>
                 window.open(
-                  "https://apps.apple.com/br/app/health-voice/id6754345791",
+                  "https://apps.apple.com/br/app/executivos-voice/id6754694679",
                   "_blank",
                 )
               }

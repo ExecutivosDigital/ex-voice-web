@@ -3,37 +3,31 @@
 
 import { useSession } from "@/context/auth";
 import { AnimatePresence, motion } from "framer-motion";
+import { ShieldCheck, Loader2, Lock } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  fallback?: React.ReactNode; // Opcional: loading customizado
+  fallback?: React.ReactNode;
 }
 
 export function AuthGuard({ children, fallback }: AuthGuardProps) {
   const { profile, loading, checkSession } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const hasRedirected = useRef(false); // ← Evita múltiplos redirecionamentos
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
     const validateSession = async () => {
-      // ✅ Aguarda loading inicial
       if (loading) return;
-
-      // ✅ Evita redirecionar múltiplas vezes
       if (hasRedirected.current) return;
 
-      // ✅ Verifica sessão
       const isValid = await checkSession();
 
       if (!isValid || !profile) {
-        // ✅ Pequeno delay para dar tempo do login finalizar
         await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // ✅ Revalida após o delay
         const recheckValid = await checkSession();
 
         if (!recheckValid) {
@@ -54,14 +48,12 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     );
   }
 
-  // Usuário autenticado, mostra conteúdo com animação de entrada
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
       >
         {children}
       </motion.div>
@@ -70,10 +62,11 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
 }
 
 const loadingMessages = [
-  "Preparando seu ambiente de saúde...",
-  "Verificando suas credenciais...",
-  "Sincronizando dados...",
-  "Quase lá...",
+  "Iniciando conexão segura...",
+  "Validando certificados de acesso...",
+  "Criptografando ambiente de trabalho...",
+  "Sincronizando seus registros...",
+  "Quase pronto para você...",
 ];
 
 function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
@@ -82,7 +75,7 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
   useEffect(() => {
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
-    }, 2500);
+    }, 2800);
     return () => clearInterval(interval);
   }, []);
 
@@ -93,138 +86,191 @@ function LoadingScreen({ fallback }: { fallback?: React.ReactNode }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-white via-blue-50 to-blue-100"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-[#fafafa]"
     >
-      {/* Background Animated Shapes */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      {/* Dynamic Animated Background Blobs */}
+      <div className="absolute inset-0 z-0 opacity-40">
         <motion.div
           animate={{
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -top-20 -left-20 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl"
-        />
-        <motion.div
-          animate={{
-            x: [0, -30, 0],
-            y: [0, 50, 0],
             scale: [1, 1.2, 1],
+            x: [0, 100, 0],
+            y: [0, -50, 0],
+            rotate: [0, 90, 0],
           }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2,
-          }}
-          className="absolute top-1/2 -right-20 h-80 w-80 rounded-full bg-indigo-200/30 blur-3xl"
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-[20%] -left-[10%] h-[600px] w-[600px] rounded-full bg-slate-400/10 blur-[120px]"
         />
         <motion.div
           animate={{
-            x: [0, 40, 0],
-            y: [0, -40, 0],
-            scale: [1, 1.1, 1],
+            scale: [1.2, 1, 1.2],
+            x: [0, -120, 0],
+            y: [0, 80, 0],
+            rotate: [0, -90, 0],
           }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 5,
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -bottom-[20%] -right-[10%] h-[500px] w-[500px] rounded-full bg-slate-500/10 blur-[100px]"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.5, 1],
+            opacity: [0.2, 0.4, 0.2],
           }}
-          className="absolute -bottom-20 left-1/3 h-[500px] w-[500px] rounded-full bg-blue-100/40 blur-3xl"
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/2 left-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-slate-300/10 blur-[150px]"
         />
       </div>
 
-      {/* Main Content Card */}
-      <div className="relative z-10 flex flex-col items-center gap-10 p-8">
-        {/* Logo Section */}
-        <div className="relative">
+      {/* Grid Pattern Overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 z-1 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"
+      />
+      <div
+        className="absolute inset-0 z-1 bg-grid-slate-200/[0.04] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"
+      />
+
+      {/* Main Content */}
+      <div className="relative z-10 flex flex-col items-center px-6">
+        {/* Animated Icon/Logo Container */}
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="group relative mb-12"
+        >
+          {/* Animated Glow Rings */}
           <motion.div
             animate={{
-              scale: [1, 1.05, 1],
-              rotate: [0, 5, -5, 0],
+              scale: [1, 1.15, 1],
+              opacity: [0.2, 0.4, 0.2],
             }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-400/20 to-indigo-400/20 blur-xl"
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute inset-0 -m-4 rounded-full bg-gradient-to-tr from-slate-300/10 to-slate-400/10 blur-2xl"
           />
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative flex h-32 w-32 items-center justify-center rounded-lg bg-white/40 shadow-2xl ring-1 ring-white/60 backdrop-blur-md sm:h-40 sm:w-40"
-          >
-            <Image
-              src="/logos/icon.png"
-              alt="Health Voice Logo"
-              width={160}
-              height={160}
-              className="h-20 w-20 object-contain drop-shadow-md sm:h-24 sm:w-24"
-              priority
-            />
-          </motion.div>
-        </div>
 
-        {/* Loading Indicators */}
-        <div className="flex flex-col items-center gap-6">
-          {/* Progress Bar Container */}
-          <div className="relative h-2 w-64 overflow-hidden rounded-full bg-gray-200/50 sm:w-80">
+          {/* Glass Card for Logo */}
+          <div className="relative flex h-32 w-64 items-center justify-center overflow-hidden rounded-3xl border border-white/40 bg-white/60 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] backdrop-blur-xl ring-1 ring-black/5 sm:h-40 sm:w-80">
+            {/* Scanning Shimmer Effect (Behind Logo) */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-blue-400 via-[#0d78ec] to-indigo-500"
-              initial={{ x: "-100%" }}
-              animate={{ x: "100%" }}
+              animate={{
+                top: ["-100%", "200%"],
+              }}
               transition={{
+                duration: 4,
                 repeat: Infinity,
-                duration: 1.5,
                 ease: "easeInOut",
               }}
+              className="absolute left-0 z-0 h-1/2 w-full bg-gradient-to-b from-transparent via-slate-400/15 to-transparent skew-y-12"
+            />
+
+            <motion.div
+              animate={{
+                y: [0, -5, 0],
+              }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 z-10 m-auto flex items-center justify-center"
+            >
+              <Image
+                src="/logos/logo-dark.svg"
+                alt="Logo"
+                width={240}
+                height={96}
+                className="object-contain"
+                style={{ width: "auto", height: "60%" }}
+                priority
+              />
+            </motion.div>
+          </div>
+
+          {/* Floating Badge */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+            className="absolute -right-3 bottom-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/50 bg-white/80 text-slate-700 shadow-lg backdrop-blur-md"
+          >
+            <ShieldCheck className="h-5 w-5" />
+          </motion.div>
+        </motion.div>
+
+        {/* Loading Progress Section */}
+        <div className="flex flex-col items-center max-w-sm w-full">
+          <div className="relative mb-8 h-1.5 w-full overflow-hidden rounded-full bg-gray-200/50 ring-1 ring-black/5">
+            <motion.div
+              initial={{ width: "0%" }}
+              animate={{ width: "100%" }}
+              transition={{
+                duration: 10,
+                ease: "linear",
+              }}
+              className="absolute inset-y-0 left-0 bg-gradient-to-r from-slate-900 via-slate-600 to-slate-900 bg-[length:200%_100%]"
+            />
+            <motion.div
+              animate={{
+                backgroundPosition: ["0% 0%", "200% 0%"],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
             />
           </div>
 
-          {/* Dynamic Text with Gradient */}
-          <div className="h-8 overflow-hidden text-center">
+          {/* Animated Messages */}
+          <div className="relative h-16 w-full text-center">
             <AnimatePresence mode="wait">
               <motion.div
                 key={messageIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-                className="flex flex-col items-center gap-1"
+                initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="flex flex-col items-center gap-2"
               >
-                <p className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-lg font-bold text-transparent sm:text-xl">
+                <div className="flex items-center gap-2 text-slate-800/80">
+                  <Loader2 className="h-4 w-4 animate-spin-slow" />
+                  <span className="text-[10px] font-bold tracking-[0.2em] uppercase">Sistema Ativo</span>
+                </div>
+                <h3 className="bg-gradient-to-b from-slate-900 to-slate-600 bg-clip-text text-xl font-semibold tracking-tight text-transparent sm:text-2xl">
                   {loadingMessages[messageIndex]}
-                </p>
-                <p className="text-xs font-medium text-gray-400">
-                  Por favor, aguarde...
-                </p>
+                </h3>
               </motion.div>
             </AnimatePresence>
           </div>
         </div>
       </div>
 
-      {/* Footer Text */}
+      {/* Footer Info */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="absolute bottom-8 flex flex-col items-center gap-2 text-center"
+        transition={{ delay: 1 }}
+        className="absolute bottom-10 flex flex-col items-center gap-4"
       >
-        <div className="h-1 w-12 rounded-full bg-gradient-to-r from-blue-300 to-indigo-300" />
-        <p className="text-xs font-medium tracking-wider text-gray-400 uppercase">
-          Health Voice Security
-        </p>
+        <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/40 border border-white/60 shadow-sm backdrop-blur-md">
+          <Lock className="h-3.5 w-3.5 text-slate-400" />
+          <span className="text-[11px] font-medium text-slate-500 tracking-wide uppercase">Ambiente Seguro End-to-End</span>
+        </div>
+
+        <div className="flex items-center gap-4 text-slate-300">
+          <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-slate-300" />
+          <p className="text-[10px] font-bold text-slate-400 tracking-[0.3em] uppercase">
+            Executivo's Voice
+          </p>
+          <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-slate-300" />
+        </div>
       </motion.div>
+
+      <style jsx global>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+        }
+      `}</style>
     </motion.div>
   );
 }
