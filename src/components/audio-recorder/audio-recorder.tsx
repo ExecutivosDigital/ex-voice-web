@@ -3,30 +3,30 @@ import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import {
-    AlertCircle,
-    CheckCircle2,
-    ChevronDown,
-    Lightbulb,
-    Mic,
-    Pause,
-    Pen,
-    RefreshCw,
-    Send,
-    TriangleAlert,
-    UserPlus,
-    Video,
-    Volume2,
-    X,
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  Lightbulb,
+  Mic,
+  Pause,
+  Pen,
+  RefreshCw,
+  Send,
+  TriangleAlert,
+  UserPlus,
+  Video,
+  Volume2,
+  X,
 } from "lucide-react";
 import moment from "moment";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../ui/blocks/dropdown-menu";
 import { CreateClientSheet } from "../ui/create-client-sheet";
 import { useMediaRecorder } from "./use-media-recorder";
@@ -151,7 +151,7 @@ export function AudioRecorder({
       setCurrentStep("processing");
 
       const uploadedUrl = await uploadMedia(blob, finalMediaType); // Usa finalMediaType
-
+      console.log("uploadedUrl", uploadedUrl);
       const payload = {
         name: metadata.name.trim() || getDerivedTitle(),
         description: metadata.description || getDerivedDescription(),
