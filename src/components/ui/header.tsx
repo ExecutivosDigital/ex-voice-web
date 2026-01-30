@@ -1,16 +1,9 @@
 "use client";
-import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { useSession } from "@/context/auth";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
-import {
-  Bell,
-  ChevronLeft,
-  ChevronRight,
-  Menu,
-  MessageCircle,
-  Smartphone,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
@@ -36,8 +29,9 @@ import {
   OtherIcon,
   ProfileIcon,
   StudyIcon,
-  TranscriptionIcon
+  TranscriptionIcon,
 } from "./custom-icons";
+import { NotificationDropdown } from "./notification-dropdown";
 
 interface BreadcrumbItem {
   label: string;
@@ -141,6 +135,12 @@ export function Header() {
           isActive: pathname === `/others/${studyId}`,
         });
       }
+    } else if (pathname === "/notifications") {
+      breadcrumbs.push({
+        label: "Notificações",
+        href: "/notifications",
+        isActive: true,
+      });
     }
 
     return breadcrumbs;
@@ -196,7 +196,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="bg-gradient-to-br from-primary to-black z-10 flex w-full flex-col gap-4 px-4 pb-20 text-white">
+    <header className="from-primary z-10 flex w-full flex-col gap-4 bg-gradient-to-br to-black px-4 pb-20 text-white">
       <ProfileModal
         isOpen={isProfileModalOpen}
         onOpenChange={setIsProfileModalOpen}
@@ -214,9 +214,7 @@ export function Header() {
 
         <div className="flex h-max items-center gap-2">
           <div className="hidden items-center gap-2 xl:flex">
-            <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20">
-              <Bell className="h-4" />
-            </div>
+            <NotificationDropdown />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="group flex h-10 cursor-pointer items-center gap-2 rounded-full bg-white/10 px-1 pr-3 text-white transition-all duration-200 hover:bg-white/20">
@@ -259,8 +257,8 @@ export function Header() {
                     }}
                     className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-gray-50 focus:bg-gray-50"
                   >
-<div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-colors group-hover:opacity-90 group-hover:text-white">
-                    <ProfileIcon className="h-5 w-5" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-colors group-hover:text-white group-hover:opacity-90">
+                      <ProfileIcon className="h-5 w-5" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-700">
@@ -277,8 +275,8 @@ export function Header() {
                     onSelect={() => window.open(appUrl, "_blank")}
                     className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-green-50 focus:bg-green-50"
                   >
-<div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-colors group-hover:bg-green-500 group-hover:text-white">
-                    <Smartphone className="h-5 w-5" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-colors group-hover:bg-green-500 group-hover:text-white">
+                      <Smartphone className="h-5 w-5" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-700">
@@ -297,8 +295,8 @@ export function Header() {
                     }
                     className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-emerald-50 focus:bg-emerald-50"
                   >
-<div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-colors group-hover:bg-emerald-500 group-hover:text-white">
-                    <MessageCircle className="h-5 w-5" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-colors group-hover:bg-emerald-500 group-hover:text-white">
+                      <MessageCircle className="h-5 w-5" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-700">
@@ -838,7 +836,10 @@ export function Header() {
         </div>
         <div className="flex items-center justify-between gap-1 md:hidden">
           {/* Mobile: usa classes CSS para estilizar diferente, mas reutiliza a instância desktop via portal */}
-          <AudioRecorder buttonClassName="bg-white/50 hover:bg-white/20" skipNewRecordingRequest={true} />
+          <AudioRecorder
+            buttonClassName="bg-white/50 hover:bg-white/20"
+            skipNewRecordingRequest={true}
+          />
         </div>
       </div>
     </header>

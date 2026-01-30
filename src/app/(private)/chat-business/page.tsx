@@ -1,24 +1,19 @@
 "use client";
 
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/blocks/dropdown-menu";
 import { useSession } from "@/context/auth";
 import { Prompt, useChatPage } from "@/context/chatContext";
 import { useChatEngine } from "@/hooks/useChatEngine";
 import { cn } from "@/utils/cn";
 import { PromptIcon } from "@/utils/prompt-icon";
-import {
-    ArrowLeft,
-    ChevronDown,
-    PanelLeftOpen,
-    Plus,
-} from "lucide-react";
+import { ChevronDown, PanelLeftOpen, Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { ChatInput } from "./components/chat-input";
@@ -84,7 +79,11 @@ export default function ChatBusiness() {
   };
 
   const handleSendMessage = () => {
-    if (inputMessage.trim() || engine.fileHandler.files.length > 0 || engine.audioRecorder.audioFile) {
+    if (
+      inputMessage.trim() ||
+      engine.fileHandler.files.length > 0 ||
+      engine.audioRecorder.audioFile
+    ) {
       engine.sendMessage(inputMessage);
       setInputMessage("");
     }
@@ -100,9 +99,7 @@ export default function ChatBusiness() {
 
   return (
     <div
-      className={cn(
-        "flex w-full gap-6 h-[calc(100vh-8rem)]",
-      )}
+      className={cn("flex h-[calc(100vh-8rem)] w-full gap-6")}
       style={{
         minHeight: 0, // Previne problemas de layout
       }}
@@ -180,7 +177,7 @@ export default function ChatBusiness() {
                       className={cn(
                         "cursor-pointer",
                         selectedPrompt?.id === prompt.id &&
-                          "bg-gray-50 text-gray-700"
+                          "bg-gray-50 text-gray-700",
                       )}
                     >
                       <div className="flex flex-col gap-0.5">
@@ -192,8 +189,8 @@ export default function ChatBusiness() {
                             {prompt.source === "USER"
                               ? "Meu Prompt"
                               : prompt.source === "COMPANY"
-                              ? "Empresa"
-                              : "Global"}
+                                ? "Empresa"
+                                : "Global"}
                           </span>
                         )}
                       </div>
@@ -232,9 +229,7 @@ export default function ChatBusiness() {
           <div
             className={cn(
               "scrollbar-hide relative flex-1 p-6",
-              isChatEmpty
-                ? "overflow-hidden"
-                : "overflow-y-auto scroll-smooth",
+              isChatEmpty ? "overflow-hidden" : "overflow-y-auto scroll-smooth",
             )}
             style={{
               minHeight: 0, // Previne problemas de layout
@@ -278,14 +273,20 @@ export default function ChatBusiness() {
                       onRecordStart={engine.audioRecorder.startRecording}
                       onRecordStop={engine.audioRecorder.stopRecording}
                       isLoading={engine.loading}
-                      files={engine.fileHandler.files.map(f => f.file)}
+                      files={engine.fileHandler.files.map((f) => f.file)}
+                      audioBlob={engine.audioRecorder.audioFile}
+                      onClearAudio={engine.audioRecorder.clearAudio}
                       onFilesChange={(newFiles) => {
                         // Sincroniza com fileHandler
                         // Se a lista diminuiu, remove do fileHandler
                         if (newFiles.length < engine.fileHandler.files.length) {
                           // Remove arquivos que não estão mais na lista
-                          const currentFileIds = engine.fileHandler.files.map(f => f.id);
-                          const newFileNames = new Set(newFiles.map(f => f.name));
+                          const currentFileIds = engine.fileHandler.files.map(
+                            (f) => f.id,
+                          );
+                          const newFileNames = new Set(
+                            newFiles.map((f) => f.name),
+                          );
                           engine.fileHandler.files.forEach((attachedFile) => {
                             if (!newFileNames.has(attachedFile.file.name)) {
                               engine.fileHandler.removeFile(attachedFile.id);
@@ -293,11 +294,15 @@ export default function ChatBusiness() {
                           });
                         } else {
                           // Adiciona novos arquivos
-                          const currentFileNames = new Set(engine.fileHandler.files.map(f => f.file.name));
-                          const filesToAdd = newFiles.filter(f => !currentFileNames.has(f.name));
+                          const currentFileNames = new Set(
+                            engine.fileHandler.files.map((f) => f.file.name),
+                          );
+                          const filesToAdd = newFiles.filter(
+                            (f) => !currentFileNames.has(f.name),
+                          );
                           if (filesToAdd.length > 0) {
                             const dt = new DataTransfer();
-                            filesToAdd.forEach(file => dt.items.add(file));
+                            filesToAdd.forEach((file) => dt.items.add(file));
                             engine.fileHandler.handleFileSelect(dt.files);
                           }
                         }
@@ -311,7 +316,9 @@ export default function ChatBusiness() {
                       prompts={prompts}
                       onSelectPrompt={handlePromptSelect}
                       selectedPromptId={
-                        selectedPrompt ? (selectedPrompt as Prompt).id : undefined
+                        selectedPrompt
+                          ? (selectedPrompt as Prompt).id
+                          : undefined
                       }
                     />
                   )}
@@ -320,24 +327,26 @@ export default function ChatBusiness() {
             ) : (
               <div className="flex min-h-full flex-col gap-4 py-2">
                 {/* If just starting a prompt mode but no messages yet */}
-                {engine.messages.length === 0 && hasSelectedPrompt && selectedPrompt && (
-                  <div className="animate-in fade-in zoom-in-95 flex flex-1 flex-col items-center justify-center duration-500 pt-12">
-                    <div className="bg-primary mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white">
-                      <PromptIcon
-                        icon={selectedPrompt.icon}
-                        className="h-8 w-8 text-white"
-                        size={32}
-                      />
+                {engine.messages.length === 0 &&
+                  hasSelectedPrompt &&
+                  selectedPrompt && (
+                    <div className="animate-in fade-in zoom-in-95 flex flex-1 flex-col items-center justify-center pt-12 duration-500">
+                      <div className="bg-primary mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white">
+                        <PromptIcon
+                          icon={selectedPrompt.icon}
+                          className="h-8 w-8 text-white"
+                          size={32}
+                        />
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Modo {selectedPrompt.name} Ativado
+                      </h3>
+                      <p className="mt-1 max-w-xs text-center text-sm text-gray-500">
+                        {selectedPrompt.content.substring(0, 100)}
+                        {selectedPrompt.content.length > 100 ? "..." : ""}
+                      </p>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Modo {selectedPrompt.name} Ativado
-                    </h3>
-                    <p className="mt-1 max-w-xs text-center text-sm text-gray-500">
-                      {selectedPrompt.content.substring(0, 100)}
-                      {selectedPrompt.content.length > 100 ? "..." : ""}
-                    </p>
-                  </div>
-                )}
+                  )}
 
                 {engine.messages.length > 0 && (
                   <>
@@ -364,11 +373,13 @@ export default function ChatBusiness() {
                 onRecordStart={engine.audioRecorder.startRecording}
                 onRecordStop={engine.audioRecorder.stopRecording}
                 isLoading={engine.loading}
-                files={engine.fileHandler.files.map(f => f.file)}
+                files={engine.fileHandler.files.map((f) => f.file)}
+                audioBlob={engine.audioRecorder.audioFile}
+                onClearAudio={engine.audioRecorder.clearAudio}
                 onFilesChange={(newFiles) => {
                   // Converter File[] para FileList para o handleFileSelect
                   const dt = new DataTransfer();
-                  newFiles.forEach(file => dt.items.add(file));
+                  newFiles.forEach((file) => dt.items.add(file));
                   engine.fileHandler.handleFileSelect(dt.files);
                 }}
               />

@@ -103,6 +103,22 @@ export interface FetchRemindersRequest {
   sortDirection?: "ASC" | "DESC" | null;
 }
 
+// Tipos para Notificações (centro in-app)
+export interface NotificationProps {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  content: string;
+  opened: boolean;
+  userId: string;
+  createdAt: string;
+}
+
+export interface FetchNotificationsResponse {
+  notifications: NotificationProps[];
+  pages: number;
+}
+
 // Tipo para estatísticas do dashboard
 export interface DashboardStatsRequest {
   startDate: string;
