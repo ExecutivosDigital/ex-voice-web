@@ -111,7 +111,7 @@ export function ChatInput({
             <WaveformAudioPlayer
               audioUrl={audioPreviewUrl}
               barCount={20}
-              className="border border-blue-100 bg-white py-2 shadow-sm [&_button]:bg-blue-50 [&_button]:text-blue-600 [&_button]:hover:bg-blue-100 [&_span]:text-blue-600 [&_svg]:fill-blue-600 [&_svg]:text-blue-600"
+              className="border border-blue-100 bg-white py-2 shadow-sm [&_button]:bg-blue-50 [&_button]:text-gray-700 [&_button]:hover:bg-blue-100 [&_span]:text-gray-700 [&_svg]:fill-gray-700 [&_svg]:text-gray-700"
               videoDuration="00:00"
             />
             <button

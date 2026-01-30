@@ -361,7 +361,7 @@ Sempre responda de forma clara, objetiva e em português do Brasil. Seja profiss
         }),
         signal: abortControllerRef.current.signal,
       });
-
+      console.log(response);
       if (!response.ok) throw new Error("Erro API IA");
       if (!response.body) throw new Error("Sem stream");
 

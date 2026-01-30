@@ -122,7 +122,7 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
       {/* Header Clean */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 shadow-md shadow-blue-500/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-600 to-gray-700 shadow-md shadow-gray-700/20">
             <Bell className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -138,7 +138,7 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
         <div className="flex items-center gap-2">
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-sky-500/25 active:scale-95"
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-gray-600 to-gray-700 px-3 py-1.5 text-xs font-medium text-white transition-all hover:shadow-lg hover:shadow-gray-700/25 active:scale-95"
           >
             <Plus className="h-3.5 w-3.5" />
             Novo
@@ -176,7 +176,7 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
               animate={{ opacity: 1 }}
               className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-gray-300"
             >
-              <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+              <Loader2 className="h-8 w-8 animate-spin text-gray-700" />
               <p className="text-sm font-medium text-gray-400">
                 Carregando lembretes...
               </p>
@@ -221,12 +221,12 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
                         type="time"
                         value={tempTime}
                         onChange={(e) => setTempTime(e.target.value)}
-                        className="w-16 rounded bg-gray-50 px-1 py-0.5 text-xs font-semibold text-gray-700 outline-none focus:ring-1 focus:ring-sky-400"
+                        className="w-16 rounded bg-gray-50 px-1 py-0.5 text-xs font-semibold text-gray-700 outline-none focus:ring-1 focus:ring-zinc-400"
                         autoFocus
                       />
                       <button
                         onClick={() => updateTime(reminder.id)}
-                        className="rounded bg-sky-500 p-0.5 text-white hover:bg-sky-600"
+                        className="rounded bg-gray-700 p-0.5 text-white hover:bg-sky-600"
                       >
                         <Check className="h-3 w-3" />
                       </button>
@@ -243,7 +243,7 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
                       className={cn(
                         "flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold transition-colors",
                         reminder.status === "pending"
-                          ? "bg-white text-gray-600 shadow-sm ring-1 ring-gray-200 group-hover:text-blue-600 group-hover:ring-sky-200"
+                          ? "bg-white text-gray-600 shadow-sm ring-1 ring-gray-200 group-hover:text-gray-700 group-hover:ring-sky-200"
                           : reminder.status === "completed"
                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                             : "bg-red-100 text-red-700 hover:bg-red-200",

@@ -372,7 +372,7 @@ const RegisterForm = () => {
         <button
           onClick={form.handleSubmit(handleRegister)}
           disabled={isCreating}
-          className="bg-primary flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-70"
+          className="bg-primary flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isCreating ? (
             <>

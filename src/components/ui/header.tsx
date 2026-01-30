@@ -3,7 +3,13 @@ import { useGeneralContext } from "@/context/GeneralContext";
 import { useSession } from "@/context/auth";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
-import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  MessageCircle,
+  Smartphone,
+} from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
