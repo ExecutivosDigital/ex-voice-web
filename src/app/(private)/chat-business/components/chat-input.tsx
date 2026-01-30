@@ -11,7 +11,7 @@ import {
   Square,
   X,
 } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 
 interface ChatInputProps {
   value: string;
@@ -23,6 +23,9 @@ interface ChatInputProps {
   isLoading?: boolean;
   files?: File[];
   onFilesChange?: (files: File[]) => void;
+  /** Áudio gravado (preview acima do input, com player e opção de remover) */
+  audioBlob?: File | Blob | null;
+  onClearAudio?: () => void;
 }
 
 export function ChatInput({
@@ -35,13 +38,24 @@ export function ChatInput({
   isLoading,
   files = [],
   onFilesChange,
+  audioBlob = null,
+  onClearAudio,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioPreviewUrl = useMemo(
+    () => (audioBlob ? URL.createObjectURL(audioBlob) : null),
+    [audioBlob],
+  );
+  useEffect(() => {
+    return () => {
+      if (audioPreviewUrl) URL.revokeObjectURL(audioPreviewUrl);
+    };
+  }, [audioPreviewUrl]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if ((value.trim() || files.length > 0) && !isLoading) {
+      if ((value.trim() || files.length > 0 || !!audioBlob) && !isLoading) {
         onSend();
       }
     }
@@ -89,6 +103,28 @@ export function ChatInput({
         accept="image/*,application/pdf,audio/*"
         onChange={handleFileSelect}
       />
+
+      {/* Áudio gravado - preview com player e remover */}
+      {audioBlob && audioPreviewUrl && onClearAudio && (
+        <div className="mb-2 flex w-full max-w-[90%] flex-wrap gap-2">
+          <div className="relative flex items-center pr-2">
+            <WaveformAudioPlayer
+              audioUrl={audioPreviewUrl}
+              barCount={20}
+              className="border border-blue-100 bg-white py-2 shadow-sm [&_button]:bg-blue-50 [&_button]:text-blue-600 [&_button]:hover:bg-blue-100 [&_span]:text-blue-600 [&_svg]:fill-blue-600 [&_svg]:text-blue-600"
+              videoDuration="00:00"
+            />
+            <button
+              type="button"
+              onClick={onClearAudio}
+              className="absolute -top-2 -right-2 z-10 rounded-full bg-white p-1 text-gray-400 shadow-sm hover:text-red-500"
+              title="Remover áudio"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* File Preview Area */}
       {files.length > 0 && (
@@ -178,10 +214,14 @@ export function ChatInput({
           <button
             onClick={onSend}
             disabled={
-              (!value.trim() && files.length === 0) || isLoading || isRecording
+              (!value.trim() && files.length === 0 && !audioBlob) ||
+              isLoading ||
+              isRecording
             }
             className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-              (value.trim() || files.length > 0) && !isLoading && !isRecording
+              (value.trim() || files.length > 0 || !!audioBlob) &&
+              !isLoading &&
+              !isRecording
                 ? "bg-blue-500 text-white hover:bg-blue-600"
                 : "cursor-not-allowed bg-gray-200 text-gray-400"
             }`}

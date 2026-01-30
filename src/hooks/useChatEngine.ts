@@ -39,7 +39,7 @@ export function useChatEngine({
 }: UseChatEngineProps = {}) {
   // --- STATES ---
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(
-    initialChatId
+    initialChatId,
   );
 
   const [messages, setMessages] = useState<ExtendedMessage[]>([]);
@@ -68,7 +68,7 @@ export function useChatEngine({
           name: tempName,
           promptId: promptId || undefined,
         },
-        true
+        true,
       );
 
       if (res.status === 200 || res.status === 201) {
@@ -124,7 +124,7 @@ export function useChatEngine({
     chatId: string,
     text: string,
     entity: "USER" | "MODEL",
-    mimeType: string = "text"
+    mimeType: string = "text",
   ) => {
     try {
       await PostAPI(
@@ -134,7 +134,7 @@ export function useChatEngine({
           entity,
           mimeType,
         },
-        true
+        true,
       );
     } catch (error) {
       console.error("Erro ao salvar mensagem:", error);
@@ -184,7 +184,7 @@ export function useChatEngine({
         console.error("Falha ao gerar título:", e);
       }
     },
-    []
+    [],
   );
 
   // --- 3. ENVIO DE MENSAGEM (PRINCIPAL) ---
@@ -246,7 +246,7 @@ export function useChatEngine({
     const docxContents = fileHandler.files
       .filter((f) => f.extractedContent)
       .map(
-        (f) => `\n--- Conteúdo de ${f.file.name} ---\n${f.extractedContent}`
+        (f) => `\n--- Conteúdo de ${f.file.name} ---\n${f.extractedContent}`,
       );
 
     if (docxContents.length > 0) {
@@ -263,9 +263,19 @@ export function useChatEngine({
       });
     }
 
-    // Atualiza o estado visual
+    // Atualiza o estado visual (mensagens do usuário)
     const updatedMessages = [...messages, ...tempMessages];
-    setMessages(updatedMessages);
+    const aiMsgId = `ai-loading-${Date.now()}`;
+    // Balão da IA com "..." animado aparece imediatamente ao enviar
+    setMessages([
+      ...updatedMessages,
+      {
+        id: aiMsgId,
+        role: "ai",
+        content: "...",
+        createdAt: new Date().toISOString(),
+      },
+    ]);
 
     // --- B. PREPARAÇÃO DE DADOS PARA A IA E BACKEND ---
 
@@ -334,7 +344,9 @@ export function useChatEngine({
       }));
 
       // Usa prompt padrão genérico se nenhum prompt específico foi fornecido
-      const finalSystemPrompt = promptContent || `Você é um assistente de IA especializado em saúde e medicina. Seu objetivo é ajudar profissionais de saúde e pacientes com informações precisas, análises de exames, suporte para diagnósticos e respostas a perguntas relacionadas à área médica.
+      const finalSystemPrompt =
+        promptContent ||
+        `Você é um assistente de IA especializado em saúde e medicina. Seu objetivo é ajudar profissionais de saúde e pacientes com informações precisas, análises de exames, suporte para diagnósticos e respostas a perguntas relacionadas à área médica.
 
 Sempre responda de forma clara, objetiva e em português do Brasil. Seja profissional, empático e cuidadoso ao fornecer informações médicas, lembrando sempre que suas respostas são complementares e não substituem a consulta médica presencial.`;
 
@@ -353,24 +365,12 @@ Sempre responda de forma clara, objetiva e em português do Brasil. Seja profiss
       if (!response.ok) throw new Error("Erro API IA");
       if (!response.body) throw new Error("Sem stream");
 
-      // 4. Leitura do Stream
+      // 4. Leitura do Stream (bolha "..." já foi adicionada ao enviar)
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let done = false;
       let fullResponse = "";
       let buffer = "";
-
-      // Cria a bolha da IA vazia com indicador de digitação
-      const aiMsgId = (Date.now() + 1).toString();
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: aiMsgId,
-          role: "ai",
-          content: "...", // Indica que está gerando
-          createdAt: new Date().toISOString(),
-        },
-      ]);
 
       while (!done) {
         const { value, done: doneReading } = await reader.read();
@@ -424,7 +424,7 @@ Sempre responda de forma clara, objetiva e em português do Brasil. Seja profiss
             } as ExtendedMessage,
             { role: "ai", content: fullResponse } as ExtendedMessage,
           ],
-          activeChatId
+          activeChatId,
         );
       }
     } catch (error: any) {

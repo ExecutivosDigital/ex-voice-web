@@ -3,13 +3,14 @@ import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
-import { Bell, ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AudioRecorder } from "../audio-recorder/audio-recorder";
+import { NotificationDropdown } from "./notification-dropdown";
 import { ProfileModal } from "../profile/profile-modal";
 import {
   DropdownMenu,
@@ -136,6 +137,12 @@ export function Header() {
           isActive: pathname === `/others/${studyId}`,
         });
       }
+    } else if (pathname === "/notifications") {
+      breadcrumbs.push({
+        label: "Notificações",
+        href: "/notifications",
+        isActive: true,
+      });
     }
 
     return breadcrumbs;
@@ -209,9 +216,7 @@ export function Header() {
 
         <div className="flex h-max items-center gap-2">
           <div className="hidden items-center gap-2 xl:flex">
-            <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20">
-              <Bell className="h-4" />
-            </div>
+            <NotificationDropdown />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="group flex h-10 cursor-pointer items-center gap-2 rounded-full bg-white/10 px-1 pr-3 text-white transition-all duration-200 hover:bg-white/20">
@@ -833,7 +838,10 @@ export function Header() {
         </div>
         <div className="flex items-center justify-between gap-1 md:hidden">
           {/* Mobile: usa classes CSS para estilizar diferente, mas reutiliza a instância desktop via portal */}
-          <AudioRecorder buttonClassName="bg-white/50 hover:bg-white/20" skipNewRecordingRequest={true} />
+          <AudioRecorder
+            buttonClassName="bg-white/50 hover:bg-white/20"
+            skipNewRecordingRequest={true}
+          />
         </div>
       </div>
     </header>
