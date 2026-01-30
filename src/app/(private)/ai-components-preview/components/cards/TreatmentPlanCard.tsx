@@ -19,6 +19,15 @@ export function TreatmentPlanCard({
   const Icon = getIcon("pill");
   const CheckIcon = getIcon("check-circle2");
 
+  // Verificar se há conteúdo para exibir
+  const hasMedications = data.treatment?.medications && Array.isArray(data.treatment.medications) && data.treatment.medications.length > 0;
+  const hasLifestyle = data.treatment?.lifestyle && Array.isArray(data.treatment.lifestyle) && data.treatment.lifestyle.length > 0;
+  
+  // Se não há conteúdo, não renderizar o componente
+  if (!hasMedications && !hasLifestyle) {
+    return null;
+  }
+
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
       <div className="mb-6 flex items-center gap-3">

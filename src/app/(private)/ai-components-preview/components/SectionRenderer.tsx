@@ -68,6 +68,12 @@ function getComponentItemCount(component: AIComponent): number {
   if ('personal' in data && typeof data.personal === 'object') {
     return Object.values(data.personal).filter(v => v).length;
   }
+  if ('treatment' in data && typeof data.treatment === 'object' && data.treatment !== null) {
+    const treatment = data.treatment as any;
+    const medicationsCount = (treatment.medications && Array.isArray(treatment.medications)) ? treatment.medications.length : 0;
+    const lifestyleCount = (treatment.lifestyle && Array.isArray(treatment.lifestyle)) ? treatment.lifestyle.length : 0;
+    return medicationsCount + lifestyleCount;
+  }
   
   return 0;
 }
