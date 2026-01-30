@@ -5,7 +5,7 @@ import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { PromptIcon } from "@/utils/prompt-icon";
-import { Loader2, Search, X } from "lucide-react";
+import { Loader2, Search, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -29,7 +29,9 @@ export function RequestTranscription() {
 
   useEffect(() => {
     if (isModalOpen) {
-      fetchAvailablePrompts();
+      if (prompts.length === 0) {
+        fetchAvailablePrompts();
+      }
     } else {
       setSearchQuery("");
     }
@@ -39,15 +41,43 @@ export function RequestTranscription() {
     setIsLoadingPrompts(true);
     try {
       const response = await GetAPI(`/prompts/available`, true);
-      if (response.status === 200) {
-        setPrompts(response.body || []);
-      } else {
+      const list = (response.status === 200 ? response.body : null) || [];
+      const recordingType = selectedRecording?.type;
+      const filtered =
+        recordingType != null
+          ? list.filter((p: PromptOption) => p.type === recordingType)
+          : list;
+      setPrompts(filtered);
+      if (response.status !== 200) {
         console.error("Erro ao buscar prompts:", response.status);
-        setPrompts([]);
       }
     } catch (error) {
       console.error("Erro ao buscar prompts:", error);
       setPrompts([]);
+    } finally {
+      setIsLoadingPrompts(false);
+    }
+  }
+
+  async function handleSolicitarTranscriptionClick() {
+    if (!selectedRecording?.type) return;
+    setIsLoadingPrompts(true);
+    try {
+      const response = await GetAPI(`/prompts/available`, true);
+      const list = (response.status === 200 ? response.body : null) || [];
+      const filtered = list.filter(
+        (p: PromptOption) => p.type === selectedRecording.type,
+      );
+      if (filtered.length === 0) {
+        await HandleRequestTranscription();
+      } else {
+        setPrompts(filtered);
+        setIsModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar prompts:", error);
+      setPrompts([]);
+      toast.error("Erro ao verificar prompts. Tente novamente.");
     } finally {
       setIsLoadingPrompts(false);
     }
@@ -77,10 +107,6 @@ export function RequestTranscription() {
     }
     toast.error("Erro ao solicitar transcrição!");
     setIsRequesting(false);
-  }
-
-  function handleOpenModal() {
-    setIsModalOpen(true);
   }
 
   function handleCloseModal() {
@@ -130,13 +156,16 @@ export function RequestTranscription() {
   return (
     <>
       <button
-        onClick={handleOpenModal}
+        onClick={handleSolicitarTranscriptionClick}
         disabled={
-          selectedRecording?.transcriptionStatus === "PENDING" || isRequesting
+          selectedRecording?.transcriptionStatus === "PENDING" ||
+          isRequesting ||
+          isLoadingPrompts
         }
         className={cn(
           "bg-primary absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-2 rounded-lg px-4 py-2 font-semibold text-white",
-          selectedRecording?.transcriptionStatus === "PENDING" &&
+          (selectedRecording?.transcriptionStatus === "PENDING" ||
+            isLoadingPrompts) &&
             "cursor-wait bg-green-400 opacity-50",
           selectedRecording?.transcriptionStatus === "DONE" && "hidden",
         )}
@@ -145,6 +174,11 @@ export function RequestTranscription() {
           <>
             <Loader2 className="animate-spin" />
             Transcrevendo...
+          </>
+        ) : isLoadingPrompts ? (
+          <>
+            <Loader2 className="animate-spin" />
+            Carregando...
           </>
         ) : selectedRecording?.transcriptionStatus === "PENDING" ? (
           "Transcrição pendente"
@@ -159,11 +193,11 @@ export function RequestTranscription() {
         size="max-w-4xl h-[90vh]"
         className="border-gray-200 bg-white"
       >
-        <div className="flex h-full flex-col overflow-hidden">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+          <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
             <div className="flex flex-col gap-0.5">
-              <h2 className="text-2xl font-bold text-gray-800">
+              <h2 className="text-2xl font-bold text-start text-gray-800">
                 Selecione um prompt
               </h2>
               <p className="text-sm text-gray-500">
@@ -179,30 +213,56 @@ export function RequestTranscription() {
           </div>
 
           {/* Content */}
-          <div className="flex flex-1 flex-col gap-4 overflow-hidden p-6">
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="Buscar prompts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-6">
+            {/* Search + Botão prompt padrão */}
+            <div className="flex shrink-0 items-center gap-3">
+              <div className="relative min-w-0 flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Buscar prompts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => HandleRequestTranscription()}
+                disabled={isRequesting}
+                className={cn(
+                  "shrink-0 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100",
+                  isRequesting && "cursor-not-allowed opacity-50",
+                )}
+              >
+                {isRequesting ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="animate-spin" size={18} />
+                    Enviando...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Sparkles size={18} />
+                    Transcrever com prompt padrão
+                  </span>
+                )}
+              </button>
             </div>
 
             {/* Prompts List */}
-            <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-2">
+            <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-2">
               {isLoadingPrompts ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="animate-spin text-gray-400" size={24} />
                 </div>
               ) : filteredPrompts.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">
+                <div className="py-6 text-center text-gray-500">
                   {searchQuery
                     ? "Nenhum prompt encontrado para esta busca"
                     : "Nenhum prompt disponível para este tipo de gravação"}
+                  <p className="mt-2 text-sm text-gray-400">
+                    Use o botão ao lado da busca para transcrever com prompt padrão.
+                  </p>
                 </div>
               ) : (
                 filteredPrompts.map((prompt) => (
