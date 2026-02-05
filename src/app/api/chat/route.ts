@@ -13,7 +13,7 @@ async function transcribeAudio(
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "X-Title": "Health Voice Transcriber",
+          "X-Title": "EX Voice Transcriber",
         },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash", // Modelo rápido e barato para transcrição
@@ -197,7 +197,7 @@ export async function POST(req: Request) {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
           "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-          "X-Title": "Health Voice",
+          "X-Title": "EX Voice",
         },
         body: JSON.stringify({
           model: modelId,

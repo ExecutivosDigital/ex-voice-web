@@ -115,7 +115,7 @@ export function ChatInput({
           <WaveformAudioPlayer
             audioUrl={pendingAudioUrl}
             barCount={14}
-            className="w-full border border-blue-100 bg-white py-1.5 pl-2 pr-2 shadow-sm [&_button]:h-6 [&_button]:w-6 [&_button]:bg-blue-50 [&_button]:text-blue-600 [&_button]:hover:bg-blue-100 [&_span]:text-blue-600 [&_span]:text-xs [&_svg]:h-3 [&_svg]:w-3 [&_svg]:fill-blue-600 [&_svg]:text-blue-600"
+            className="w-full border border-neutral-100 bg-white py-1.5 pl-2 pr-2 shadow-sm [&_button]:h-6 [&_button]:w-6 [&_button]:bg-neutral-50 [&_button]:text-neutral-600 [&_button]:hover:bg-neutral-100 [&_span]:text-neutral-600 [&_span]:text-xs [&_svg]:h-3 [&_svg]:w-3 [&_svg]:fill-neutral-600 [&_svg]:text-neutral-600"
             videoDuration="00:00"
           />
           <span className="mt-0.5 block text-[10px] text-gray-500">
@@ -207,7 +207,7 @@ export function ChatInput({
                 ? "animate-pulse bg-red-500 hover:bg-red-600 text-white"
                 : pendingAudioFile
                   ? "bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700"
-                  : "text-primary from-sky-500 to-blue-600 hover:bg-gradient-to-br hover:text-white"
+                  : "text-primary from-neutral-500 to-neutral-600 hover:bg-gradient-to-br hover:text-white"
             }`}
             title={
               pendingAudioFile
@@ -236,7 +236,7 @@ export function ChatInput({
               (value.trim() || files.length > 0 || pendingAudioFile) &&
               !isLoading &&
               !isRecording
-                ? "bg-blue-500 text-white hover:bg-blue-600"
+                ? "bg-neutral-500 text-white hover:bg-neutral-600"
                 : "cursor-not-allowed bg-gray-200 text-gray-400"
             }`}
             title={

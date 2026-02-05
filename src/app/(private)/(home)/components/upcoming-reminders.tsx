@@ -224,7 +224,7 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
                 className={cn(
                   "group relative flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all duration-200",
                   reminder.status === "pending"
-                    ? "border-transparent bg-gray-50/80 hover:border-sky-100 hover:bg-white hover:shadow-sm"
+                    ? "border-transparent bg-gray-50/80 hover:border-neutral-100 hover:bg-white hover:shadow-sm"
                     : reminder.status === "completed"
                       ? "border-transparent bg-green-50/40 opacity-75"
                       : "border-transparent bg-red-50/40 opacity-75",
@@ -235,7 +235,7 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
                   {editingId === reminder.id ? (
                     <div
                       ref={timeInputRef}
-                      className="absolute -top-1 -left-1 z-10 flex items-center gap-1 rounded-lg border border-sky-200 bg-white p-1 shadow-lg"
+                      className="absolute -top-1 -left-1 z-10 flex items-center gap-1 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg"
                     >
                       <input
                         type="time"
@@ -247,7 +247,7 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
                       <button
                         onClick={() => updateTime(reminder.id)}
                         disabled={savingTimeId === reminder.id}
-                        className="rounded bg-gray-700 p-0.5 text-white hover:bg-sky-600 disabled:opacity-70"
+                        className="rounded bg-gray-700 p-0.5 text-white hover:bg-neutral-600 disabled:opacity-70"
                       >
                         {savingTimeId === reminder.id ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
@@ -268,7 +268,7 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
                       className={cn(
                         "flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold transition-colors",
                         reminder.status === "pending"
-                          ? "bg-white text-gray-600 shadow-sm ring-1 ring-gray-200 group-hover:text-gray-700 group-hover:ring-sky-200"
+                          ? "bg-white text-gray-600 shadow-sm ring-1 ring-gray-200 group-hover:text-gray-700 group-hover:ring-neutral-200"
                           : reminder.status === "completed"
                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                             : "bg-red-100 text-red-700 hover:bg-red-200",

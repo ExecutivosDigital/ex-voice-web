@@ -10,7 +10,7 @@ export default function Loading() {
                 <div className="relative h-24 w-24">
                     <motion.div
                         className="absolute inset-0 rounded-full border-4 border-primary/10"
-                        style={{ borderTopColor: "#0d78ec" }}
+                        style={{ borderTopColor: "black" }}
                         animate={{ rotate: 360 }}
                         transition={{
                             duration: 1.2,
@@ -20,7 +20,7 @@ export default function Loading() {
                     />
                     <motion.div
                         className="absolute inset-2 rounded-full border-4 border-primary/5"
-                        style={{ borderBottomColor: "#3b82f6" }}
+                        style={{ borderBottomColor: "black" }}
                         animate={{ rotate: -360 }}
                         transition={{
                             duration: 2,
@@ -38,7 +38,7 @@ export default function Loading() {
                             ease: "easeInOut",
                         }}
                     >
-                        <div className="h-4 w-4 rounded-full bg-gradient-to-tr from-[#0d78ec] to-[#60a5fa] shadow-[0_0_15px_rgba(13,120,236,0.5)]" />
+                        <div className="h-4 w-4 rounded-full bg-gradient-to-tr from-black to-black shadow-[0_0_15px_rgba(0,0,0,0.5)]" />
                     </motion.div>
                 </div>
 
@@ -50,13 +50,13 @@ export default function Loading() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
                     >
-                        Health<span className="text-primary">Voice</span>
+                        EX<span className="text-black">Voice</span>
                     </motion.h2>
                     <div className="flex gap-1">
                         {[0, 1, 2].map((i) => (
                             <motion.div
                                 key={i}
-                                className="h-1 w-1 rounded-full bg-primary"
+                                className="h-1 w-1 rounded-full bg-black"
                                 animate={{
                                     scale: [1, 1.5, 1],
                                     opacity: [0.3, 1, 0.3],

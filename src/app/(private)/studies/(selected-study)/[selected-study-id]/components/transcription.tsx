@@ -133,7 +133,7 @@ export function Transcription() {
                   </div>
 
                   {/* Texto em si */}
-                  <div className="prose prose-blue prose-lg max-w-none lg:prose-xl">
+                  <div className="prose prose-gray prose-lg max-w-none lg:prose-xl">
                     <div className="whitespace-pre-wrap text-justify leading-loose text-slate-700 decoration-slate-200 outline-none selection:bg-gray-100">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {selectedRecording.transcription}

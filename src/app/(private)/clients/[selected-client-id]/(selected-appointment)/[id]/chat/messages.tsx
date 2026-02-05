@@ -156,7 +156,7 @@ export function Messages({ message }: Props) {
                   <Copy className="h-4 w-4" />
                 )}
               </button>
-              <div className="prose prose-sm prose-a:text-blue-500 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 max-w-none break-words text-gray-800">
+              <div className="prose prose-sm prose-a:text-neutral-500 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 max-w-none break-words text-gray-800">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{

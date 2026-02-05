@@ -39,7 +39,7 @@ const MobileAppBlocker = () => {
             do celular.
             <br />
             <br />
-            <span className="font-medium text-[#0070f3]">
+            <span className="font-medium text-black">
               Baixe nosso aplicativo para continuar.
             </span>
           </p>

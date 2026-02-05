@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import * as LucideIcons from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import Image from "next/image";
 
 interface PromptIconProps {
   icon?: string;
@@ -24,7 +24,7 @@ export function PromptIcon({ icon, className = "", size = 20 }: PromptIconProps)
       <div className={`flex items-center justify-center ${className}`}>
         <Image
           src="/logos/iconWhite.png"
-          alt="Health Voice"
+          alt="EX Voice"
           width={size}
           height={size}
           className="h-full w-full object-contain"
@@ -57,7 +57,7 @@ export function PromptIcon({ icon, className = "", size = 20 }: PromptIconProps)
     <div className={`flex items-center justify-center ${className}`}>
       <Image
         src="/logos/iconWhite.png"
-        alt="Health Voice"
+        alt="EX Voice"
         width={size}
         height={size}
         className="h-full w-full object-contain"

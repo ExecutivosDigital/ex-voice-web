@@ -77,7 +77,7 @@ export default function Login() {
             <div className="mb-6 flex justify-center lg:justify-start">
               <Image
                 src="/logos/logo-dark.svg"
-                alt="Health Voice"
+                alt="EX Voice"
                 width={200}
                 height={60}
                 className="h-max w-1/2 object-contain"

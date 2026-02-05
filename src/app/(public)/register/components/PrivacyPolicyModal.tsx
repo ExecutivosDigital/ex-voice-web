@@ -1,19 +1,19 @@
 "use client";
 
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/blocks/dialog";
+import Image from "next/image";
 
 const PRIVACY_CONTENT = (
   <>
     <p className="mb-4 leading-relaxed text-gray-700">
       Esta Política de Privacidade descreve como a Executivo&apos;s Digital
       (&quot;Nós&quot;, &quot;Nosso&quot;, &quot;Nossa&quot;), desenvolvedora do
-      aplicativo &quot;Health Voice&quot; (&quot;Aplicativo&quot;), coleta,
+      aplicativo &quot;EX Voice&quot; (&quot;Aplicativo&quot;), coleta,
       utiliza, armazena, protege e, em raras ocasiões, compartilha suas
       informações pessoais, bem como a forma como você, Usuário
       (&quot;Você&quot;, &quot;Seu&quot;, &quot;Sua&quot;), pode exercer seus
@@ -22,7 +22,7 @@ const PRIVACY_CONTENT = (
     </p>
     <p className="mb-4 leading-relaxed text-gray-700">
       A presente Política deve ser lida em conjunto com os Termos de Uso do
-      Health Voice. Ao utilizar o Aplicativo, você concorda com as práticas
+      EX Voice. Ao utilizar o Aplicativo, você concorda com as práticas
       descritas nesta Política de Privacidade.
     </p>
 
@@ -31,7 +31,7 @@ const PRIVACY_CONTENT = (
     </h3>
     <p className="mb-4 leading-relaxed text-gray-700">
       A Executivo&apos;s Digital está profundamente comprometida com a proteção
-      da sua privacidade e de seus dados pessoais. Desenvolvemos o Health Voice
+      da sua privacidade e de seus dados pessoais. Desenvolvemos o EX Voice
       com a privacidade em mente (Privacy by Design), implementando medidas
       técnicas e organizacionais rigorosas para garantir a segurança e a
       conformidade com a LGPD e o Código de Ética Médica.
@@ -41,7 +41,7 @@ const PRIVACY_CONTENT = (
       2. QUAIS DADOS COLETAMOS E PARA QUAIS FINALIDADES?
     </h3>
     <p className="mb-2 leading-relaxed text-gray-700">
-      A coleta de dados pelo Health Voice se divide em duas categorias
+      A coleta de dados pelo EX Voice se divide em duas categorias
       principais: Dados de Cadastro e Uso da Plataforma (tratados por nós como
       Controlador) e Conteúdo Gerado pelo Usuário (no qual atuamos como Operador
       para o Usuário, que é o Controlador).
@@ -143,7 +143,7 @@ const PRIVACY_CONTENT = (
       </li>
     </ul>
     <p className="mb-2 leading-relaxed text-gray-700">
-      <strong>Finalidade:</strong> A única finalidade para a qual o Health Voice
+      <strong>Finalidade:</strong> A única finalidade para a qual o EX Voice
       processa este tipo de dado é para prover a funcionalidade de gravação,
       transcrição e organização conforme as instruções e comandos do Usuário.
     </p>
@@ -393,13 +393,13 @@ export function PrivacyPolicyModal({
           <div className="flex flex-col items-center gap-4">
             <Image
               src="/logos/logo-dark.png"
-              alt="Health Voice"
+              alt="EX Voice"
               width={180}
               height={54}
               className="h-11 w-auto object-contain"
             />
             <DialogTitle className="text-center text-lg font-semibold text-gray-900">
-              Política de Privacidade – Health Voice
+              Política de Privacidade – EX Voice
             </DialogTitle>
           </div>
         </DialogHeader>

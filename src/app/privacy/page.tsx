@@ -19,14 +19,14 @@ export default function Privacy() {
         />
       </div>
       <span className="mx-auto w-max text-lg font-bold">
-        POLÍTICA DE PRIVACIDADE - {process.env.PROJECT_NAME || "HEALTH VOICE"}
+        POLÍTICA DE PRIVACIDADE - {process.env.PROJECT_NAME || "EX VOICE"}
       </span>
       <span>
         Esta Política de Privacidade descreve como a Executivo{"'"}s Digital (
         {"'"}
         Nós{"'"},{"'"}Nosso{"'"}, {"'"}Nossa{"'"}), desenvolvedora do aplicativo{" "}
         {"'"}
-        {process.env.PROJECT_NAME || "Health Voice"}
+        {process.env.PROJECT_NAME || "EX Voice"}
         {"'"}({"'"}Aplicativo{"'"}), coleta, utiliza, armazena, protege e, em
         raras ocasiões, compartilha suas informações pessoais, bem como a forma
         como você, Usuário ({"'"}Você{"'"}, {"'"}Seu{"'"}, {"'"}Sua
@@ -36,7 +36,7 @@ export default function Privacy() {
       </span>
       <span>
         A presente Política deve ser lida em conjunto com os Termos de Uso do
-        {process.env.PROJECT_NAME || "Health Voice"}. Ao utilizar o Aplicativo,
+        {process.env.PROJECT_NAME || "EX Voice"}. Ao utilizar o Aplicativo,
         você concorda com as práticas descritas nesta Política de Privacidade.
       </span>
       <span className="font-semibold">
@@ -44,7 +44,7 @@ export default function Privacy() {
       </span>
       <span>
         A Executivo{"'"}s Digital está profundamente comprometida com a proteção
-        da sua privacidade e de seus dados pessoais. Desenvolvemos o Health
+        da sua privacidade e de seus dados pessoais. Desenvolvemos o EX
         Voice com a privacidade em mente (Privacy by Design), implementando
         medidas técnicas e organizacionais rigorosas para garantir a segurança e
         a conformidade com a LGPD e o Código de Ética Médica.
@@ -53,7 +53,7 @@ export default function Privacy() {
         2. QUAIS DADOS COLETAMOS E PARA QUAIS FINALIDADES?
       </span>
       <span>
-        A coleta de dados pelo {process.env.PROJECT_NAME || "Health Voice"} se
+        A coleta de dados pelo {process.env.PROJECT_NAME || "EX Voice"} se
         divide em duas categorias principais: Dados de Cadastro e Uso da
         Plataforma (tratados por nós como Controlador) e Conteúdo Gerado pelo
         Usuário (no qual atuamos como Operador para o Usuário, que é o
@@ -136,7 +136,7 @@ export default function Privacy() {
       <span className="font-semibold">Finalidade:</span>
       <span>
         A única finalidade para a qual o{" "}
-        {process.env.PROJECT_NAME || "Health Voice"} processa este tipo de dado
+        {process.env.PROJECT_NAME || "EX Voice"} processa este tipo de dado
         é para prover a funcionalidade de gravação, transcrição e organização
         conforme as instruções e comandos do Usuário.
       </span>

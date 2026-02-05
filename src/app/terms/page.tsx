@@ -19,12 +19,12 @@ export default function Terms() {
         />
       </div>
       <span className="mx-auto w-max text-lg font-bold">
-        Termos de Uso - {process.env.PROJECT_VOICE || "Health Voice"}
+        Termos de Uso - {process.env.PROJECT_VOICE || "EX Voice"}
       </span>
       <span>
         Estes Termos de Uso ({"'"}Termos{"'"}) regem o acesso e a utilização do
         aplicativo {"'"}
-        {process.env.PROJECT_VOICE || "Health Voice"}
+        {process.env.PROJECT_VOICE || "EX Voice"}
         {"'"} ({"'"}Aplicativo{"'"}), desenvolvido pela Executivo{"'"}s Digital,
         disponível para dispositivos móveis. Ao acessar, instalar, utilizar ou
         se cadastrar no Aplicativo, o usuário ({"'"}Usuário{"'"}) DECLARA TER
@@ -33,10 +33,10 @@ export default function Terms() {
         Aplicativo.
       </span>
       <span className="font-semibold">
-        1. SOBRE O {process.env.PROJECT_VOICE || "HEALTH VOICE"}
+        1. SOBRE O {process.env.PROJECT_VOICE || "EX VOICE"}
       </span>
       <span>
-        1.1. O {process.env.PROJECT_VOICE || "Health Voice"} é um aplicativo
+        1.1. O {process.env.PROJECT_VOICE || "EX Voice"} é um aplicativo
         desenvolvido para auxiliar médicos e outros profissionais da área de
         saúde na gravação, transcrição e gestão de informações provenientes de
         reuniões e interações profissionais. Sua principal funcionalidade é a
@@ -58,7 +58,7 @@ export default function Terms() {
         definidos.
       </span>
       <span>
-        1.3. O {process.env.PROJECT_VOICE || "Health Voice"} é uma ferramenta de
+        1.3. O {process.env.PROJECT_VOICE || "EX Voice"} é uma ferramenta de
         apoio administrativo, visando otimizar a organização e a gestão da
         informação, não substituindo, em hipótese alguma, o prontuário médico ou
         qualquer outro registro oficial, nem o discernimento profissional do
@@ -81,7 +81,7 @@ export default function Terms() {
       </span>
       <span className="font-semibold">3. PLANOS DE SERVIÇO E COBRANÇA</span>
       <span>
-        3.1. O {process.env.PROJECT_VOICE || "Health Voice"} oferece diferentes
+        3.1. O {process.env.PROJECT_VOICE || "EX Voice"} oferece diferentes
         planos de serviço, que podem incluir funcionalidades e limites de uso
         distintos. Os planos atualmente disponíveis são:
       </span>
@@ -110,7 +110,7 @@ export default function Terms() {
       </span>
       <span>
         4.1. O Usuário compromete-se a utilizar o{" "}
-        {process.env.PROJECT_VOICE || "Health Voice"} de forma ética e em
+        {process.env.PROJECT_VOICE || "EX Voice"} de forma ética e em
         conformidade com a legislação brasileira, especialmente a Lei Geral de
         Proteção de Dados Pessoais (LGPD), o Código de Ética Médica e quaisquer
         outras normas aplicáveis à sua profissão.
@@ -151,7 +151,7 @@ export default function Terms() {
       <span className="font-semibold">5. PROPRIEDADE INTELECTUAL</span>
       <span>
         5.1. Todos os direitos de propriedade intelectual relativos ao
-        Aplicativo {process.env.PROJECT_VOICE || "Health Voice"}, incluindo, mas
+        Aplicativo {process.env.PROJECT_VOICE || "EX Voice"}, incluindo, mas
         não se limitando a, software, código-fonte, design, logotipos, marcas,
         imagens e textos, são de propriedade exclusiva da Executivo{"'"}s
         Digital.
@@ -180,7 +180,7 @@ export default function Terms() {
         6.2. NÃO HÁ ARMAZENAMENTO OU USO PARA TREINAMENTO: A Executivo{"'"}s
         Digital ESCLARECE E GARANTE que os dados de áudio e as transcrições
         geradas pelo Usuário DENTRO DO APLICATIVO{" "}
-        {process.env.PROJECT_VOICE || "HEALTH VOICE"} NÃO SÃO SALVOS em seus
+        {process.env.PROJECT_VOICE || "EX VOICE"} NÃO SÃO SALVOS em seus
         servidores para fins de treinamento da IA, comercialização ou qualquer
         outra finalidade que não seja o uso exclusivo do próprio Usuário, dentro
         do ambiente do aplicativo. O processamento dos dados para transcrição
@@ -208,7 +208,7 @@ export default function Terms() {
       </span>
       <span className="font-semibold">7. LIMITAÇÃO DE RESPONSABILIDADE</span>
       <span>
-        7.1. O {process.env.PROJECT_VOICE || "Health Voice"} é fornecido {"'"}no
+        7.1. O {process.env.PROJECT_VOICE || "EX Voice"} é fornecido {"'"}no
         estado em que se encontra{"'"} e{"'"}conforme disponível{"'"}. A
         Executivo{"'"}s Digital não oferece garantias de qualquer tipo,
         expressas ou implícitas, sobre a adequação, confiabilidade,
@@ -279,7 +279,7 @@ export default function Terms() {
       <span className="font-semibold">10. CONTATO</span>
       <span>
         Em caso de dúvidas sobre estes Termos de Uso, entre em contato com a
-        Executivo{"'"}s Digital através do e-mail health.voiceofc@gmail.com ou
+        Executivo{"'"}s Digital através do e-mail eX.voiceofc@gmail.com ou
         pelo canal de suporte disponível no Aplicativo.
       </span>
     </div>

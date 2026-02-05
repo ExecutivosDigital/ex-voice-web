@@ -267,7 +267,7 @@ const RegisterForm = () => {
                 label="Nome"
                 name="name"
                 autoComplete="name"
-                Svg={<User className="text-blue-400" size={20} />}
+                Svg={<User className="text-neutral-400" size={20} />}
                 value={field.value}
                 onChange={field.onChange}
                 required
@@ -290,7 +290,7 @@ const RegisterForm = () => {
                 type="email"
                 autoComplete="email"
                 inputMode="email"
-                Svg={<Mail className="text-blue-400" size={20} />}
+                Svg={<Mail className="text-neutral-400" size={20} />}
                 value={field.value}
                 onChange={field.onChange}
                 required
@@ -312,7 +312,7 @@ const RegisterForm = () => {
                   label="Senha"
                   name="new-password"
                   autoComplete="new-password"
-                  Svg={<LockIcon className="text-blue-400" size={20} />}
+                  Svg={<LockIcon className="text-neutral-400" size={20} />}
                   type={showPassword ? "text" : "password"}
                   value={field.value}
                   onChange={field.onChange}
@@ -343,7 +343,7 @@ const RegisterForm = () => {
                   label="Confirmar Senha"
                   name="confirm-password"
                   autoComplete="new-password"
-                  Svg={<LockIcon className="text-blue-400" size={20} />}
+                  Svg={<LockIcon className="text-neutral-400" size={20} />}
                   type={showRememberPassword ? "text" : "password"}
                   value={field.value}
                   onChange={field.onChange}

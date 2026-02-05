@@ -1,18 +1,18 @@
 "use client";
 
-import Image from "next/image";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/blocks/dialog";
+import Image from "next/image";
 
 const TERMS_CONTENT = (
   <>
     <p className="mb-4 leading-relaxed text-gray-700">
       Estes Termos de Uso (&quot;Termos&quot;) regem o acesso e a utilização do
-      aplicativo &quot;Health Voice&quot; (&quot;Aplicativo&quot;), desenvolvido
+      aplicativo &quot;EX Voice&quot; (&quot;Aplicativo&quot;), desenvolvido
       pela Executivo&apos;s Digital, disponível para dispositivos móveis. Ao
       acessar, instalar, utilizar ou se cadastrar no Aplicativo, o usuário
       (&quot;Usuário&quot;) DECLARA TER LIDO, ENTENDIDO E CONCORDADO COM ESTES
@@ -21,10 +21,10 @@ const TERMS_CONTENT = (
     </p>
 
     <h3 className="mt-6 mb-2 font-semibold text-gray-900">
-      1. SOBRE O HEALTH VOICE
+      1. SOBRE O EX VOICE
     </h3>
     <p className="mb-2 leading-relaxed text-gray-700">
-      1.1. O Health Voice é um aplicativo desenvolvido para auxiliar médicos e
+      1.1. O EX Voice é um aplicativo desenvolvido para auxiliar médicos e
       outros profissionais da área de saúde na gravação, transcrição e gestão de
       informações provenientes de consultas, reuniões e interações
       profissionais. Sua principal funcionalidade é a gravação de áudios com
@@ -46,7 +46,7 @@ const TERMS_CONTENT = (
       </li>
     </ul>
     <p className="mb-4 leading-relaxed text-gray-700">
-      1.3. O Health Voice é uma ferramenta de apoio administrativo, visando
+      1.3. O EX Voice é uma ferramenta de apoio administrativo, visando
       otimizar a organização e a gestão da informação, não substituindo, em
       hipótese alguma, o prontuário médico ou qualquer outro registro oficial,
       nem o discernimento profissional do Usuário.
@@ -74,7 +74,7 @@ const TERMS_CONTENT = (
       3. PLANOS DE SERVIÇO E COBRANÇA
     </h3>
     <p className="mb-2 leading-relaxed text-gray-700">
-      3.1. O Health Voice oferece diferentes planos de serviço, que podem
+      3.1. O EX Voice oferece diferentes planos de serviço, que podem
       incluir funcionalidades e limites de uso distintos. Os planos atualmente
       disponíveis são:
     </p>
@@ -101,7 +101,7 @@ const TERMS_CONTENT = (
       4. USO ADEQUADO DO APLICATIVO E RESPONSABILIDADES DO USUÁRIO
     </h3>
     <p className="mb-2 leading-relaxed text-gray-700">
-      4.1. O Usuário compromete-se a utilizar o Health Voice de forma ética e em
+      4.1. O Usuário compromete-se a utilizar o EX Voice de forma ética e em
       conformidade com a legislação brasileira, especialmente a Lei Geral de
       Proteção de Dados Pessoais (LGPD), o Código de Ética Médica e quaisquer
       outras normas aplicáveis à sua profissão.
@@ -143,7 +143,7 @@ const TERMS_CONTENT = (
       </li>
     </ul>
     <p className="mb-4 leading-relaxed text-gray-700">
-      4.4. O Usuário reconhece que o Health Voice é uma ferramenta de suporte e
+      4.4. O Usuário reconhece que o EX Voice é uma ferramenta de suporte e
       que a verificação da precisão das transcrições, a categorização e a
       interpretação das informações geradas são de sua exclusiva
       responsabilidade profissional. A Executivo&apos;s Digital não garante a
@@ -157,7 +157,7 @@ const TERMS_CONTENT = (
     </h3>
     <p className="mb-2 leading-relaxed text-gray-700">
       5.1. Todos os direitos de propriedade intelectual relativos ao Aplicativo
-      Health Voice, incluindo, mas não se limitando a, software, código-fonte,
+      EX Voice, incluindo, mas não se limitando a, software, código-fonte,
       design, logotipos, marcas, imagens e textos, são de propriedade exclusiva
       da Executivo&apos;s Digital.
     </p>
@@ -184,7 +184,7 @@ const TERMS_CONTENT = (
     <p className="mb-2 leading-relaxed text-gray-700">
       6.2. NÃO HÁ ARMAZENAMENTO OU USO PARA TREINAMENTO: A Executivo&apos;s
       Digital ESCLARECE E GARANTE que os dados de áudio e as transcrições
-      geradas pelo Usuário DENTRO DO APLICATIVO HEALTH VOICE NÃO SÃO SALVOS em
+      geradas pelo Usuário DENTRO DO APLICATIVO EX VOICE NÃO SÃO SALVOS em
       seus servidores para fins de treinamento da IA, comercialização ou
       qualquer outra finalidade que não seja o uso exclusivo do próprio Usuário,
       dentro do ambiente do aplicativo. O processamento dos dados para
@@ -215,7 +215,7 @@ const TERMS_CONTENT = (
       7. LIMITAÇÃO DE RESPONSABILIDADE
     </h3>
     <p className="mb-2 leading-relaxed text-gray-700">
-      7.1. O Health Voice é fornecido &quot;no estado em que se encontra&quot; e
+      7.1. O EX Voice é fornecido &quot;no estado em que se encontra&quot; e
       &quot;conforme disponível&quot;. A Executivo&apos;s Digital não oferece
       garantias de qualquer tipo, expressas ou implícitas, sobre a adequação,
       confiabilidade, disponibilidade, atualidade, precisão ou ausência de erros
@@ -309,13 +309,13 @@ export function TermsOfUseModal({ open, onOpenChange }: TermsOfUseModalProps) {
           <div className="flex flex-col items-center gap-4">
             <Image
               src="/logos/logo-dark.png"
-              alt="Health Voice"
+              alt="EX Voice"
               width={180}
               height={54}
               className="h-11 w-auto object-contain"
             />
             <DialogTitle className="text-center text-lg font-semibold text-gray-900">
-              Termos de Uso – Health Voice
+              Termos de Uso – EX Voice
             </DialogTitle>
           </div>
         </DialogHeader>

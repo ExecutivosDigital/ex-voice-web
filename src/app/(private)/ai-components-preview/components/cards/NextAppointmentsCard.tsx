@@ -105,7 +105,6 @@ export function NextAppointmentsCard({
                 className={`grid min-h-[100px] w-full grid-cols-1 gap-4 rounded-2xl border ${styles.border} bg-gradient-to-r ${styles.bg} to-white p-5 shadow-sm transition-shadow sm:grid-cols-[auto_1fr] sm:gap-5`}
               >
                 {dateStr && (
-                  isShortDate ? (
                     <div
                       className={`flex h-fit w-16 flex-shrink-0 flex-col items-center justify-center self-start rounded-xl border ${styles.border} bg-white p-3`}
                     >
@@ -118,24 +117,12 @@ export function NextAppointmentsCard({
                         </span>
                       )}
                     </div>
-                  ) : (
-                    <div className="flex flex-col gap-1 sm:col-span-2">
-                      <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                        Data prevista
-                      </span>
-                      <p className="text-sm font-medium leading-snug text-gray-700">
-                        {dateStr}
-                      </p>
-                    </div>
-                  )
+                 
                 )}
                 <div
-                  className={`flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-1 ${!dateStr || !isShortDate ? "sm:col-span-2" : ""}`}
+                  className={`flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-1`}
                 >
                   <p className="font-bold text-gray-900">{item.primary}</p>
-                  {item.status && (
-                    <p className="text-sm font-medium text-gray-600">{item.status}</p>
-                  )}
                   {(timeMeta?.value || item.secondary) && (
                     <p className={`text-sm font-medium ${styles.text}`}>
                       {timeMeta?.value || ""}{" "}

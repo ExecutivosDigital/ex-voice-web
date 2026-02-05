@@ -41,7 +41,7 @@ function CopyButtonMessage({ message }: Props) {
             <Copy className="h-4 w-4" />
           )}
         </button>
-        <div className="prose prose-sm prose-a:text-blue-500 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 max-w-none break-words text-gray-800">
+        <div className="prose prose-sm prose-a:text-neutral-500 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 max-w-none break-words text-gray-800">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -74,14 +74,14 @@ export function Messages({ message }: Props) {
       {message.role === "user" ? (
         message.type?.startsWith("audio") && message.file ? (
           <div className="group mr-2 mb-4 ml-auto flex max-w-[calc(100%-8px)] flex-col items-end justify-end gap-1 lg:mb-2 xl:mb-4 xl:max-w-[calc(100%-50px)]">
-            <div className="flex min-w-10 flex-col gap-1 rounded-2xl rounded-br-none bg-blue-500 p-3 text-white shadow-sm">
+            <div className="flex min-w-10 flex-col gap-1 rounded-2xl rounded-br-none bg-neutral-500 p-3 text-white shadow-sm">
               <span className="text-sm font-medium">Mensagem de Áudio</span>
               <div className="mt-2 w-full max-w-sm rounded-2xl bg-transparent">
                 <WaveformAudioPlayer
                   audioUrl={message.file}
                   videoDuration="00:00"
                   barCount={24}
-                  className="w-full border border-blue-100 bg-white shadow-sm [&_button]:bg-blue-50 [&_button]:text-blue-600 [&_button]:hover:bg-blue-100 [&_span]:font-bold [&_span]:text-blue-600 [&_svg]:text-blue-600"
+                  className="w-full border border-neutral-100 bg-white shadow-sm [&_button]:bg-neutral-50 [&_button]:text-neutral-600 [&_button]:hover:bg-neutral-100 [&_span]:font-bold [&_span]:text-neutral-600 [&_svg]:text-neutral-600"
                 />
               </div>
             </div>

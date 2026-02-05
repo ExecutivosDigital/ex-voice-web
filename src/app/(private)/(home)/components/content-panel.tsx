@@ -12,6 +12,7 @@ import {
     Loader2,
     Play,
     Search,
+    Share2,
     User
 } from "lucide-react";
 import { useRouter } from "next/navigation";

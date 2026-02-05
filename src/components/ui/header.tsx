@@ -9,6 +9,7 @@ import {
   Menu,
   MessageCircle,
   Smartphone,
+  UserIcon,
 } from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
@@ -263,7 +264,7 @@ export function Header() {
                     className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-gray-50 focus:bg-gray-50"
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-colors group-hover:text-white group-hover:opacity-90">
-                      <ProfileIcon className="h-5 w-5" />
+                      <UserIcon className="h-5 w-5" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-700">
@@ -278,20 +279,20 @@ export function Header() {
 
                   <DropdownMenuItem
                     onSelect={() => window.open(appUrl, "_blank")}
-                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
+                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-neutral-50 focus:bg-neutral-50 focus:outline-none"
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-colors group-hover:bg-green-500 group-hover:text-white">
                       <Smartphone className="h-5 w-5" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-neutral-700">
                         Acessar Aplicativo
                       </span>
-                      <span className="text-xs text-gray-400 group-hover:text-blue-600/80">
+                      <span className="text-xs text-gray-400 group-hover:text-neutral-600/80">
                         Baixe o app mobile
                       </span>
                     </div>
-                    <ChevronRight className="ml-auto h-4 w-4 text-gray-300 group-hover:text-blue-400" />
+                    <ChevronRight className="ml-auto h-4 w-4 text-gray-300 group-hover:text-neutral-400" />
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
