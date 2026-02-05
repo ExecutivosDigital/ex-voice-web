@@ -1,6 +1,7 @@
 "use client";
 
 import { ReminderProps } from "@/@types/general-client";
+import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +15,7 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import moment from "moment";
 import { useState, useRef, useEffect, useMemo } from "react";
 
 interface LocalReminder {
@@ -30,24 +32,22 @@ interface UpcomingRemindersProps {
 const ITEMS_PER_PAGE = 6;
 
 export function UpcomingReminders({ className }: UpcomingRemindersProps) {
+  const { PutAPI } = useApiContext();
   const {
     reminders: apiReminders,
     isGettingReminders,
     openNewRecording,
+    setReminders,
   } = useGeneralContext();
 
-  // Filtrar apenas os lembretes de hoje
+  // Filtrar apenas os lembretes de hoje (comparar dia civil em UTC do lembrete com dia local de hoje)
   const todayReminders = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayLocal = moment().format("YYYY-MM-DD");
 
     return apiReminders
       .filter((reminder: ReminderProps) => {
-        const reminderDate = new Date(reminder.date);
-        reminderDate.setHours(0, 0, 0, 0);
-        return reminderDate >= today && reminderDate < tomorrow;
+        const reminderDayUtc = moment.utc(reminder.date).format("YYYY-MM-DD");
+        return reminderDayUtc === todayLocal;
       })
       .map(
         (reminder: ReminderProps): LocalReminder => ({
@@ -66,6 +66,7 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tempTime, setTempTime] = useState<string>("");
+  const [savingTimeId, setSavingTimeId] = useState<string | null>(null);
   const timeInputRef = useRef<HTMLInputElement>(null);
 
   // Combinar dados da API com status local
@@ -100,9 +101,28 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
     setLocalStatuses((prev) => ({ ...prev, [id]: status }));
   };
 
-  const updateTime = (id: string) => {
-    // TODO: Implementar atualização via API
-    setEditingId(null);
+  const updateTime = async (id: string) => {
+    const newTime = tempTime.trim();
+    if (!newTime) {
+      setEditingId(null);
+      return;
+    }
+    setSavingTimeId(id);
+    try {
+      const response = await PutAPI(`/reminder/${id}`, { time: newTime }, true);
+      if (response.status === 200) {
+        setReminders((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, time: newTime } : r)),
+        );
+        setEditingId(null);
+      } else {
+        console.error("Erro ao atualizar horário do lembrete:", response.status);
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar horário do lembrete:", error);
+    } finally {
+      setSavingTimeId(null);
+    }
   };
 
   const handleAdd = () => {
@@ -226,9 +246,14 @@ export function UpcomingReminders({ className }: UpcomingRemindersProps) {
                       />
                       <button
                         onClick={() => updateTime(reminder.id)}
-                        className="rounded bg-sky-500 p-0.5 text-white hover:bg-sky-600"
+                        disabled={savingTimeId === reminder.id}
+                        className="rounded bg-sky-500 p-0.5 text-white hover:bg-sky-600 disabled:opacity-70"
                       >
-                        <Check className="h-3 w-3" />
+                        {savingTimeId === reminder.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Check className="h-3 w-3" />
+                        )}
                       </button>
                     </div>
                   ) : (

@@ -10,30 +10,30 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AudioRecorder } from "../audio-recorder/audio-recorder";
-import { NotificationDropdown } from "./notification-dropdown";
 import { ProfileModal } from "../profile/profile-modal";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "./blocks/dropdown-menu";
 import {
-  ChatBusinessIcon,
-  ChatIcon,
-  ContactsIcon,
-  GeneralVisionIcon,
-  HomeIcon,
-  LastRecordIcon,
-  LogoutIcon,
-  NotesIcon,
-  OtherIcon,
-  SettingsIcon,
-  SmartphoneIcon,
-  StudyIcon,
-  SupportIcon,
-  TranscriptionIcon,
+    ChatBusinessIcon,
+    ChatIcon,
+    ContactsIcon,
+    GeneralVisionIcon,
+    HomeIcon,
+    LastRecordIcon,
+    LogoutIcon,
+    NotesIcon,
+    OtherIcon,
+    SettingsIcon,
+    SmartphoneIcon,
+    StudyIcon,
+    SupportIcon,
+    TranscriptionIcon,
 } from "./custom-icons";
+import { NotificationDropdown } from "./notification-dropdown";
 
 interface BreadcrumbItem {
   label: string;
@@ -77,7 +77,7 @@ export function Header() {
           const recordingId = pathSegments[2];
 
           breadcrumbs.push({
-            label: selectedRecording?.name || "Consulta",
+            label: selectedRecording?.name || "Carregando...",
             href: `/clients/${clientId}/${recordingId}`,
             isActive: true,
           });
@@ -275,20 +275,20 @@ export function Header() {
 
                   <DropdownMenuItem
                     onSelect={() => window.open(appUrl, "_blank")}
-                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-green-50 focus:bg-green-50"
+                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white transition-colors group-hover:bg-green-500 group-hover:text-white">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white transition-colors group-hover:bg-blue-500 group-hover:text-white">
                       <SmartphoneIcon className="h-5 w-5" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
                         Acessar Aplicativo
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 group-hover:text-blue-600/80">
                         Baixe o app mobile
                       </span>
                     </div>
-                    <ChevronRight className="ml-auto h-4 w-4 text-gray-300" />
+                    <ChevronRight className="ml-auto h-4 w-4 text-gray-300 group-hover:text-blue-400" />
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
@@ -502,6 +502,9 @@ export function Header() {
             </div>
           ) : pathname.includes("/reminders") &&
             pathname.split("/").filter(Boolean).length >= 2 ? (
+            (() => {
+              const reminderIdFromUrl = pathname.split("/").filter(Boolean)[1];
+              return (
             <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">
               <div className="flex items-center gap-4">
                 <button
@@ -521,7 +524,7 @@ export function Header() {
                         : "border-b-white/10 text-white/50",
                     )}
                     onClick={() =>
-                      router.push(`/reminders/${selectedRecording?.id}`)
+                      router.push(`/reminders/${reminderIdFromUrl}`)
                     }
                   >
                     <GeneralVisionIcon />
@@ -535,7 +538,7 @@ export function Header() {
                         : "border-b-white/10 text-white/50",
                     )}
                     onClick={() =>
-                      router.push(`/reminders/${selectedRecording?.id}/chat`)
+                      router.push(`/reminders/${reminderIdFromUrl}/chat`)
                     }
                   >
                     <ChatIcon />
@@ -570,6 +573,8 @@ export function Header() {
                 </div>
               </div>
             </div>
+              );
+            })()
           ) : pathname.includes("/studies") &&
             pathname.split("/").filter(Boolean).length >= 2 ? (
             <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">

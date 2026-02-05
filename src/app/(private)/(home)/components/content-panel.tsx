@@ -12,7 +12,6 @@ import {
     Loader2,
     Play,
     Search,
-    Share2,
     User
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -289,12 +288,6 @@ export function ContentPanel({ className }: ContentPanelProps) {
                                                     {tag}
                                                 </span>
                                             ))}
-                                        </div>
-
-                                        <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                                            <button className="rounded p-1 text-gray-400 hover:bg-sky-50 hover:text-sky-600">
-                                                <Share2 className="h-3 w-3" />
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
