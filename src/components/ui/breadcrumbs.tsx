@@ -39,7 +39,7 @@ export function BreadCrumbs() {
           const recordingId = pathSegments[2];
 
           breadcrumbs.push({
-            label: selectedRecording?.name || "Consulta",
+            label: selectedRecording?.name || "Carregando...",
             href: `/clients/${clientId}/${recordingId}`,
             isActive: true,
           });

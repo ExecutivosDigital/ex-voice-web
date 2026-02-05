@@ -1,6 +1,5 @@
 "use client";
 
-import { AudioPlayer } from "@/components/chatPopup/AudioPlayer";
 import { useSectionChat } from "@/components/chatPopup/chat-handler";
 import { Prompt } from "@/components/chatPopup/types";
 import { useSession } from "@/context/auth";
@@ -16,7 +15,6 @@ import {
   Maximize2,
   Minimize2,
   Plus,
-  X,
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -269,6 +267,8 @@ export default function ChatPage() {
                     onRecordStart={startRecording}
                     onRecordStop={stopRecording}
                     isLoading={loading}
+                    pendingAudioFile={file}
+                    onDiscardAudio={() => setFile(null)}
                   />
                 </div>
               </div>
@@ -319,34 +319,6 @@ export default function ChatPage() {
 
         {(!isChatEmpty || selectedSuggestion) && (
           <div className="border-t border-gray-100 bg-gray-50/50">
-            {/* File Preview Area */}
-            {file && (
-              <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white/50 px-4 py-2">
-                <div className="flex flex-1 items-center gap-2 overflow-hidden">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-                  </div>
-                  <span className="truncate text-xs font-medium text-gray-500">
-                    Áudio anexado
-                  </span>
-                </div>
-
-                <div className="h-8 w-32">
-                  <AudioPlayer
-                    audioUrl={URL.createObjectURL(file)}
-                    className="h-full w-full"
-                  />
-                </div>
-
-                <button
-                  onClick={() => setFile(null)}
-                  className="rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-200"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-
             <ChatInput
               value={inputMessage}
               onChange={setInputMessage}
@@ -355,6 +327,8 @@ export default function ChatPage() {
               onRecordStart={startRecording}
               onRecordStop={stopRecording}
               isLoading={typeof loading !== "undefined" ? loading : false}
+              pendingAudioFile={file}
+              onDiscardAudio={() => setFile(null)}
             />
           </div>
         )}

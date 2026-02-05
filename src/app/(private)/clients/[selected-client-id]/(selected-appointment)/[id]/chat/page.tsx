@@ -17,6 +17,13 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+
+// Ref para garantir que o texto do input seja enviado junto com o áudio (evita closure obsoleta)
+function useInputRef(value: string) {
+  const ref = useRef(value);
+  ref.current = value;
+  return ref;
+}
 import { ChatInput } from "./components/chat-input";
 import { SuggestionCard } from "./components/suggestion-card";
 import { Messages } from "./messages";
@@ -36,6 +43,7 @@ export default function ChatPage() {
     useState<Suggestion | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
+  const inputMessageRef = useInputRef(inputMessage);
 
   // Usa useChatEngine sem persistência (chat independente)
   const engine = useChatEngine({
@@ -46,8 +54,9 @@ export default function ChatPage() {
   });
 
   const handleSendMessage = () => {
-    if (inputMessage.trim() || engine.fileHandler.files.length > 0 || engine.audioRecorder.audioFile) {
-      engine.sendMessage(inputMessage);
+    const textToSend = inputMessageRef.current;
+    if (textToSend.trim() || engine.fileHandler.files.length > 0 || engine.audioRecorder.audioFile) {
+      engine.sendMessage(textToSend);
       setInputMessage("");
     }
   };
@@ -274,6 +283,8 @@ export default function ChatPage() {
                         }
                       });
                     }}
+                    pendingAudioFile={engine.audioRecorder.audioFile}
+                    onDiscardAudio={engine.audioRecorder.clearAudio}
                   />
                 </div>
               </div>
@@ -349,6 +360,8 @@ export default function ChatPage() {
                   }
                 });
               }}
+              pendingAudioFile={engine.audioRecorder.audioFile}
+              onDiscardAudio={engine.audioRecorder.clearAudio}
             />
           </div>
         )}

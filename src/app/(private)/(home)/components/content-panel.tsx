@@ -12,11 +12,10 @@ import {
     Loader2,
     Play,
     Search,
-    Share2,
     User
 } from "lucide-react";
-import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 interface Recording {
     id: string;

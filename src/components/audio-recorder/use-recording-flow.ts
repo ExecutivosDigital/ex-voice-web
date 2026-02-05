@@ -76,12 +76,12 @@ export function useRecordingFlow(onReset?: () => void) {
     }
   }, [onReset]); // ← ADICIONAR DEPENDÊNCIA
 
-  const openSaveDialog = useCallback((type: RecordingType) => {
+  const openSaveDialog = useCallback((type: RecordingType, personalType?: PersonalRecordingType) => {
     setMetadata((prev) => ({
       ...prev,
       recordingType: type,
       consultationType: type === "CLIENT" ? "IN_PERSON" : null,
-      personalRecordingType: null,
+      personalRecordingType: personalType ?? null,
     }));
     setCurrentStep("save-dialog");
   }, []);

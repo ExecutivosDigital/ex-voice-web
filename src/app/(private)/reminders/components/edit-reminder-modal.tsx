@@ -23,7 +23,7 @@ export function EditReminderModal({
     const { GetReminders } = useGeneralContext();
     const [loading, setLoading] = useState(false);
     const [time, setTime] = useState(reminder.time || "");
-    const [date, setDate] = useState(moment(reminder.date).format("YYYY-MM-DD"));
+    const [date, setDate] = useState(moment.utc(reminder.date).format("YYYY-MM-DD"));
     const [name, setName] = useState(reminder.name || "");
     const [description, setDescription] = useState(reminder.description || "");
 
@@ -36,7 +36,7 @@ export function EditReminderModal({
         try {
             const response = await PutAPI(`/reminder/${reminder.id}`, {
                 time,
-                date: new Date(date).toISOString(),
+                date: `${date}T12:00:00.000Z`,
                 name,
                 description,
             }, true);

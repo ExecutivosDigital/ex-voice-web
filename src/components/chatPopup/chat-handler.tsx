@@ -210,15 +210,17 @@ export function useSectionChat({
 
   /* ===== Enviar ===== */
   async function handleSendMessage(overrideContent?: string) {
-    const textToSend = overrideContent || inputMessage;
+    // Captura texto e arquivos no início para enviar os dois juntos (não perder texto ao ter áudio pendente)
+    const textToSend = (overrideContent ?? inputMessage).trim();
+    const filesToSend = [...files];
 
-    if (loading || (!textToSend.trim() && files.length === 0)) return;
+    if (loading || (!textToSend && filesToSend.length === 0)) return;
 
     setLoading(true);
 
     // Prepare attachments for UI
     const attachments: Attachment[] = [];
-    for (const f of files) {
+    for (const f of filesToSend) {
       const url = URL.createObjectURL(f);
       attachments.push({
         url,
@@ -227,25 +229,33 @@ export function useSectionChat({
       });
     }
 
-    // Echo user message to UI
-    const outgoingMessage: Message = {
-      role: "user",
-      content: textToSend,
-      attachments: attachments.length > 0 ? attachments : undefined,
-    };
+    // Quando há áudio/anexos E texto: mostrar duas bolhas (áudio acima, texto abaixo) antes da resposta da IA
+    const hasAttachments = attachments.length > 0;
+    const messagesToAdd: Message[] = [];
 
-    // Legacy support for single file/audio player in Message component if needed,
-    // but we will prefer 'attachments' array.
-    // If it's a single audio file, we might keep legacy props for compatibility if Messages component expects them,
-    // but we plan to update Messages component too.
-    if (files.length === 1 && files[0].type.startsWith("audio/")) {
-      outgoingMessage.file = attachments[0].url;
-      outgoingMessage.type = files[0].type;
-      outgoingMessage.name = files[0].name;
+    if (hasAttachments) {
+      messagesToAdd.push({
+        role: "user",
+        content: filesToSend.some((f) => f.type.startsWith("audio/")) ? "Mensagem de Áudio" : "Mensagem com anexo",
+        attachments,
+        ...(filesToSend.length === 1 && filesToSend[0].type.startsWith("audio/")
+          ? {
+              file: attachments[0].url,
+              type: filesToSend[0].type,
+              name: filesToSend[0].name,
+            }
+          : {}),
+      });
+    }
+    if (textToSend) {
+      messagesToAdd.push({
+        role: "user",
+        content: textToSend,
+      });
     }
 
     setMessages((prev) => {
-      const list = [...prev, outgoingMessage, { role: "ai", content: "..." }];
+      const list = [...prev, ...messagesToAdd, { role: "ai", content: "..." }];
       placeholderIndexRef.current = list.length - 1;
       return list as Message[];
     });
@@ -254,8 +264,8 @@ export function useSectionChat({
     const parts: Array<TextPart | ImagePart | AudioPart> = [];
     let attemptedAudio = false;
 
-    // Process all files
-    for (const file of files) {
+    // Process all files (áudio + outros)
+    for (const file of filesToSend) {
       const mime = file.type || "";
       if (mime.startsWith("image/")) {
         const dataUrl = await fileToDataUrl(file);
@@ -284,17 +294,14 @@ export function useSectionChat({
       }
     }
 
-    if (textToSend.trim()) {
+    // Sempre incluir texto quando o usuário digitou; senão, mensagem padrão se só houver arquivos
+    if (textToSend) {
       parts.push({ type: "text", text: textToSend });
-    } else if (files.length > 0 && parts.length === files.length) {
-      // If only files and no text, and we haven't added text yet
-      // note: image/audio parts don't strictly require text companion in some models, but helpful
-      if (!parts.some((p) => p.type === "text")) {
-        parts.push({
-          type: "text",
-          text: "Por favor, analise os arquivos enviados.",
-        });
-      }
+    } else if (filesToSend.length > 0 && !parts.some((p) => p.type === "text")) {
+      parts.push({
+        type: "text",
+        text: "Por favor, analise os arquivos enviados.",
+      });
     }
 
     // Clean UI State
@@ -344,7 +351,7 @@ export function useSectionChat({
       if (attemptedAudio && looksLikeNoAudioSupport(firstText)) {
         // Encontra o primeiro arquivo de áudio para transcrever (limitação do fallback simples)
         // Idealmente transcreveria todos, mas vamos focar no primeiro para fallback
-        const audioFile = files.find((f) => f.type.startsWith("audio/"));
+        const audioFile = filesToSend.find((f) => f.type.startsWith("audio/"));
 
         if (audioFile) {
           const transcript = await transcribeWithWhisper(audioFile);

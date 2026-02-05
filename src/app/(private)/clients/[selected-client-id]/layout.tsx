@@ -2,34 +2,43 @@
 
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
-export default function ChatLayout({
+export default function SelectedClientLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { selectedClient, selectedRecording, setSelectedClient, setSelectedRecording } =
-    useGeneralContext();
+  const { selectedClient, setSelectedClient } = useGeneralContext();
   const { GetAPI } = useApiContext();
   const router = useRouter();
+  const pathname = usePathname();
   const params = useParams();
   const clientId = params["selected-client-id"] as string | undefined;
-  const recordingId = params["id"] as string | undefined;
 
   const [loading, setLoading] = useState(true);
   const [resolved, setResolved] = useState(false);
 
+  // Só carrega cliente quando estamos na lista do cliente (ex: /clients/xxx), não na gravação (ex: /clients/xxx/yyy)
+  const pathSegments = pathname?.split("/").filter(Boolean) ?? [];
+  const isClientListPage = pathSegments.length === 2 && pathSegments[0] === "clients";
+
   useEffect(() => {
-    if (!clientId || !recordingId) {
+    if (!clientId) {
       router.push("/clients");
       return;
     }
 
-    const alreadyHasContext =
-      selectedRecording?.id === recordingId && selectedClient?.id === clientId;
+    // Na tela de uma gravação, o layout interno já carrega cliente + gravação; não precisamos fazer nada aqui
+    if (!isClientListPage) {
+      setResolved(true);
+      setLoading(false);
+      return;
+    }
+
+    const alreadyHasContext = selectedClient?.id === clientId;
     if (alreadyHasContext) {
       setLoading(false);
       setResolved(true);
@@ -40,7 +49,7 @@ export default function ChatLayout({
 
     const loadFromApi = async () => {
       setLoading(true);
-      const response = await GetAPI(`/recording/${recordingId}`, true);
+      const response = await GetAPI(`/client/${clientId}`, true);
       if (cancelled) return;
 
       if (response.status !== 200 || !response.body?.id) {
@@ -48,11 +57,7 @@ export default function ChatLayout({
         return;
       }
 
-      const recording = response.body;
-      setSelectedRecording(recording as Parameters<typeof setSelectedRecording>[0]);
-      if (recording.client) {
-        setSelectedClient(recording.client as Parameters<typeof setSelectedClient>[0]);
-      }
+      setSelectedClient(response.body as Parameters<typeof setSelectedClient>[0]);
       setResolved(true);
       setLoading(false);
     };
@@ -61,18 +66,9 @@ export default function ChatLayout({
     return () => {
       cancelled = true;
     };
-  }, [
-    clientId,
-    recordingId,
-    selectedRecording?.id,
-    selectedClient?.id,
-    GetAPI,
-    router,
-    setSelectedRecording,
-    setSelectedClient,
-  ]);
+  }, [clientId, isClientListPage, selectedClient?.id, GetAPI, router, setSelectedClient]);
 
-  if (!resolved && loading) {
+  if (!resolved && loading && isClientListPage) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -80,7 +76,7 @@ export default function ChatLayout({
     );
   }
 
-  if (!resolved) {
+  if (!resolved && isClientListPage) {
     return null;
   }
 

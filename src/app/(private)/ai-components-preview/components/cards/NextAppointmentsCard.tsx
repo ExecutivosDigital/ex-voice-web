@@ -32,15 +32,23 @@ export function NextAppointmentsCard({
   const styles = getVariantStyles(variant);
   const Icon = getIcon("calendar-clock");
 
-  const isGenericFormat = data.items && Array.isArray(data.items) && data.items.length > 0;
-  const items = isGenericFormat ? (data.items || []) : [];
-  const legacyItems = data.appointments && Array.isArray(data.appointments) ? data.appointments : [];
+  // Calcular quantidade de agendamentos
+  const isGenericFormat =
+    data.items && Array.isArray(data.items) && data.items.length > 0;
+  const items = isGenericFormat ? data.items || [] : [];
+  const legacyItems =
+    data.appointments && Array.isArray(data.appointments)
+      ? data.appointments
+      : [];
+  const appointmentCount = isGenericFormat
+    ? items?.length || 0
+    : legacyItems.length;
 
   return (
-    <section className="w-full">
+    <section className={appointmentCount <= 1 ? "max-w-[500px]" : ""}>
       <div className="mb-4 flex items-center gap-3">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${styles.gradientFrom} ${styles.gradientTo} text-white shadow-md ${styles.shadow}`}
+          className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${styles.gradientFrom} ${styles.gradientTo} text-white`}
         >
           <Icon className="h-5 w-5" />
         </div>
@@ -49,55 +57,57 @@ export function NextAppointmentsCard({
       <div className="grid w-full gap-4 sm:grid-cols-1 md:grid-cols-2">
         {/* Detectar formato: genérico (items[]) ou legado (appointments[]) */}
         {(() => {
-          const isGenericFormat = data.items && Array.isArray(data.items) && data.items.length > 0;
+          const isGenericFormat =
+            data.items && Array.isArray(data.items) && data.items.length > 0;
           const items = isGenericFormat ? data.items : [];
-          
+
           // Converter formato legado para genérico
-          const legacyItems = data.appointments && Array.isArray(data.appointments)
-            ? data.appointments.map((appt) => ({
-                id: appt.id,
-                primary: appt.type || 'Agendamento',
-                secondary: appt.doctor,
-                metadata: [
-                  appt.date && { label: "Data", value: appt.date },
-                  appt.time && { label: "Hora", value: appt.time },
-                ].filter(Boolean) as Array<{ label: string; value: string }>,
-                tags: appt.notes ? [appt.notes] : [],
-                status: undefined,
-              }))
-            : [];
+          const legacyItems =
+            data.appointments && Array.isArray(data.appointments)
+              ? data.appointments.map((appt) => ({
+                  id: appt.id,
+                  primary: appt.type || "Agendamento",
+                  secondary: appt.doctor,
+                  metadata: [
+                    appt.date && { label: "Data", value: appt.date },
+                    appt.time && { label: "Hora", value: appt.time },
+                  ].filter(Boolean) as Array<{ label: string; value: string }>,
+                  tags: appt.notes ? [appt.notes] : [],
+                }))
+              : [];
 
           const displayItems = isGenericFormat ? items : legacyItems;
 
           if (!displayItems || displayItems.length === 0) {
             return (
-              <div className="col-span-full min-h-[120px] w-full rounded-2xl border border-gray-100 bg-gray-50/50 py-8 text-center text-sm text-gray-500">
+              <div className="col-span-2 py-8 text-center text-sm text-gray-500">
                 Nenhum agendamento disponível
               </div>
             );
           }
 
           return displayItems.map((item, idx) => {
-            const dateMeta = item.metadata?.find((m: { label: string; value: string }) => 
-              m.label.toLowerCase().includes('data')
+            const dateMeta = item.metadata?.find(
+              (m: { label: string; value: string }) =>
+                m.label.toLowerCase().includes("data"),
             );
-            const timeMeta = item.metadata?.find((m: { label: string; value: string }) => 
-              m.label.toLowerCase().includes('hora')
+            const timeMeta = item.metadata?.find(
+              (m: { label: string; value: string }) =>
+                m.label.toLowerCase().includes("hora"),
             );
-            
-            const dateStr = dateMeta?.value || '';
-            const isShortDate = dateStr.includes("/") && dateStr.split("/").length >= 2;
-            const [day, month] = isShortDate ? dateStr.split("/") : ['', ''];
-            
+
+            const dateStr = dateMeta?.value || "";
+            const [day, month] = dateStr ? dateStr.split("/") : ["", ""];
+
             return (
               <div
                 key={item.id || idx}
-                className={`grid min-h-[100px] w-full grid-cols-1 gap-4 rounded-2xl border ${styles.border} bg-gradient-to-r ${styles.bg} to-white p-5 shadow-sm transition-shadow hover:shadow-md sm:grid-cols-[auto_1fr] sm:gap-5`}
+                className={`grid min-h-[100px] w-full grid-cols-1 gap-4 rounded-2xl border ${styles.border} bg-gradient-to-r ${styles.bg} to-white p-5 shadow-sm transition-shadow sm:grid-cols-[auto_1fr] sm:gap-5`}
               >
                 {dateStr && (
                   isShortDate ? (
                     <div
-                      className={`flex h-fit w-16 flex-shrink-0 flex-col items-center justify-center self-start rounded-xl border ${styles.border} bg-white p-3 shadow-sm`}
+                      className={`flex h-fit w-16 flex-shrink-0 flex-col items-center justify-center self-start rounded-xl border ${styles.border} bg-white p-3`}
                     >
                       <span className={`text-2xl font-bold leading-tight ${styles.text}`}>
                         {day}
@@ -128,7 +138,9 @@ export function NextAppointmentsCard({
                   )}
                   {(timeMeta?.value || item.secondary) && (
                     <p className={`text-sm font-medium ${styles.text}`}>
-                      {[timeMeta?.value, item.secondary].filter(Boolean).join(' • ')}
+                      {timeMeta?.value || ""}{" "}
+                      {timeMeta && item.secondary ? "•" : ""}{" "}
+                      {item.secondary || ""}
                     </p>
                   )}
                   {item.tags && item.tags.length > 0 && (

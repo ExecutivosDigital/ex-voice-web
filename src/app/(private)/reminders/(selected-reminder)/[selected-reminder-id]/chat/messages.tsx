@@ -1,7 +1,11 @@
-import { AudioPlayer } from "@/components/chatPopup/AudioPlayer";
+"use client";
+
 import { Message } from "@/components/chatPopup/types";
 import { TypingDots } from "@/components/chatPopup/typingDots";
+import { WaveformAudioPlayer } from "@/components/ui/waveform-audio-player";
+import { Check, Copy } from "lucide-react";
 import moment from "moment";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -9,19 +13,79 @@ interface Props {
   message: Message;
 }
 
+function CopyButtonMessage({ message }: Props) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const text = typeof message.content === "string" ? message.content : "";
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="group/card mb-4 ml-2 flex max-w-[calc(100%-8px)] flex-col items-start justify-start gap-1 space-x-2 lg:mb-2 xl:mb-4 xl:max-w-[calc(100%-50px)] rtl:space-x-reverse">
+      <div className="relative flex min-w-10 flex-col justify-center gap-1 rounded-2xl rounded-bl-none border border-gray-100 bg-white p-4 pr-10 text-gray-800 shadow-sm">
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-600 group-hover/card:opacity-100"
+          title={copied ? "Copiado!" : "Copiar resposta"}
+        >
+          {copied ? (
+            <Check className="h-4 w-4 text-green-600" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
+        </button>
+        <div className="prose prose-sm prose-a:text-blue-500 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 max-w-none break-words text-gray-800">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              a: ({ ...props }) => (
+                <a {...props} target="_blank" rel="noopener noreferrer" />
+              ),
+              p: ({ children }) => (
+                <p className="mb-2 leading-relaxed last:mb-0">
+                  {children}
+                </p>
+              ),
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
+        </div>
+      </div>
+      <div className="flex w-full items-center gap-2 text-end text-xs text-gray-400 lg:text-[8px] xl:text-xs">
+        <span className="text-default-500">
+          {moment().format("HH:mm")}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function Messages({ message }: Props) {
   return (
     <div className="">
       {message.role === "user" ? (
         message.type?.startsWith("audio") && message.file ? (
-          <div className="group mb-4 flex max-w-[calc(100%-8px)] flex-col items-end justify-end gap-1 lg:mb-2 xl:mb-4">
-            <div className="bg-primary flex min-w-10 justify-center gap-1 rounded-2xl rounded-br-none p-2 text-white shadow-sm">
-              <AudioPlayer
-                audioUrl={message.file}
-                className="min-h-[40px] w-48 px-2 py-1"
-              />
+          <div className="group mr-2 mb-4 ml-auto flex max-w-[calc(100%-8px)] flex-col items-end justify-end gap-1 lg:mb-2 xl:mb-4 xl:max-w-[calc(100%-50px)]">
+            <div className="flex min-w-10 flex-col gap-1 rounded-2xl rounded-br-none bg-blue-500 p-3 text-white shadow-sm">
+              <span className="text-sm font-medium">Mensagem de Áudio</span>
+              <div className="mt-2 w-full max-w-sm rounded-2xl bg-transparent">
+                <WaveformAudioPlayer
+                  audioUrl={message.file}
+                  videoDuration="00:00"
+                  barCount={24}
+                  className="w-full border border-blue-100 bg-white shadow-sm [&_button]:bg-blue-50 [&_button]:text-blue-600 [&_button]:hover:bg-blue-100 [&_span]:font-bold [&_span]:text-blue-600 [&_svg]:text-blue-600"
+                />
+              </div>
             </div>
-            <div className="flex items-center justify-start gap-2 text-xs lg:text-[8px] xl:text-xs">
+            <div className="flex items-center justify-start gap-2 text-xs text-gray-400 lg:text-[8px] xl:text-xs">
               {moment().format("HH:mm")}
             </div>
           </div>
@@ -71,32 +135,7 @@ export function Messages({ message }: Props) {
             </div>
           </div>
         ) : (
-          <div className="group mb-4 ml-2 flex max-w-[calc(100%-8px)] flex-col items-start justify-start gap-1 space-x-2 lg:mb-2 xl:mb-4 xl:max-w-[calc(100%-50px)] rtl:space-x-reverse">
-            <div className="flex min-w-10 flex-col justify-center gap-1 rounded-2xl rounded-bl-none border border-gray-100 bg-white p-4 text-gray-800 shadow-sm">
-              <div className="prose prose-sm prose-a:text-gray-500 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 max-w-none break-words text-gray-800">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    a: ({ ...props }) => (
-                      <a {...props} target="_blank" rel="noopener noreferrer" />
-                    ),
-                    p: ({ children }) => (
-                      <p className="mb-2 leading-relaxed last:mb-0">
-                        {children}
-                      </p>
-                    ),
-                  }}
-                >
-                  {message.content}
-                </ReactMarkdown>
-              </div>
-            </div>
-            <div className="flex w-full items-center gap-2 text-end text-xs text-gray-400 lg:text-[8px] xl:text-xs">
-              <span className="text-default-500">
-                {moment().format("HH:mm")}
-              </span>
-            </div>
-          </div>
+          <CopyButtonMessage message={message} />
         )
       ) : (
         message.role === "system" && <></>
