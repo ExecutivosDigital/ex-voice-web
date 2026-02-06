@@ -26,6 +26,7 @@ export function SelectedClientTable() {
     recordingsFilters,
     setRecordingsFilters,
     recordingsTotalPages,
+    selectedClient,
   } = useGeneralContext();
 
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -85,12 +86,13 @@ export function SelectedClientTable() {
     setRecordingsFilters((prev) => ({
       ...prev,
       type: "CLIENT",
+      clientId: selectedClient?.id ?? prev.clientId,
       query: undefined,
       sortBy: undefined,
       sortDirection: undefined,
       page: 1,
     }));
-  }, []);
+  }, [selectedClient?.id]);
 
   return (
     <>
