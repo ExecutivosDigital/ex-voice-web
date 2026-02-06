@@ -1,8 +1,17 @@
 "use client";
 
 import { WaveformAudioPlayer } from "@/components/ui/waveform-audio-player";
-import { ArrowUp, Mic, Paperclip, Square, X } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import {
+  ArrowUp,
+  FileAudio,
+  FileText,
+  Image as ImageIcon,
+  Mic,
+  Paperclip,
+  Square,
+  X,
+} from "lucide-react";
+import { useEffect, useMemo, useRef } from "react";
 
 interface ChatInputProps {
   value: string;
@@ -12,6 +21,8 @@ interface ChatInputProps {
   onRecordStart: () => void;
   onRecordStop: () => void;
   isLoading?: boolean;
+  files?: File[];
+  onFilesChange?: (files: File[]) => void;
   /** Áudio gravado pelo mic, pendente de confirmar e enviar */
   pendingAudioFile?: File | null;
   /** Chamado quando o usuário descarta o áudio gravado (sem enviar) */
@@ -26,9 +37,12 @@ export function ChatInput({
   onRecordStart,
   onRecordStop,
   isLoading,
+  files = [],
+  onFilesChange,
   pendingAudioFile = null,
   onDiscardAudio,
 }: ChatInputProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingAudioUrl = useMemo(
     () => (pendingAudioFile ? URL.createObjectURL(pendingAudioFile) : null),
     [pendingAudioFile],
@@ -43,7 +57,7 @@ export function ChatInput({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (
-        (value.trim() || pendingAudioFile) &&
+        (value.trim() || files.length > 0 || pendingAudioFile) &&
         !isLoading &&
         !isRecording
       ) {
@@ -60,8 +74,40 @@ export function ChatInput({
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && onFilesChange) {
+      const newFiles = Array.from(e.target.files);
+      onFilesChange([...files, ...newFiles]);
+    }
+    if (e.target) e.target.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    if (onFilesChange) {
+      const newFiles = files.filter((_, i) => i !== index);
+      onFilesChange(newFiles);
+    }
+  };
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith("image/"))
+      return <ImageIcon className="h-4 w-4" />;
+    if (file.type.startsWith("audio/"))
+      return <FileAudio className="h-4 w-4" />;
+    return <FileText className="h-4 w-4" />;
+  };
+
   return (
     <div className="mx-auto flex w-full flex-col items-center justify-center px-4 py-2 pb-1">
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        multiple
+        accept="image/*,application/pdf,audio/*"
+        onChange={handleFileSelect}
+      />
+
       {pendingAudioFile && pendingAudioUrl && (
         <div className="mb-0 w-full min-w-[80%] max-w-[80%]">
           <WaveformAudioPlayer
@@ -76,8 +122,44 @@ export function ChatInput({
         </div>
       )}
       <div className={`invisible text-center text-xs text-gray-400 ${pendingAudioFile ? "mb-0" : "mb-1"}`}>""</div>
+
+      {/* File Preview Area */}
+      {files.length > 0 && (
+        <div className="flex w-full max-w-[90%] flex-wrap gap-2">
+          {files.map((file, index) => {
+            const fileKey = `${file.name}-${index}`;
+            if (file.type.startsWith("audio/")) {
+              return null
+            }
+
+            return (
+              <div
+                key={fileKey}
+                className="group relative flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 shadow-sm"
+              >
+                <div className="text-blue-500">{getFileIcon(file)}</div>
+                <span className="max-w-[150px] truncate text-xs text-gray-700">
+                  {file.name}
+                </span>
+                <button
+                  onClick={() => removeFile(index)}
+                  className="ml-1 rounded-full p-0.5 text-gray-400 hover:bg-gray-100 hover:text-red-500"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className={`invisible text-center text-xs text-gray-400 ${pendingAudioFile ? "mb-0" : "mb-1"}`}>""</div>
       <div className="relative flex min-w-[80%] items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-3 shadow-sm transition-shadow focus-within:shadow-md">
-        <button className="group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-all hover:scale-105 hover:opacity-90 active:scale-95">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-all hover:scale-105 hover:opacity-90 active:scale-95"
+          title="Anexar arquivos"
+        >
           <Paperclip className="h-4 w-4" />
         </button>
 
@@ -128,10 +210,14 @@ export function ChatInput({
           <button
             onClick={onSend}
             disabled={
-              (!value.trim() && !pendingAudioFile) || isLoading || isRecording
+              (!value.trim() && files.length === 0 && !pendingAudioFile) ||
+              isLoading ||
+              isRecording
             }
             className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-              (value.trim() || pendingAudioFile) && !isLoading && !isRecording
+              (value.trim() || files.length > 0 || pendingAudioFile) &&
+              !isLoading &&
+              !isRecording
                 ? "bg-gray-500 text-white hover:bg-gray-600"
                 : "cursor-not-allowed bg-gray-200 text-gray-400"
             }`}

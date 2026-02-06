@@ -49,15 +49,36 @@ export default function Reminders() {
   };
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="mb-4 flex w-full flex-row items-center justify-between gap-2">
+      <div className="mb-4 flex w-full flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Seus Lembretes</h1>
           <p className="text-sm text-gray-500">
             Gerencie todos os seus lembretes
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-1">
+        <div className="flex w-full flex-col gap-4 lg:w-auto lg:flex-row lg:items-center lg:gap-4">
+          <div className="order-1 flex flex-1 items-center gap-2 gap-4 lg:order-2">
+            <div className="flex flex-1 items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-1">
+              <div className="relative h-10 w-full sm:w-80">
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar..."
+                  value={localQuery}
+                  onChange={handleChange}
+                  className="h-full w-full rounded-lg bg-transparent px-9 text-sm text-gray-700 outline-none placeholder:text-gray-400"
+                />
+              </div>
+            </div>
+            <button
+              onClick={() => openNewRecording("PERSONAL", "REMINDER")}
+              className="flex shrink-0 items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 active:scale-95"
+            >
+              <Plus className="h-4 w-4" />
+              Novo Lembrete
+            </button>
+          </div>
+          <div className="order-2 flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-1 lg:order-1">
             <button
               onClick={() => handleSort("DATE")}
               className={cn(
@@ -83,27 +104,6 @@ export default function Reminders() {
               Horário
             </button>
           </div>
-
-          <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 p-1">
-            <div className="relative h-10 w-full sm:w-80">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Buscar..."
-                value={localQuery}
-                onChange={handleChange}
-                className="h-full w-full rounded-lg bg-transparent px-9 text-sm text-gray-700 outline-none placeholder:text-gray-400"
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={() => openNewRecording("PERSONAL", "REMINDER")}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-500/25 transition-all hover:shadow-gray-500/40 active:scale-95"
-          >
-            <Plus className="h-4 w-4" />
-            Novo Lembrete
-          </button>
         </div>
       </div>
       <GeneralRemindersCards />

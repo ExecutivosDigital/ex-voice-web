@@ -1,27 +1,30 @@
 "use client";
 
 import { cn } from "@/utils/cn";
+import { PromptIcon } from "@/utils/prompt-icon";
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 
 interface SuggestionCardProps {
   title: string;
-  icon: LucideIcon;
+  /** Ícone Lucide ou nome de ícone (string) para usar com PromptIcon */
+  icon: LucideIcon | string;
   onClick?: () => void;
   index?: number;
 }
 
 export function SuggestionCard({
   title,
-  icon: Icon,
+  icon,
   onClick,
   index = 0,
 }: SuggestionCardProps) {
-  // Reusing the "primary" variant style from KPICard for consistency
   const styles = {
     iconGradient: "bg-gradient-to-r from-neutral-500 to-neutral-900",
     border: "border-gray-500",
   };
+  const isIconString = typeof icon === "string";
+  const IconComponent = isIconString ? null : (icon as LucideIcon);
 
   return (
     <motion.div
@@ -34,7 +37,6 @@ export function SuggestionCard({
         styles.border,
       )}
     >
-      {/* Background decoration */}
       <div className="absolute -top-8 -right-8 h-16 w-16 rounded-full bg-white/5 blur-2xl transition-all duration-500 group-hover:scale-150" />
 
       <div className="relative flex items-center gap-3">
@@ -44,7 +46,11 @@ export function SuggestionCard({
             styles.iconGradient,
           )}
         >
-          <Icon className="h-5 w-5 text-white" />
+          {isIconString ? (
+            <PromptIcon icon={icon} className="h-5 w-5 text-white" size={20} />
+          ) : IconComponent ? (
+            <IconComponent className="h-5 w-5 text-white" />
+          ) : null}
         </div>
 
         <h3 className="text-sm leading-tight font-semibold text-gray-800">

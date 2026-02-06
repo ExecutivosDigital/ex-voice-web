@@ -78,10 +78,9 @@ export function ChatInput({
     if (e.target) e.target.value = "";
   };
 
-  const removeFile = (index: number) => {
+  const removeFile = (fileToRemove: File) => {
     if (onFilesChange) {
-      const newFiles = files.filter((_, i) => i !== index);
-      onFilesChange(newFiles);
+      onFilesChange(files.filter((f) => f !== fileToRemove));
     }
   };
 
@@ -104,14 +103,14 @@ export function ChatInput({
         onChange={handleFileSelect}
       />
 
-      {/* Áudio gravado - preview com player e remover */}
+      {/* Áudio gravado - preview com player e remover (mesmo padrão das outras telas) */}
       {audioBlob && audioPreviewUrl && onClearAudio && (
-        <div className="mb-2 flex w-full max-w-[90%] flex-wrap gap-2">
+        <div className="mb-0 w-full min-w-[80%] max-w-[80%]">
           <div className="relative flex items-center pr-2">
             <WaveformAudioPlayer
               audioUrl={audioPreviewUrl}
-              barCount={20}
-              className="border border-neutral-100 bg-white py-2 shadow-sm [&_button]:bg-neutral-50 [&_button]:text-gray-700 [&_button]:hover:bg-neutral-100 [&_span]:text-gray-700 [&_svg]:fill-gray-700 [&_svg]:text-gray-700"
+              barCount={14}
+              className="w-full border border-blue-100 bg-white py-1.5 pl-2 pr-2 shadow-sm [&_button]:h-6 [&_button]:w-6 [&_button]:bg-blue-50 [&_button]:text-blue-600 [&_button]:hover:bg-blue-100 [&_span]:text-blue-600 [&_span]:text-xs [&_svg]:h-3 [&_svg]:w-3 [&_svg]:fill-blue-600 [&_svg]:text-blue-600"
               videoDuration="00:00"
             />
             <button
@@ -123,13 +122,22 @@ export function ChatInput({
               <X className="h-4 w-4" />
             </button>
           </div>
+          <span className="mt-0.5 block text-[10px] text-gray-500">
+            Áudio gravado. Você pode digitar um texto abaixo e enviar áudio + mensagem juntos, ou só o áudio. Clique na seta para enviar ou no X para cancelar o áudio.
+          </span>
         </div>
       )}
+      <div className={`invisible text-center text-xs text-gray-400 ${audioBlob ? "mb-0" : "mb-1"}`}>""</div>
 
-      {/* File Preview Area */}
-      {files.length > 0 && (
+      {/* File Preview Area - não exibe áudio que já está no bloco "Áudio gravado" (evita duplicata) */}
+      {(() => {
+        const filesToShow = audioBlob
+          ? files.filter((f) => f !== audioBlob)
+          : files;
+        if (filesToShow.length === 0) return null;
+        return (
         <div className="mb-2 flex w-full max-w-[90%] flex-wrap gap-2">
-          {files.map((file, index) => {
+          {filesToShow.map((file, index) => {
             const fileKey = `${file.name}-${index}`;
             if (file.type.startsWith("audio/")) {
               const url = URL.createObjectURL(file);
@@ -142,7 +150,7 @@ export function ChatInput({
                     videoDuration="00:00"
                   />
                   <button
-                    onClick={() => removeFile(index)}
+                    onClick={() => removeFile(file)}
                     className="absolute -top-2 -right-2 rounded-full bg-white p-1 text-gray-400 shadow-sm hover:text-red-500"
                   >
                     <X className="h-4 w-4" />
@@ -161,7 +169,7 @@ export function ChatInput({
                   {file.name}
                 </span>
                 <button
-                  onClick={() => removeFile(index)}
+                  onClick={() => removeFile(file)}
                   className="ml-1 rounded-full p-0.5 text-gray-400 hover:bg-gray-100 hover:text-red-500"
                 >
                   <X className="h-3 w-3" />
@@ -170,7 +178,8 @@ export function ChatInput({
             );
           })}
         </div>
-      )}
+        );
+      })()}
 
       <div className="invisible mb-1 text-center text-xs text-gray-400">""</div>
       <div className="relative flex min-w-[80%] items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-3 shadow-sm transition-shadow focus-within:shadow-md">
