@@ -1,22 +1,19 @@
 "use client";
 
-import { useGeneralContext } from "@/context/GeneralContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useReminderData } from "@/hooks/useReminderData";
+import { useParams } from "next/navigation";
 
 export default function ReminderLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { selectedReminder } = useGeneralContext();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!selectedReminder) {
-      router.push("/reminders");
-    }
-  }, [selectedReminder]);
+  const params = useParams();
+  const reminderId = params["selected-reminder-id"] as string | undefined;
+  
+  // Buscar dados do reminder e da gravação associada
+  // O redirecionamento será tratado na página se necessário
+  useReminderData(reminderId);
 
   return <>{children}</>;
 }
