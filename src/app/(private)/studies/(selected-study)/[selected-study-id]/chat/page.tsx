@@ -1,50 +1,35 @@
 "use client";
 
-import { AudioPlayer } from "@/components/chatPopup/AudioPlayer";
 import { useSectionChat } from "@/components/chatPopup/chat-handler";
 import { Prompt } from "@/components/chatPopup/types";
 import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { useChatPrompts, type ChatPrompt } from "@/hooks/useChatPrompts";
 import { cn } from "@/utils/cn";
 import { generalPrompt } from "@/utils/prompts";
-import {
-  ArrowLeft,
-  BookOpen, // Resumir
-  CheckSquare, // Extrair Tarefas
-  FileText, // Gerar Ata
-  Heart, // Sentimento
-  Maximize2,
-  Minimize2,
-  Plus,
-  X,
-} from "lucide-react";
+import { PromptIcon } from "@/utils/prompt-icon";
+import { ArrowLeft, Maximize2, Minimize2, Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { ChatInput } from "./components/chat-input";
 import { SuggestionCard } from "./components/suggestion-card";
 import { Messages } from "./messages";
 
-type Suggestion = {
-  title: string;
-  description: string;
-  icon: any;
-  prompt: string;
-};
-
 export default function ChatPage() {
   const { profile } = useSession();
   const { selectedRecording } = useGeneralContext();
+  const { prompts, isLoading: isLoadingPrompts } = useChatPrompts();
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] =
-    useState<Suggestion | null>(null);
+    useState<ChatPrompt | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedPrompt] = useState(generalPrompt);
 
   const hookPrompt: Prompt | undefined = selectedSuggestion
     ? {
-        id: "transcription-prompt",
-        name: selectedSuggestion.title,
-        prompt: selectedSuggestion.prompt,
+        id: selectedSuggestion.id,
+        name: selectedSuggestion.name,
+        prompt: selectedSuggestion.content,
       }
     : selectedPrompt;
 
@@ -59,6 +44,8 @@ export default function ChatPage() {
     stopRecording,
     file,
     setFile,
+    files,
+    setFiles,
     loading,
   } = useSectionChat({ selectedPrompt: hookPrompt });
 
@@ -69,42 +56,10 @@ export default function ChatPage() {
     }
   }, [messages]);
 
-  const suggestions = [
-    {
-      title: "Resumir Transcrição",
-      description: "Crie um resumo conciso dos principais pontos discutidos.",
-      icon: BookOpen,
-      prompt: "Resuma a transcrição atual focando nos pontos principais.",
-    },
-    {
-      title: "Extrair Tarefas",
-      description: "Liste todas as ações e tarefas mencionadas na conversa.",
-      icon: CheckSquare,
-      prompt:
-        "Liste todas as tarefas e ações pendentes identificadas na transcrição.",
-    },
-    {
-      title: "Análise de Sentimento",
-      description: "Analise o tom e o sentimento geral dos participantes.",
-      icon: Heart,
-      prompt:
-        "Analise o sentimento e o tom da conversa baseada na transcrição.",
-    },
-    {
-      title: "Gerar Ata",
-      description: "Formate a conversa como uma ata de reunião formal.",
-      icon: FileText,
-      prompt: "Crie uma ata formal desta reunião baseada na transcrição.",
-    },
-  ];
-
-  const handleSuggestionClick = (suggestion: Suggestion) => {
-    setSelectedSuggestion(suggestion);
+  const handleSuggestionClick = (prompt: ChatPrompt) => {
+    setSelectedSuggestion(prompt);
     setMessages([]);
     setInputMessage("");
-    if (selectedRecording && selectedRecording?.transcription) {
-      // logic handled by useEffect below
-    }
   };
 
   const handleBack = () => {
@@ -214,9 +169,13 @@ export default function ChatPage() {
               <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             </button>
             <div className="border-primary flex items-center gap-2 rounded-full border bg-white/80 px-4 py-2 shadow-sm backdrop-blur-md">
-              <selectedSuggestion.icon className="text-primary h-4 w-4" />
+              <PromptIcon
+                icon={selectedSuggestion.icon}
+                className="text-primary h-4 w-4"
+                size={16}
+              />
               <span className="text-sm font-semibold text-gray-700">
-                {selectedSuggestion.title}
+                {selectedSuggestion.name}
               </span>
             </div>
           </div>
@@ -269,20 +228,28 @@ export default function ChatPage() {
                     onRecordStart={startRecording}
                     onRecordStop={stopRecording}
                     isLoading={loading}
+                    files={files}
+                    onFilesChange={setFiles}
+                    pendingAudioFile={file}
+                    onDiscardAudio={() => setFile(null)}
                   />
                 </div>
               </div>
               <div className="mt-auto py-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {suggestions.map((suggestion, index) => (
-                    <SuggestionCard
-                      key={index}
-                      index={index}
-                      title={suggestion.title}
-                      icon={suggestion.icon}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                    />
-                  ))}
+                  {isLoadingPrompts ? (
+                    <p className="text-sm text-gray-500">Carregando sugestões...</p>
+                  ) : (
+                    prompts.map((prompt, index) => (
+                      <SuggestionCard
+                        key={prompt.id}
+                        index={index}
+                        title={prompt.name}
+                        icon={prompt.icon ?? ""}
+                        onClick={() => handleSuggestionClick(prompt)}
+                      />
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -292,13 +259,17 @@ export default function ChatPage() {
               {isChatEmpty && selectedSuggestion && (
                 <div className="animate-in fade-in zoom-in-95 flex flex-1 flex-col items-center justify-center duration-500">
                   <div className="bg-primary mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white">
-                    <selectedSuggestion.icon className="h-8 w-8" />
+                    <PromptIcon
+                      icon={selectedSuggestion.icon}
+                      className="h-8 w-8"
+                      size={32}
+                    />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900">
-                    Modo {selectedSuggestion.title} Ativado
+                    Modo {selectedSuggestion.name} Ativado
                   </h3>
                   <p className="mt-1 max-w-xs text-center text-sm text-gray-500">
-                    {selectedSuggestion.prompt.replace(":", "...")}
+                    {selectedSuggestion.content.replace(":", "...")}
                   </p>
                 </div>
               )}
@@ -319,34 +290,6 @@ export default function ChatPage() {
 
         {(!isChatEmpty || selectedSuggestion) && (
           <div className="border-t border-gray-100 bg-gray-50/50">
-            {/* File Preview Area */}
-            {file && (
-              <div className="flex items-center justify-between gap-3 border-b border-gray-100 bg-white/50 px-4 py-2">
-                <div className="flex flex-1 items-center gap-2 overflow-hidden">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-                  </div>
-                  <span className="truncate text-xs font-medium text-gray-500">
-                    Áudio anexado
-                  </span>
-                </div>
-
-                <div className="h-8 w-32">
-                  <AudioPlayer
-                    audioUrl={URL.createObjectURL(file)}
-                    className="h-full w-full"
-                  />
-                </div>
-
-                <button
-                  onClick={() => setFile(null)}
-                  className="rounded-lg p-1 text-gray-500 transition-colors hover:bg-gray-200"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-
             <ChatInput
               value={inputMessage}
               onChange={setInputMessage}
@@ -355,6 +298,10 @@ export default function ChatPage() {
               onRecordStart={startRecording}
               onRecordStop={stopRecording}
               isLoading={typeof loading !== "undefined" ? loading : false}
+              files={files}
+              onFilesChange={setFiles}
+              pendingAudioFile={file}
+              onDiscardAudio={() => setFile(null)}
             />
           </div>
         )}

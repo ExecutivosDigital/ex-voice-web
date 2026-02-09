@@ -71,11 +71,11 @@ export function RecentRemindersCard() {
               <div className="flex items-center gap-2 text-[10px] text-gray-400">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  <span>{moment(reminder.date).format("DD MMM")}</span>
+                  <span>{moment.utc(reminder.date).format("DD MMM")}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  <span>{moment(reminder.date).format("HH:mm")}</span>
+                  <span>{moment.utc(reminder.date).format("HH:mm")}</span>
                 </div>
               </div>
             </div>

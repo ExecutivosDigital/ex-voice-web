@@ -95,14 +95,20 @@ export function NotificationDropdown() {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="w-[360px] overflow-hidden rounded-xl border border-neutral-200 bg-white p-0 shadow-lg"
+        className="flex w-[360px] max-h-[min(420px,85vh)] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white p-0 shadow-lg"
+        data-lenis-prevent
+        onWheel={(e) => e.stopPropagation()}
       >
-        <div className="border-b border-neutral-100 px-4 py-3">
+        <div className="shrink-0 border-b border-neutral-100 px-4 py-3">
           <h3 className="text-sm font-semibold text-neutral-800">
             Notificações
           </h3>
         </div>
-        <div className="max-h-[320px] overflow-y-auto">
+        <div
+          className="max-h-[320px] min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
+          data-lenis-prevent
+          onWheel={(e) => e.stopPropagation()}
+        >
           {loading && notifications.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />

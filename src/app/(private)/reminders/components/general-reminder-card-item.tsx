@@ -60,7 +60,7 @@ export function GeneralReminderCardItem({ reminder, index }: Props) {
               Data do Lembrete
             </span>
             <span className="text-xs font-semibold text-gray-500">
-              {moment(reminder.date).format("DD/MM/YYYY")}
+              {moment.utc(reminder.date).format("DD/MM/YYYY")}
             </span>
           </div>
         </div>

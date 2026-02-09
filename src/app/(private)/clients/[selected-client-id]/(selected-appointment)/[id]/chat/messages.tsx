@@ -1,9 +1,12 @@
+"use client";
+
 import { Message } from "@/components/chatPopup/types";
 import { TypingDots } from "@/components/chatPopup/typingDots";
 import { WaveformAudioPlayer } from "@/components/ui/waveform-audio-player";
-import { FileText } from "lucide-react";
+import { Check, Copy, FileText } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -12,6 +15,7 @@ interface Props {
 }
 
 export function Messages({ message }: Props) {
+  const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
   const attachments = message.attachments || [];
 
@@ -23,6 +27,13 @@ export function Messages({ message }: Props) {
       name: message.name || "File",
     });
   }
+
+  const copyableContent =
+    message.role === "ai" && message.content !== "..."
+      ? typeof message.content === "string"
+        ? message.content
+        : ""
+      : "";
 
   const renderAttachment = (att: {
     url: string;
@@ -124,8 +135,27 @@ export function Messages({ message }: Props) {
             </div>
           </div>
         ) : (
-          <div className="group mb-4 ml-2 flex max-w-[calc(100%-8px)] flex-col items-start justify-start gap-1 space-x-2 lg:mb-2 xl:mb-4 xl:max-w-[calc(100%-50px)] rtl:space-x-reverse">
-            <div className="flex min-w-10 flex-col justify-center gap-1 rounded-2xl rounded-bl-none border border-gray-100 bg-white p-4 text-gray-800 shadow-sm">
+          <div className="group/card relative mb-4 ml-2 flex max-w-[calc(100%-8px)] flex-col items-start justify-start gap-1 space-x-2 lg:mb-2 xl:mb-4 xl:max-w-[calc(100%-50px)] rtl:space-x-reverse">
+            <div className="relative flex min-w-10 flex-col justify-center gap-1 rounded-2xl rounded-bl-none border border-gray-100 bg-white p-4 pr-10 text-gray-800 shadow-sm">
+              <button
+                type="button"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!copyableContent) return;
+                  await navigator.clipboard.writeText(copyableContent);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-600 group-hover/card:opacity-100"
+                title={copied ? "Copiado!" : "Copiar resposta"}
+              >
+                {copied ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </button>
               <div className="prose prose-sm prose-a:text-blue-500 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 max-w-none break-words text-gray-800">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}

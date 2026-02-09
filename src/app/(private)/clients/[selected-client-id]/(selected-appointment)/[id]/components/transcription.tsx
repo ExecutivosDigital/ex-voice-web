@@ -253,7 +253,10 @@ export function Transcription() {
   return (
     <>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-lg overflow-hidden p-0 sm:rounded-2xl">
+        <DialogContent
+          className="max-w-lg overflow-hidden p-0 sm:rounded-2xl"
+          onWheel={(e) => e.stopPropagation()}
+        >
           <div className="bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-5">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-xl font-bold text-white">
@@ -291,8 +294,11 @@ export function Transcription() {
               </div>
             </div>
 
-            {/* Speaker List */}
-            <div className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
+            {/* Speaker List - overscroll-contain evita que o scroll propague para o fundo; onWheel garante que o wheel não role o body */}
+            <div
+              className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto overscroll-contain"
+              onWheel={(e) => e.stopPropagation()}
+            >
               {speakerConfigs.map((config, index) => {
                 const isActive = config.isProfessional;
                 const isEditing = editingId === config.id;

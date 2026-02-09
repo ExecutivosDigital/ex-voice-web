@@ -3,14 +3,13 @@ import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
-import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AudioRecorder } from "../audio-recorder/audio-recorder";
-import { NotificationDropdown } from "./notification-dropdown";
 import { ProfileModal } from "../profile/profile-modal";
 import {
   DropdownMenu,
@@ -34,6 +33,7 @@ import {
   SupportIcon,
   TranscriptionIcon,
 } from "./custom-icons";
+import { NotificationDropdown } from "./notification-dropdown";
 
 interface BreadcrumbItem {
   label: string;
@@ -77,7 +77,7 @@ export function Header() {
           const recordingId = pathSegments[2];
 
           breadcrumbs.push({
-            label: selectedRecording?.name || "Consulta",
+            label: selectedRecording?.name || "Carregando...",
             href: `/clients/${clientId}/${recordingId}`,
             isActive: true,
           });
@@ -153,6 +153,12 @@ export function Header() {
     [pathname, selectedClient?.name, selectedRecording?.name],
   );
 
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const reminderIdFromUrl =
+    pathname.includes("/reminders") && pathSegments.length >= 2
+      ? pathSegments[1]
+      : undefined;
+
   const BreadcrumbItem = ({
     item,
     isLast,
@@ -215,7 +221,7 @@ export function Header() {
         />
 
         <div className="flex h-max items-center gap-2">
-          <div className="hidden items-center gap-2 xl:flex">
+          <div className="items-center gap-2 flex">
             <NotificationDropdown />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -275,20 +281,20 @@ export function Header() {
 
                   <DropdownMenuItem
                     onSelect={() => window.open(appUrl, "_blank")}
-                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-green-50 focus:bg-green-50"
+                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white transition-colors group-hover:bg-green-500 group-hover:text-white">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white transition-colors group-hover:bg-blue-500 group-hover:text-white">
                       <SmartphoneIcon className="h-5 w-5" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
                         Acessar Aplicativo
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 group-hover:text-blue-600/80">
                         Baixe o app mobile
                       </span>
                     </div>
-                    <ChevronRight className="ml-auto h-4 w-4 text-gray-300" />
+                    <ChevronRight className="ml-auto h-4 w-4 text-gray-300 group-hover:text-blue-400" />
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
@@ -340,12 +346,6 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <button
-            onClick={() => setMobileMenu(!mobileMenu)}
-            className="hover:bg-primary-100 hover:text-primary relative h-6 w-6 xl:hidden"
-          >
-            <Menu />
-          </button>
         </div>
       </div>
 
@@ -365,116 +365,123 @@ export function Header() {
           ))}
         </div>
 
-        <div className="flex w-full items-center justify-between overflow-x-scroll pb-4 md:overflow-x-hidden">
+        <div className="flex w-full items-center justify-between gap-3 pb-4">
           {pathname.includes("/clients") &&
           pathname.split("/").filter(Boolean).length >= 3 ? (
-            <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex w-full min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 flex-1 items-center gap-4">
                 <button
                   onClick={() => router.push("/clients")}
-                  className="hidden h-8 w-max cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
+                  className="hidden h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span className="font-semibold">Voltar</span>
                 </button>
-                <div className="flex h-8 items-center">
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      !pathname.includes("/chat") &&
-                        !pathname.includes("/transcription") &&
-                        !pathname.includes("/medical-record") &&
-                        !pathname.includes("/overview")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/clients/${selectedClient?.id}/${selectedRecording?.id}`,
-                      )
-                    }
-                  >
-                    <GeneralVisionIcon />
-                    Resumo
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/overview")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/overview`,
-                      )
-                    }
-                  >
-                    <GeneralVisionIcon />
-                    Resumo Geral
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/chat")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/chat`,
-                      )
-                    }
-                  >
-                    <ChatIcon />
-                    Conversar
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/transcription")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/transcription`,
-                      )
-                    }
-                  >
-                    <TranscriptionIcon />
-                    Transcrição
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/medical-record")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/clients/${selectedClient?.id}/${selectedRecording?.id}/medical-record`,
-                      )
-                    }
-                  >
-                    <TranscriptionIcon />
-                    Prontuário Médico
-                  </span>
+                <div className="header-tabs-scrollbar min-w-0 flex-1 overflow-x-auto overflow-y-hidden">
+                  <div className="flex h-8 w-max flex-shrink-0 flex-nowrap items-center">
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        !pathname.includes("/chat") &&
+                          !pathname.includes("/transcription") &&
+                          !pathname.includes("/medical-record") &&
+                          !pathname.includes("/overview")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(
+                          `/clients/${selectedClient?.id}/${selectedRecording?.id}`,
+                        )
+                      }
+                    >
+                      <GeneralVisionIcon />
+                      Resumo
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/overview")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(
+                          `/clients/${selectedClient?.id}/${selectedRecording?.id}/overview`,
+                        )
+                      }
+                    >
+                      <GeneralVisionIcon />
+                      Resumo Geral
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/chat")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(
+                          `/clients/${selectedClient?.id}/${selectedRecording?.id}/chat`,
+                        )
+                      }
+                    >
+                      <ChatIcon />
+                      Conversar
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/transcription")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(
+                          `/clients/${selectedClient?.id}/${selectedRecording?.id}/transcription`,
+                        )
+                      }
+                    >
+                      <TranscriptionIcon />
+                      Transcrição
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/medical-record")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(
+                          `/clients/${selectedClient?.id}/${selectedRecording?.id}/medical-record`,
+                        )
+                      }
+                    >
+                      <TranscriptionIcon />
+                      Prontuário Médico
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-white/50">
-                <div className="flex items-center gap-1">
+              <div className="flex shrink-0 items-center gap-2 text-white/50 md:max-w-[320px]">
+                <div className="flex min-w-0 items-center gap-1">
                   <Image
                     src="/icons/user.svg"
                     alt=""
                     width={100}
                     height={100}
-                    className="h-4 w-max fill-white object-contain text-white"
+                    className="h-4 w-max shrink-0 fill-white object-contain text-white"
                   />
-                  <span>{selectedClient?.name}</span>
+                  <span
+                    className="truncate"
+                    title={selectedClient?.name ?? undefined}
+                  >
+                    {selectedClient?.name}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                   <Image
                     src="/icons/calendar.svg"
                     alt=""
@@ -488,7 +495,7 @@ export function Header() {
                     )}
                   </span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                   <Image
                     src="/icons/clock.svg"
                     alt=""
@@ -501,49 +508,52 @@ export function Header() {
               </div>
             </div>
           ) : pathname.includes("/reminders") &&
-            pathname.split("/").filter(Boolean).length >= 2 ? (
-            <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">
-              <div className="flex items-center gap-4">
+            pathSegments.length >= 2 &&
+            reminderIdFromUrl ? (
+            <div className="flex w-full min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 flex-1 items-center gap-4">
                 <button
                   onClick={() => router.push("/reminders")}
-                  className="hidden h-8 w-max cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
+                  className="hidden h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span className="font-semibold">Voltar</span>
                 </button>
-                <div className="flex h-8 items-center">
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      !pathname.includes("/chat") &&
-                        !pathname.includes("/transcription")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(`/reminders/${selectedRecording?.id}`)
-                    }
-                  >
-                    <GeneralVisionIcon />
-                    Visão Geral
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/chat")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(`/reminders/${selectedRecording?.id}/chat`)
-                    }
-                  >
-                    <ChatIcon />
-                    Conversar
-                  </span>
+                <div className="header-tabs-scrollbar min-w-0 flex-1 overflow-x-auto overflow-y-hidden">
+                  <div className="flex h-8 w-max flex-shrink-0 flex-nowrap items-center">
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        !pathname.includes("/chat") &&
+                          !pathname.includes("/transcription")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(`/reminders/${reminderIdFromUrl}`)
+                      }
+                    >
+                      <GeneralVisionIcon />
+                      Visão Geral
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/chat")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(`/reminders/${reminderIdFromUrl}/chat`)
+                      }
+                    >
+                      <ChatIcon />
+                      Conversar
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-white/50">
+              <div className="flex shrink-0 items-center gap-2 text-white/50 md:max-w-[240px]">
                 <div className="flex items-center gap-1">
                   <Image
                     src="/icons/calendar.svg"
@@ -572,64 +582,66 @@ export function Header() {
             </div>
           ) : pathname.includes("/studies") &&
             pathname.split("/").filter(Boolean).length >= 2 ? (
-            <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex w-full min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 flex-1 items-center gap-4">
                 <button
                   onClick={() => router.push("/studies")}
-                  className="hidden h-8 w-max cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
+                  className="hidden h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span className="font-semibold">Voltar</span>
                 </button>
-                <div className="flex h-8 items-center">
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      !pathname.includes("/chat") &&
-                        !pathname.includes("/transcription")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(`/studies/${selectedRecording?.id}`)
-                    }
-                  >
-                    <GeneralVisionIcon />
-                    Visão Geral
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/chat")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(`/studies/${selectedRecording?.id}/chat`)
-                    }
-                  >
-                    <ChatIcon />
-                    Conversar
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/transcription")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/studies/${selectedRecording?.id}/transcription`,
-                      )
-                    }
-                  >
-                    <TranscriptionIcon />
-                    Transcrição
-                  </span>
+                <div className="header-tabs-scrollbar min-w-0 flex-1 overflow-x-auto overflow-y-hidden">
+                  <div className="flex h-8 w-max flex-shrink-0 flex-nowrap items-center">
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        !pathname.includes("/chat") &&
+                          !pathname.includes("/transcription")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(`/studies/${selectedRecording?.id}`)
+                      }
+                    >
+                      <GeneralVisionIcon />
+                      Visão Geral
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/chat")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(`/studies/${selectedRecording?.id}/chat`)
+                      }
+                    >
+                      <ChatIcon />
+                      Conversar
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/transcription")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(
+                          `/studies/${selectedRecording?.id}/transcription`,
+                        )
+                      }
+                    >
+                      <TranscriptionIcon />
+                      Transcrição
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-white/50">
+              <div className="flex shrink-0 items-center gap-2 text-white/50 md:max-w-[240px]">
                 <div className="flex items-center gap-1">
                   <Image
                     src="/icons/calendar.svg"
@@ -658,64 +670,66 @@ export function Header() {
             </div>
           ) : pathname.includes("/others") &&
             pathname.split("/").filter(Boolean).length >= 2 ? (
-            <div className="flex h-8 w-full flex-col items-center gap-4 md:flex-row md:justify-between">
-              <div className="flex items-center gap-4">
+            <div className="flex w-full min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 flex-1 items-center gap-4">
                 <button
                   onClick={() => router.push("/others")}
-                  className="hidden h-8 w-max cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
+                  className="hidden h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span className="font-semibold">Voltar</span>
                 </button>
-                <div className="flex h-8 items-center">
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      !pathname.includes("/chat") &&
-                        !pathname.includes("/transcription")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(`/others/${selectedRecording?.id}`)
-                    }
-                  >
-                    <GeneralVisionIcon />
-                    Visão Geral
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/chat")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(`/others/${selectedRecording?.id}/chat`)
-                    }
-                  >
-                    <ChatIcon />
-                    Conversar
-                  </span>
-                  <span
-                    className={cn(
-                      "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                      pathname.includes("/transcription")
-                        ? "border-b-white"
-                        : "border-b-white/10 text-white/50",
-                    )}
-                    onClick={() =>
-                      router.push(
-                        `/others/${selectedRecording?.id}/transcription`,
-                      )
-                    }
-                  >
-                    <TranscriptionIcon />
-                    Transcrição
-                  </span>
+                <div className="header-tabs-scrollbar min-w-0 flex-1 overflow-x-auto overflow-y-hidden">
+                  <div className="flex h-8 w-max flex-shrink-0 flex-nowrap items-center">
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        !pathname.includes("/chat") &&
+                          !pathname.includes("/transcription")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(`/others/${selectedRecording?.id}`)
+                      }
+                    >
+                      <GeneralVisionIcon />
+                      Visão Geral
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/chat")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(`/others/${selectedRecording?.id}/chat`)
+                      }
+                    >
+                      <ChatIcon />
+                      Conversar
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/transcription")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(
+                          `/others/${selectedRecording?.id}/transcription`,
+                        )
+                      }
+                    >
+                      <TranscriptionIcon />
+                      Transcrição
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-white/50">
+              <div className="flex shrink-0 items-center gap-2 text-white/50 md:max-w-[240px]">
                 <div className="flex items-center gap-1">
                   <Image
                     src="/icons/calendar.svg"
@@ -744,10 +758,11 @@ export function Header() {
             </div>
           ) : (
             <div className="flex w-full flex-row items-start justify-between md:items-center">
-              <div className="flex h-8 items-center gap-4">
+              <div className="header-tabs-scrollbar min-w-0 flex-1 max-[1366px]:overflow-x-auto max-[1366px]:overflow-y-hidden">
+                <div className="flex h-8 flex-shrink-0 flex-nowrap items-center gap-4">
                 <span
                   className={cn(
-                    "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname === "/"
                       ? "border-b-white"
                       : "border-b-white/10 text-white/50",
@@ -759,7 +774,7 @@ export function Header() {
                 </span>
                 <span
                   className={cn(
-                    "flex h-full w-max cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname === "/recordings"
                       ? "border-b-white"
                       : "border-b-white/10 text-white/50",
@@ -771,7 +786,7 @@ export function Header() {
                 </span>
                 <span
                   className={cn(
-                    "flex h-full cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname === "/reminders"
                       ? "border-b-white"
                       : "border-b-white/10 text-white/50",
@@ -783,7 +798,7 @@ export function Header() {
                 </span>
                 <span
                   className={cn(
-                    "flex h-full cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname.startsWith("/clients")
                       ? "border-b-white"
                       : "border-b-white/10 text-white/50",
@@ -795,7 +810,7 @@ export function Header() {
                 </span>
                 <span
                   className={cn(
-                    "flex h-full cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname === "/studies"
                       ? "border-b-white"
                       : "border-b-white/10 text-white/50",
@@ -807,7 +822,7 @@ export function Header() {
                 </span>
                 <span
                   className={cn(
-                    "flex h-full cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname === "/others"
                       ? "border-b-white"
                       : "border-b-white/10 text-white/50",
@@ -819,7 +834,7 @@ export function Header() {
                 </span>
                 <span
                   className={cn(
-                    "flex h-full cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                     pathname === "/chat-business"
                       ? "border-b-white"
                       : "border-b-white/10 text-white/50",
@@ -829,8 +844,9 @@ export function Header() {
                   <ChatBusinessIcon />
                   AI Health
                 </span>
+                </div>
               </div>
-              <div className="hidden items-center gap-2 md:flex">
+              <div className="hidden shrink-0 items-center gap-2 md:flex">
                 <AudioRecorder buttonClassName="bg-white/10 hover:bg-white/20" />
               </div>
             </div>

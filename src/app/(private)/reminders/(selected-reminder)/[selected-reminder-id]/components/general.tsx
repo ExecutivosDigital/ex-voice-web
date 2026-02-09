@@ -1,5 +1,6 @@
 "use client";
 
+import { AudioRecorder } from "@/components/audio-recorder/audio-recorder";
 import { RequestTranscription } from "@/components/ui/request-transcription";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { AlarmClock, Calendar, FileAudio, Info } from "lucide-react";
@@ -35,7 +36,7 @@ export function General() {
             <div>
               <p className="text-xs text-gray-500">Data</p>
               <p className="font-semibold text-gray-900">
-                {moment(selectedReminder.date).format("DD/MM/YYYY")}
+                {moment.utc(selectedReminder.date).format("DD/MM/YYYY")}
               </p>
             </div>
           </div>
@@ -110,6 +111,16 @@ export function General() {
             {recording && <RequestTranscription />}
           </div>
         )}
+      </div>
+
+      {/* Gravar para este lembrete */}
+      <div className="flex justify-center">
+        <AudioRecorder
+          initialReminderId={selectedReminder.id}
+          customLabel="Gravar para este lembrete"
+          buttonClassName="flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition hover:shadow-sky-500/40 active:scale-95"
+          skipNewRecordingRequest
+        />
       </div>
     </div>
   );

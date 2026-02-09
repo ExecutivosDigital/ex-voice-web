@@ -44,7 +44,7 @@ export default function Recordings() {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="mb-4 flex w-full flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-4 flex w-full justify-between gap-4 flex-row min-[1025px]:items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Últimas Gravações
@@ -53,8 +53,8 @@ export default function Recordings() {
             Gerencie todas as suas gravações
           </p>
         </div>
-        <div className="flex h-max flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex h-max items-center gap-1 rounded-xl border border-gray-100 bg-gray-50/50 p-1">
+        <div className="flex h-max flex-col gap-2 min-[1025px]:flex-row min-[1025px]:items-center">
+          <div className="order-2 flex h-max items-center gap-1 rounded-xl border border-gray-100 bg-gray-50/50 p-1 min-[1025px]:order-1">
             <button
               onClick={() => handleTypeFilter("CLIENT")}
               className={cn(
@@ -125,7 +125,7 @@ export default function Recordings() {
             </button>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/50 p-1">
+          <div className="order-1 flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/50 p-1 min-[1025px]:order-2">
             <div className="relative h-10 w-full sm:w-64 lg:w-80">
               <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input

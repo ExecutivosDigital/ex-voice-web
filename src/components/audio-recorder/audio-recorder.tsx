@@ -50,6 +50,7 @@ interface AudioRecorderProps {
   customLabel?: string;
   customIcon?: React.ComponentType<{ className?: string }>;
   initialClientId?: string;
+  initialReminderId?: string;
   forcePersonalType?: "REMINDER" | "STUDY" | "OTHER";
   skipNewRecordingRequest?: boolean; // Se true, não escuta o newRecordingRequest do contexto
 }
@@ -60,10 +61,11 @@ export function AudioRecorder({
   customLabel,
   customIcon: CustomIcon,
   initialClientId,
+  initialReminderId,
   forcePersonalType,
   skipNewRecordingRequest = false,
 }: AudioRecorderProps) {
-  const { GetRecordings, clients, selectedClient, newRecordingRequest, resetNewRecordingRequest } = useGeneralContext();
+  const { GetRecordings, GetReminders, clients, selectedClient, newRecordingRequest, resetNewRecordingRequest } = useGeneralContext();
   const { PostAPI } = useApiContext();
   const { uploadMedia, formatDurationForAPI } = useRecordingUpload();
   const [isCreateClientSheetOpen, setIsCreateClientSheetOpen] = useState(false);
@@ -165,6 +167,9 @@ export function AudioRecorder({
         ...(metadata.selectedClientId
           ? { clientId: metadata.selectedClientId }
           : {}),
+        ...(metadata.personalRecordingType === "REMINDER" && initialReminderId
+          ? { reminderId: initialReminderId }
+          : {}),
       };
 
       console.log("payload", payload);
@@ -178,6 +183,9 @@ export function AudioRecorder({
       toast.success("Gravação salva com sucesso!");
 
       GetRecordings();
+      if (metadata.personalRecordingType === "REMINDER" && initialReminderId) {
+        GetReminders();
+      }
 
       resetFlow();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -219,10 +227,10 @@ export function AudioRecorder({
 
   const handleDropdownOpenChange = (open: boolean) => {
     if (open && skipToClient) {
-      // Se está tentando abrir E skipToClient é true, abre direto o save dialog
       openSaveDialog("CLIENT");
+    } else if (open && initialReminderId) {
+      openSaveDialog("PERSONAL", "REMINDER");
     } else {
-      // Caso contrário, comportamento normal do dropdown
       setIsDropdownOpen(open);
     }
   };
@@ -391,11 +399,11 @@ export function AudioRecorder({
     }
   }, [skipToClient, initialClientId, selectedClient?.id]);
 
-  // Renderizar botão customizado quando skipToClient é true (sem dropdown)
+  // Renderizar botão customizado quando skipToClient ou initialReminderId (sem dropdown)
   const renderTriggerButton = () => {
     const IconComponent = CustomIcon || Mic;
     const label = customLabel || "Nova Gravação";
-    
+
     if (skipToClient) {
       return (
         <div
@@ -410,7 +418,22 @@ export function AudioRecorder({
         </div>
       );
     }
-    
+
+    if (initialReminderId) {
+      return (
+        <div
+          onClick={() => openSaveDialog("PERSONAL", "REMINDER")}
+          className={cn(
+            "flex cursor-pointer items-center gap-2 rounded-3xl px-4 py-2 transition",
+            buttonClassName,
+          )}
+        >
+          <IconComponent size={20} />
+          {label}
+        </div>
+      );
+    }
+
     return (
       <DropdownMenu
         open={isDropdownOpen}
@@ -535,7 +558,7 @@ export function AudioRecorder({
                     />
                   </div>
 
-                  {metadata.recordingType === "PERSONAL" && (
+                  {metadata.recordingType === "PERSONAL" && !initialReminderId && (
                     <div>
                       <label className="mb-2 block text-sm font-medium text-gray-700">
                         Tipo de Gravação
