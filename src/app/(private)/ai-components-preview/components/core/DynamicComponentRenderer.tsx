@@ -1,6 +1,7 @@
 "use client";
 
-import { AIComponentResponse } from "../types/component-types";
+import { useMemo } from "react";
+import { AIComponentResponse } from "../../types/component-types";
 import { SectionRenderer } from "./SectionRenderer";
 
 interface DynamicComponentRendererProps {
@@ -13,7 +14,7 @@ interface DynamicComponentRendererProps {
   onUpdateComponent?: (
     sectionIndex: number,
     componentIndex: number,
-    updated: import("../types/component-types").AIComponent,
+    updated: import("../../types/component-types").AIComponent,
   ) => void;
   /** Chamado quando um card entra em modo edição */
   onEditStart?: () => void;
@@ -21,7 +22,10 @@ interface DynamicComponentRendererProps {
   onEditEnd?: () => void;
 }
 
-// Componente principal que renderiza a resposta completa da IA com seções
+/**
+ * Componente principal que renderiza a resposta completa da IA com seções
+ * Otimizado com useMemo para evitar re-renderizações desnecessárias
+ */
 export function DynamicComponentRenderer({
   response,
   showCardActions = false,
@@ -31,28 +35,20 @@ export function DynamicComponentRenderer({
   onEditStart,
   onEditEnd,
 }: DynamicComponentRendererProps) {
-  console.log("[DynamicComponentRenderer] response:", response);
-  console.log(
-    "[DynamicComponentRenderer] response.sections:",
-    response?.sections,
-  );
-  console.log(
-    "[DynamicComponentRenderer] response.sections type:",
-    typeof response?.sections,
-  );
-  console.log(
-    "[DynamicComponentRenderer] response.sections isArray:",
-    Array.isArray(response?.sections),
-  );
-  console.log(
-    "[DynamicComponentRenderer] response.sections?.length:",
-    response?.sections?.length,
-  );
+  // Memoizar seções para evitar re-renderizações
+  const sections = useMemo(() => {
+    if (!response.sections || !Array.isArray(response.sections)) {
+      return [];
+    }
+    return response.sections.filter(Boolean);
+  }, [response.sections]);
 
-  if (!response.sections || response.sections.length === 0) {
-    console.log(
-      "[DynamicComponentRenderer] No sections or empty, returning empty message",
-    );
+  // Logs apenas em desenvolvimento
+  if (process.env.NODE_ENV === "development") {
+    console.log("[DynamicComponentRenderer] Rendering", sections.length, "sections");
+  }
+
+  if (sections.length === 0) {
     return (
       <div className="py-12 text-center text-gray-500">
         <p>Nenhuma seção para exibir</p>
@@ -60,35 +56,9 @@ export function DynamicComponentRenderer({
     );
   }
 
-  console.log(
-    "[DynamicComponentRenderer] Rendering",
-    response.sections.length,
-    "sections",
-  );
-
   return (
     <div className="animate-in fade-in flex w-full max-w-full min-w-0 flex-col gap-8 overflow-x-hidden pb-10 duration-500">
-      {response.sections.map((section, index) => {
-        console.log(
-          `[DynamicComponentRenderer] Rendering section ${index}:`,
-          section,
-        );
-        console.log(
-          `[DynamicComponentRenderer] Section ${index} full JSON:`,
-          JSON.stringify(section, null, 2),
-        );
-        console.log(
-          `[DynamicComponentRenderer] Section ${index}.components:`,
-          section.components,
-        );
-        console.log(
-          `[DynamicComponentRenderer] Section ${index}.components type:`,
-          typeof section.components,
-        );
-        console.log(
-          `[DynamicComponentRenderer] Section ${index}.components isArray:`,
-          Array.isArray(section.components),
-        );
+      {sections.map((section, index) => {
         try {
           return (
             <SectionRenderer

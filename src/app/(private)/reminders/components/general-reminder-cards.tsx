@@ -1,6 +1,5 @@
 "use client";
 
-import { ReminderProps } from "@/@types/general-client";
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { AnimatePresence, motion } from "framer-motion";
@@ -68,7 +67,7 @@ export function GeneralRemindersCards() {
       {/* Cards Grid */}
       <div className="min-h-[400px]">
         {isGettingReminders ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, index) => (
               <div
                 key={index}
@@ -77,7 +76,7 @@ export function GeneralRemindersCards() {
             ))}
           </div>
         ) : hasResults ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             <AnimatePresence mode="popLayout">
               {filteredAndSortedReminders.map((reminder, index) => (
                 <GeneralReminderCardItem

@@ -9,6 +9,7 @@ import { ContentPanel } from "./components/content-panel";
 import { DateRangePicker } from "./components/date-range-picker";
 import { KPICard } from "./components/kpi-card";
 import { RecordingsChart } from "./components/recordings-chart";
+import { TrialAppModal } from "./components/trial-app-modal";
 import { UpcomingMeetings } from "./components/upcoming-meetings";
 import { UpcomingReminders } from "./components/upcoming-reminders";
 
@@ -40,9 +41,9 @@ export default function HomePage() {
       // Se não tiver "to", usar o mesmo dia que "from" (seleção de um único dia)
       const startDate = formatDateForAPI(dateRange.from);
       const endDate = formatDateForAPI(dateRange.to || dateRange.from);
-      
+
       console.log(`[HomePage] Fetching stats: ${startDate} to ${endDate}`);
-      
+
       GetDashboardStats({
         startDate,
         endDate,
@@ -64,10 +65,13 @@ export default function HomePage() {
       console.log(day, "day");
       const date = new Date(day.date + "T00:00:00");
       console.log(date, "date");
-      console.log(date.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "short",
-      }), "date.toLocaleDateString");
+      console.log(
+        date.toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "short",
+        }),
+        "date.toLocaleDateString",
+      );
       return {
         date: date.toLocaleDateString("pt-BR", {
           day: "2-digit",
@@ -76,7 +80,6 @@ export default function HomePage() {
         recordings: day.count,
       };
     });
-
   }, [dashboardStats]);
 
   // KPIs baseados nos dados reais
@@ -90,7 +93,7 @@ export default function HomePage() {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     } else if (minutes > 0) {
@@ -175,7 +178,9 @@ export default function HomePage() {
       title: "Tempo por contato",
       value: isGettingDashboardStats
         ? "..."
-        : totalClients > 0 ? formattedAvgDuration : "—",
+        : totalClients > 0
+          ? formattedAvgDuration
+          : "—",
       subtitle: "média por contato",
       icon: Activity,
       variant: "info" as const,
@@ -235,6 +240,7 @@ export default function HomePage() {
       </div>
 
       <CompleteRegistrationModal />
+      <TrialAppModal />
     </div>
   );
 }

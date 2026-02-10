@@ -20,27 +20,27 @@ export function OrientationsCard({
   const CheckIcon = getIcon("check-circle");
 
   return (
-    <section>
-      <div className="mb-4 flex items-center gap-3">
+    <section className="w-full max-w-full min-w-0 overflow-hidden">
+      <div className="mb-4 flex items-center gap-3 min-w-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${styles.gradientFrom} ${styles.gradientTo} text-white shadow-md ${styles.shadow}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${styles.gradientFrom} ${styles.gradientTo} text-white shadow-md ${styles.shadow}`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+        <h2 className="text-xl font-bold text-gray-900 break-words min-w-0">{title}</h2>
       </div>
-      <div className={`rounded-2xl border ${styles.border} ${styles.bg} p-6`}>
-        <ul className="space-y-3">
+      <div className={`rounded-2xl border ${styles.border} ${styles.bg} p-6 min-w-0 overflow-hidden`}>
+        <ul className="space-y-3 min-w-0">
           {data.orientations && Array.isArray(data.orientations) && data.orientations.length > 0 ? (
             data.orientations.map((item, idx) => (
               <li
                 key={idx}
-                className="flex items-start gap-3 text-sm text-gray-700"
+                className="flex items-start gap-3 text-sm text-gray-700 min-w-0 overflow-hidden"
               >
                 <CheckIcon
-                  className={`mt-0.5 h-5 w-5 flex-shrink-0 ${styles.text}`}
+                  className={`mt-0.5 h-5 w-5 shrink-0 ${styles.text}`}
                 />
-                {item}
+                <span className="break-words min-w-0">{item}</span>
               </li>
             ))
           ) : (

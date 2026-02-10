@@ -1,22 +1,18 @@
 "use client";
 
-import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { useSession } from "@/context/auth";
 import { useChatEngine } from "@/hooks/useChatEngine";
+import { useChatPrompts, type ChatPrompt } from "@/hooks/useChatPrompts";
 import { cn } from "@/utils/cn";
+import { PromptIcon } from "@/utils/prompt-icon";
 import { generalPrompt } from "@/utils/prompts";
-import {
-    ArrowLeft,
-    ClipboardList,
-    Database,
-    Heart,
-    Maximize2,
-    Minimize2,
-    Plus,
-    ScrollText,
-} from "lucide-react";
+import { ArrowLeft, Maximize2, Minimize2, Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { ChatInput } from "./components/chat-input";
+import { SuggestionCard } from "./components/suggestion-card";
+import { Messages } from "./messages";
 
 // Ref para garantir que o texto do input seja enviado junto com o áudio (evita closure obsoleta)
 function useInputRef(value: string) {
@@ -24,38 +20,33 @@ function useInputRef(value: string) {
   ref.current = value;
   return ref;
 }
-import { ChatInput } from "./components/chat-input";
-import { SuggestionCard } from "./components/suggestion-card";
-import { Messages } from "./messages";
-
-type Suggestion = {
-  title: string;
-  description: string;
-  icon: any;
-  prompt: string;
-};
 
 export default function ChatPage() {
   const { profile } = useSession();
   const { selectedRecording } = useGeneralContext();
+  const { prompts, isLoading: isLoadingPrompts } = useChatPrompts();
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [selectedSuggestion, setSelectedSuggestion] =
-    useState<Suggestion | null>(null);
+    useState<ChatPrompt | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
   const inputMessageRef = useInputRef(inputMessage);
 
-  // Usa useChatEngine sem persistência (chat independente)
+  // Usa useChatEngine sem persistência (chat independente); prompt base de utils quando nenhuma sugestão selecionada
   const engine = useChatEngine({
     promptContent: selectedSuggestion
-      ? selectedSuggestion.prompt
+      ? selectedSuggestion.content
       : generalPrompt.prompt,
     skipPersistence: true, // Não salva no backend
   });
 
   const handleSendMessage = () => {
     const textToSend = inputMessageRef.current;
-    if (textToSend.trim() || engine.fileHandler.files.length > 0 || engine.audioRecorder.audioFile) {
+    if (
+      textToSend.trim() ||
+      engine.fileHandler.files.length > 0 ||
+      engine.audioRecorder.audioFile
+    ) {
       engine.sendMessage(textToSend);
       setInputMessage("");
     }
@@ -68,38 +59,8 @@ export default function ChatPage() {
     }
   }, [engine.messages]);
 
-  const suggestions = [
-    {
-      title: "Resumir Conversa",
-      description: "Resuma os principais pontos discutidos durante a conversa.",
-      icon: ScrollText,
-      prompt: "Resuma os principais pontos discutidos nesta conversa.",
-    },
-    {
-      title: "Extrair Dados",
-      description: "Liste as informações mais relevantes da conversa.",
-      icon: Database,
-      prompt:
-        "Liste todas as informações mais relevantes da conversa.",
-    },
-    {
-      title: "Análise de Sentimento",
-      description: "Identifique e analise o sentimento geral da conversa.",
-      icon: Heart,
-      prompt:
-        "Identifique e analise o sentimento geral da conversa.",
-    },
-    {
-      title: "Gerar Próximos Passos",
-      description: "Estruture os próximos passos para o Contato.",
-      icon: ClipboardList,
-      prompt:
-        "Estruture os próximos passos para o Contato, considerando o contexto da conversa.",
-    },
-  ];
-
-  const handleSuggestionClick = (suggestion: Suggestion) => {
-    setSelectedSuggestion(suggestion);
+  const handleSuggestionClick = (prompt: ChatPrompt) => {
+    setSelectedSuggestion(prompt);
     engine.clearChat();
     setInputMessage("");
   };
@@ -152,7 +113,8 @@ export default function ChatPage() {
     border: "border-gray-200",
   };
 
-  const isChatEmpty = engine.messages.filter((m) => m.role !== "system").length === 0;
+  const isChatEmpty =
+    engine.messages.filter((m) => m.role !== "system").length === 0;
 
   return (
     <div
@@ -211,9 +173,13 @@ export default function ChatPage() {
               <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             </button>
             <div className="border-primary flex items-center gap-2 rounded-full border bg-white/80 px-4 py-2 shadow-sm backdrop-blur-md">
-              <selectedSuggestion.icon className="text-primary h-4 w-4" />
+              <PromptIcon
+                icon={selectedSuggestion.icon}
+                className="text-primary h-4 w-4"
+                size={16}
+              />
               <span className="text-sm font-semibold text-gray-700">
-                {selectedSuggestion.title}
+                {selectedSuggestion.name}
               </span>
             </div>
           </div>
@@ -266,18 +232,32 @@ export default function ChatPage() {
                     onRecordStart={engine.audioRecorder.startRecording}
                     onRecordStop={engine.audioRecorder.stopRecording}
                     isLoading={engine.loading}
-                    files={engine.fileHandler.files.map(f => f.file)}
+                    files={engine.fileHandler.files.map((f) => f.file)}
                     onFilesChange={(newFiles) => {
                       // Sincroniza com fileHandler
-                      const currentFiles = engine.fileHandler.files.map(f => f.file);
-                      const filesToAdd = newFiles.filter(f => !currentFiles.some(cf => cf.name === f.name && cf.size === f.size));
-                      const filesToRemove = currentFiles.filter(cf => !newFiles.some(nf => nf.name === cf.name && nf.size === cf.size));
-                      
-                      filesToAdd.forEach(file => {
+                      const currentFiles = engine.fileHandler.files.map(
+                        (f) => f.file,
+                      );
+                      const filesToAdd = newFiles.filter(
+                        (f) =>
+                          !currentFiles.some(
+                            (cf) => cf.name === f.name && cf.size === f.size,
+                          ),
+                      );
+                      const filesToRemove = currentFiles.filter(
+                        (cf) =>
+                          !newFiles.some(
+                            (nf) => nf.name === cf.name && nf.size === cf.size,
+                          ),
+                      );
+
+                      filesToAdd.forEach((file) => {
                         engine.fileHandler.addFile(file);
                       });
-                      filesToRemove.forEach(file => {
-                        const fileItem = engine.fileHandler.files.find(f => f.file === file);
+                      filesToRemove.forEach((file) => {
+                        const fileItem = engine.fileHandler.files.find(
+                          (f) => f.file === file,
+                        );
                         if (fileItem) {
                           engine.fileHandler.removeFile(fileItem.id);
                         }
@@ -290,15 +270,21 @@ export default function ChatPage() {
               </div>
               <div className="mt-auto py-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {suggestions.map((suggestion, index) => (
-                    <SuggestionCard
-                      key={index}
-                      index={index}
-                      title={suggestion.title}
-                      icon={suggestion.icon}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                    />
-                  ))}
+                  {isLoadingPrompts ? (
+                    <p className="text-sm text-gray-500">
+                      Carregando sugestões...
+                    </p>
+                  ) : (
+                    prompts.map((prompt, index) => (
+                      <SuggestionCard
+                        key={prompt.id}
+                        index={index}
+                        title={prompt.name}
+                        icon={prompt.icon ?? ""}
+                        onClick={() => handleSuggestionClick(prompt)}
+                      />
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -308,13 +294,17 @@ export default function ChatPage() {
               {isChatEmpty && selectedSuggestion && (
                 <div className="animate-in fade-in zoom-in-95 flex flex-1 flex-col items-center justify-center duration-500">
                   <div className="bg-primary mb-4 flex h-16 w-16 items-center justify-center rounded-2xl text-white">
-                    <selectedSuggestion.icon className="h-8 w-8" />
+                    <PromptIcon
+                      icon={selectedSuggestion.icon}
+                      className="h-8 w-8"
+                      size={32}
+                    />
                   </div>
                   <h3 className="text-lg font-medium text-gray-900">
-                    Modo {selectedSuggestion.title} Ativado
+                    Modo {selectedSuggestion.name} Ativado
                   </h3>
                   <p className="mt-1 max-w-xs text-center text-sm text-gray-500">
-                    {selectedSuggestion.prompt.replace(":", "...")}
+                    {selectedSuggestion.content.replace(":", "...")}
                   </p>
                 </div>
               )}
@@ -343,18 +333,32 @@ export default function ChatPage() {
               onRecordStart={engine.audioRecorder.startRecording}
               onRecordStop={engine.audioRecorder.stopRecording}
               isLoading={engine.loading}
-              files={engine.fileHandler.files.map(f => f.file)}
+              files={engine.fileHandler.files.map((f) => f.file)}
               onFilesChange={(newFiles) => {
                 // Sincroniza com fileHandler
-                const currentFiles = engine.fileHandler.files.map(f => f.file);
-                const filesToAdd = newFiles.filter(f => !currentFiles.some(cf => cf.name === f.name && cf.size === f.size));
-                const filesToRemove = currentFiles.filter(cf => !newFiles.some(nf => nf.name === cf.name && nf.size === cf.size));
-                
-                filesToAdd.forEach(file => {
+                const currentFiles = engine.fileHandler.files.map(
+                  (f) => f.file,
+                );
+                const filesToAdd = newFiles.filter(
+                  (f) =>
+                    !currentFiles.some(
+                      (cf) => cf.name === f.name && cf.size === f.size,
+                    ),
+                );
+                const filesToRemove = currentFiles.filter(
+                  (cf) =>
+                    !newFiles.some(
+                      (nf) => nf.name === cf.name && nf.size === cf.size,
+                    ),
+                );
+
+                filesToAdd.forEach((file) => {
                   engine.fileHandler.addFile(file);
                 });
-                filesToRemove.forEach(file => {
-                  const fileItem = engine.fileHandler.files.find(f => f.file === file);
+                filesToRemove.forEach((file) => {
+                  const fileItem = engine.fileHandler.files.find(
+                    (f) => f.file === file,
+                  );
                   if (fileItem) {
                     engine.fileHandler.removeFile(fileItem.id);
                   }

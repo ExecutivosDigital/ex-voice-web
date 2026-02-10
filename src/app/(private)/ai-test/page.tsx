@@ -2,7 +2,7 @@
 
 import { useApiContext } from "@/context/ApiContext";
 import { useEffect, useState } from "react";
-import { DynamicComponentRenderer } from "../ai-components-preview/components/DynamicComponentRenderer";
+import { DynamicComponentRenderer } from "../ai-components-preview/components/core/DynamicComponentRenderer";
 import { AIComponentResponse } from "../ai-components-preview/types/component-types";
 import { Loader2 } from "lucide-react";
 

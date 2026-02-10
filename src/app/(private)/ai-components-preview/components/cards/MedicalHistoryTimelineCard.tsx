@@ -20,43 +20,43 @@ export function MedicalHistoryTimelineCard({
   const FileIcon = getIcon("file-text");
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <div className="mb-8 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900">
-          <HistoryIcon className="h-5 w-5 text-gray-400" />
-          {title}
+    <div className="w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="mb-8 flex items-center justify-between gap-2 min-w-0">
+        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 min-w-0">
+          <HistoryIcon className="h-5 w-5 shrink-0 text-gray-400" />
+          <span className="leading-relaxed">{title}</span>
         </h3>
-        <button className="text-sm font-medium text-gray-600 hover:text-gray-700 hover:underline">
+        <button className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline shrink-0 whitespace-nowrap">
           Ver histórico completo
         </button>
       </div>
 
-      <div className="relative ml-3 space-y-10 border-l-2 border-gray-100 pb-4">
+      <div className="relative ml-3 space-y-10 border-l-2 border-gray-100 pb-4 min-w-0">
         {data.history && Array.isArray(data.history) && data.history.length > 0 ? (
           data.history.map((record, index) => (
-            <div key={index} className="group relative pl-8">
+            <div key={index} className="group relative pl-8 min-w-0">
               {/* Timeline Dot */}
-              <div className="absolute top-0 -left-[9px] h-4 w-4 rounded-full border-2 border-white bg-gray-500 ring-4 ring-gray-50 transition-all group-hover:ring-gray-100"></div>
+              <div className="absolute top-0 -left-[9px] h-4 w-4 rounded-full border-2 border-white bg-blue-500 ring-4 ring-blue-50 transition-all group-hover:ring-blue-100 shrink-0"></div>
 
-              <div className="mb-3 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <span className="block text-sm font-bold text-gray-900">
+              <div className="mb-3 flex flex-col gap-4 md:flex-row md:items-start md:justify-between min-w-0">
+                <div className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold text-gray-900 leading-relaxed">
                     {record.type || 'N/A'}
                   </span>
                   {(record.specialty || record.doctor) && (
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 leading-relaxed">
                       {record.specialty || ''} {record.specialty && record.doctor ? '•' : ''} {record.doctor || ''}
                     </span>
                   )}
                 </div>
                 {record.date && (
-                  <span className="w-max rounded-full border border-gray-100 bg-gray-50 px-3 py-1 text-xs font-bold text-gray-600">
+                  <span className="w-max rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600 shrink-0 whitespace-nowrap">
                     {record.date}
                   </span>
                 )}
               </div>
 
-              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-5 transition-all hover:border-gray-100 hover:bg-white hover:shadow-md">
+              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-5 transition-all hover:border-blue-100 hover:bg-white hover:shadow-md min-w-0">
                 {record.note && (
                   <p className="mb-4 text-sm leading-relaxed text-gray-600">
                     {record.note}
@@ -68,9 +68,9 @@ export function MedicalHistoryTimelineCard({
                     {record.attachments.map((att, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm whitespace-nowrap"
                       >
-                        <FileIcon className="h-3 w-3 text-gray-400" />
+                        <FileIcon className="h-3 w-3 shrink-0 text-gray-400" />
                         {att}
                       </span>
                     ))}

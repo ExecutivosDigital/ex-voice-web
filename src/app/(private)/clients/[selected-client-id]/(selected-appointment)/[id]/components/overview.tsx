@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef, useMemo } from "react";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useApiContext } from "@/context/ApiContext";
-import { DynamicComponentRenderer } from "@/app/(private)/ai-components-preview/components/DynamicComponentRenderer";
+import { DynamicComponentRenderer } from "@/app/(private)/ai-components-preview/components/core/DynamicComponentRenderer";
 import type { AIComponentResponse } from "@/app/(private)/ai-components-preview/types/component-types";
 import { convertToAIComponentResponse } from "../utils/summary-converter";
 import { OVERVIEW_CONTENT_ID } from "../utils/export-medical-record-pdf";

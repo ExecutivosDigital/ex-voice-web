@@ -40,21 +40,21 @@ export function PrescriptionCard({
   const itemCount = displayItems?.length || 0;
 
   return (
-    <section>
-      <div className="mb-4 flex items-center gap-3">
+    <section className="w-full max-w-full min-w-0 overflow-hidden">
+      <div className={`mb-4 flex items-center gap-3 min-w-0 rounded-xl bg-gradient-to-br ${styles.gradientFrom}/75 ${styles.gradientTo}/35 p-4`}>
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${styles.gradientFrom} ${styles.gradientTo} text-white shadow-md ${styles.shadow}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm text-white shadow-md`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-          <p className="text-xs text-gray-400">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold text-white leading-relaxed">{title}</h2>
+          <p className="text-xs text-white/80 leading-relaxed">
             {itemCount} item(ns)
           </p>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-2 min-w-0">
         {displayItems && displayItems.length > 0 ? displayItems.map((item, idx) => {
           // Agrupar items por secondary (tipo/data) se disponível
           const groupKey = item.secondary || item.tags?.[0] || `group-${idx}`;
@@ -63,25 +63,25 @@ export function PrescriptionCard({
           return (
             <div
               key={item.id || idx}
-              className={`group relative overflow-hidden rounded-2xl border ${styles.border} bg-white p-5 shadow-sm transition-all hover:shadow-md`}
+              className={`group relative overflow-hidden rounded-2xl border ${styles.border} bg-white p-5 md:p-6 shadow-sm transition-all hover:shadow-md w-full min-w-0`}
             >
               {isFirstInGroup && (item.secondary || item.tags?.[0]) && (
-                <div className="mb-4 flex items-start justify-between">
+                <div className="mb-4 md:mb-5 flex items-start justify-between">
                   <div>
                     {item.secondary && (
-                      <span className="block text-sm font-bold text-gray-900">
+                      <span className="block text-sm font-bold text-gray-900 leading-relaxed">
                         {item.secondary}
                       </span>
                     )}
                     {item.tags?.[0] && (
-                      <span className="text-xs text-gray-400">{item.tags[0]}</span>
+                      <span className="text-xs text-gray-400 leading-relaxed">{item.tags[0]}</span>
                     )}
                   </div>
                 </div>
               )}
-              <div className={`space-y-3 ${!isFirstInGroup ? 'mt-0' : ''}`}>
+              <div className={`space-y-3 md:space-y-4 ${!isFirstInGroup ? 'mt-0' : ''}`}>
                 <div
-                  className={`rounded-lg border ${styles.border} ${styles.bg} p-3`}
+                  className={`rounded-lg border ${styles.border} ${styles.bg} p-3 md:p-4`}
                 >
                   <div className="flex items-start justify-between">
                     <p className={`font-semibold ${styles.text}`}>{item.primary}</p>

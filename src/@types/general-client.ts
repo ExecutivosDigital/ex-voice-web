@@ -112,6 +112,9 @@ export interface NotificationProps {
   opened: boolean;
   userId: string;
   createdAt: string;
+  type?: string;
+  route?: string;
+  params?: Record<string, any>;
 }
 
 export interface FetchNotificationsResponse {
