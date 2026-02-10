@@ -4,11 +4,11 @@ import { useSession } from "@/context/auth";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
 import {
-  ChevronLeft,
-  ChevronRight,
-  MessageCircle,
-  Smartphone,
-  UserIcon,
+    ChevronLeft,
+    ChevronRight,
+    MessageCircle,
+    Smartphone,
+    UserIcon,
 } from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
@@ -18,24 +18,24 @@ import { useEffect, useMemo, useState } from "react";
 import { AudioRecorder } from "../audio-recorder/audio-recorder";
 import { ProfileModal } from "../profile/profile-modal";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "./blocks/dropdown-menu";
 import {
-  ChatBusinessIcon,
-  ChatIcon,
-  ContactsIcon,
-  GeneralVisionIcon,
-  HomeIcon,
-  LastRecordIcon,
-  LogoutIcon,
-  NotesIcon,
-  OtherIcon,
-  SmartphoneIcon,
-  StudyIcon,
-  TranscriptionIcon,
+    ChatBusinessIcon,
+    ChatIcon,
+    ContactsIcon,
+    GeneralVisionIcon,
+    HomeIcon,
+    LastRecordIcon,
+    LogoutIcon,
+    NotesIcon,
+    OtherIcon,
+    SmartphoneIcon,
+    StudyIcon,
+    TranscriptionIcon,
 } from "./custom-icons";
 import { NotificationDropdown } from "./notification-dropdown";
 
@@ -263,7 +263,7 @@ export function Header() {
                 {/* Menu Items */}
                 <div className="p-2">
                   <DropdownMenuItem
-                    onSelect={(e) => {
+                    onSelect={(e: Event) => {
                       e.preventDefault();
                       setIsProfileModalOpen(true);
                     }}
@@ -397,7 +397,6 @@ export function Header() {
                         "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                         !pathname.includes("/chat") &&
                           !pathname.includes("/transcription") &&
-                          !pathname.includes("/medical-record") &&
                           !pathname.includes("/overview")
                           ? "border-b-white"
                           : "border-b-white/10 text-white/50",
@@ -458,22 +457,6 @@ export function Header() {
                     >
                       <TranscriptionIcon />
                       Transcrição
-                    </span>
-                    <span
-                      className={cn(
-                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                        pathname.includes("/medical-record")
-                          ? "border-b-white"
-                          : "border-b-white/10 text-white/50",
-                      )}
-                      onClick={() =>
-                        router.push(
-                          `/clients/${selectedClient?.id}/${selectedRecording?.id}/medical-record`,
-                        )
-                      }
-                    >
-                      <TranscriptionIcon />
-                      Prontuário Médico
                     </span>
                   </div>
                 </div>
@@ -766,6 +749,21 @@ export function Header() {
                     className="h-4 w-max fill-white object-contain text-white"
                   />
                   <span>{selectedRecording?.duration}</span>
+                </div>
+              </div>
+            </div>
+          ) : pathname === "/notifications" ? (
+            <div className="flex w-full min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 flex-1 items-center gap-4">
+                <button
+                  onClick={() => router.push("/")}
+                  className="hidden h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="font-semibold">Voltar</span>
+                </button>
+                <div className="flex items-center gap-2 text-white">
+                  <span className="text-lg font-semibold">Notificações</span>
                 </div>
               </div>
             </div>

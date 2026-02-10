@@ -4,6 +4,7 @@ import { useSession } from "@/context/auth";
 import { cn } from "@/utils/cn";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 
 interface StepContent {
@@ -130,20 +131,20 @@ export function TrialAppModal() {
   const currentStepData = steps[currentStep];
   const isLastStep = currentStep === steps.length - 1;
 
-  return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4 animate-in fade-in duration-300">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl animate-in zoom-in-95 slide-in-from-bottom-5 duration-500">
-        {/* Gradiente de fundo azul */}
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4 animate-in fade-in duration-300 overflow-y-auto">
+      <div className="relative w-full max-w-2xl my-auto max-h-[95vh] rounded-3xl animate-in zoom-in-95 slide-in-from-bottom-5 duration-500 overflow-hidden flex flex-col">
+        {/* Gradiente de fundo usando cores do sistema */}
         <div
-          className="w-full"
+          className="w-full flex-1 overflow-y-auto"
           style={{
-            background: "linear-gradient(to bottom, #F4F4F4 0%, #E8F2FC 5%, #D1E6F8 10%, #B8D9F5 15%, #9BC9F0 20%, #7BB8ED 30%, #5AA5E8 45%, #3D92E3 65%, #0E78EC 100%)",
+            background: "linear-gradient(to bottom, #4A4A4B 0%, #444444 25%, #3a3a3a 50%, #2a2a2a 75%, #1a1a1a 90%, #000000 100%)",
           }}
         >
           {/* Conteúdo da modal */}
-          <div className="flex flex-col items-center px-5 py-10">
+          <div className="flex flex-col items-center px-5 py-6 pb-8">
             {/* Imagem no topo - todas as steps */}
-            <div className="relative mb-6 w-[55%] max-w-[240px] overflow-hidden rounded-2xl shadow-lg">
+            <div className="relative mb-4 w-[55%] max-w-[200px] overflow-hidden rounded-2xl shadow-lg">
               <Image
                 src={stepImages[currentStep]}
                 alt={currentStepData.title}
@@ -155,7 +156,7 @@ export function TrialAppModal() {
             </div>
 
             {/* Título */}
-            <div className="mt-2 mb-4 w-full px-2">
+            <div className="mt-2 mb-3 w-full px-2">
               {currentStep === 0 ? (
                 <h2 className="text-center text-2xl leading-8 text-white">
                   <span className="font-normal">BAIXE O</span>{" "}
@@ -175,12 +176,12 @@ export function TrialAppModal() {
             </div>
 
             {/* Texto */}
-            <p className="mb-6 text-center text-base leading-6 text-white px-2">
+            <p className="mb-4 text-center text-base leading-6 text-white px-2">
               {currentStepData.text}
             </p>
 
             {/* Indicador de passos */}
-            <div className="mb-8 flex items-center gap-2">
+            <div className="mb-6 flex items-center gap-2">
               {steps.map((_, index) => (
                 <div
                   key={index}
@@ -189,7 +190,7 @@ export function TrialAppModal() {
                     index === currentStep
                       ? "w-8 bg-white"
                       : index < currentStep
-                        ? "w-2 bg-blue-300"
+                        ? "w-2 bg-stone-400"
                         : "w-2 bg-white/30"
                   )}
                 />
@@ -198,13 +199,13 @@ export function TrialAppModal() {
 
             {/* Botões */}
             {isLastStep ? (
-              <div className="w-full space-y-4">
+              <div className="w-full space-y-3 pb-2">
                 <div className="flex w-full flex-col gap-4 sm:flex-row">
                   <a
                     href={appleStoreLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex flex-1 items-center justify-center gap-3 rounded-xl border border-white/30 bg-white px-6 py-4 font-bold text-[#1E40AF] transition-all hover:bg-gray-50 hover:scale-105 active:scale-95"
+                    className="group flex flex-1 items-center justify-center gap-3 rounded-xl border border-white/30 bg-white px-6 py-4 font-bold text-stone-800 transition-all hover:bg-gray-50 hover:scale-105 active:scale-95"
                   >
                     <svg
                       width="24"
@@ -221,7 +222,7 @@ export function TrialAppModal() {
                     href={googlePlayLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex flex-1 items-center justify-center gap-3 rounded-xl bg-[#1E40AF] px-6 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                    className="group flex flex-1 items-center justify-center gap-3 rounded-xl bg-stone-800 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-stone-700 hover:scale-105 active:scale-95"
                   >
                     <svg
                       width="24"
@@ -246,7 +247,7 @@ export function TrialAppModal() {
                 ) : (
                   <button
                     onClick={handleClose}
-                    className="flex w-full items-center justify-center rounded-xl bg-white px-6 py-4 font-bold text-[#1E40AF] shadow-md transition-all hover:scale-105 active:scale-95"
+                    className="flex w-full items-center justify-center rounded-xl bg-white px-6 py-4 font-bold text-stone-800 shadow-md transition-all hover:scale-105 active:scale-95"
                   >
                     Começar a utilizar
                   </button>
@@ -256,7 +257,7 @@ export function TrialAppModal() {
               // Step 1: apenas botão Continuar
               <button
                 onClick={handleNext}
-                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E40AF] px-8 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-stone-800 px-8 py-4 font-bold text-white shadow-lg transition-all hover:bg-stone-700 hover:scale-105 active:scale-95"
               >
                 <span>Continuar</span>
                 <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -266,14 +267,14 @@ export function TrialAppModal() {
               <div className="flex w-full gap-3">
                 <button
                   onClick={handlePrevious}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white px-6 py-4 font-semibold text-[#1E40AF] transition-all hover:scale-105 active:scale-95"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white px-6 py-4 font-semibold text-stone-800 transition-all hover:scale-105 active:scale-95"
                 >
                   <ChevronLeft className="h-5 w-5" />
                   <span>Voltar</span>
                 </button>
                 <button
                   onClick={handleNext}
-                  className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E40AF] px-6 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                  className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-stone-800 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-stone-700 hover:scale-105 active:scale-95"
                 >
                   <span>Continuar</span>
                   <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -285,4 +286,7 @@ export function TrialAppModal() {
       </div>
     </div>
   );
+
+  if (typeof window === "undefined") return null;
+  return createPortal(modalContent, document.body);
 }

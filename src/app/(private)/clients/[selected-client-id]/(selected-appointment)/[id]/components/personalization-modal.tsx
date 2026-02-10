@@ -3,6 +3,7 @@
 import { cn } from "@/utils/cn";
 import { ChevronRight, ChevronLeft, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 
 interface StepContent {
@@ -85,21 +86,21 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
   const currentStepData = steps[currentStep];
   const isLastStep = currentStep === steps.length - 1;
 
-  return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4 animate-in fade-in duration-300">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl animate-in zoom-in-95 slide-in-from-bottom-5 duration-500">
-        {/* Gradiente de fundo azul */}
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4 animate-in fade-in duration-300 overflow-y-auto">
+      <div className="relative w-full max-w-2xl my-auto max-h-[95vh] rounded-3xl animate-in zoom-in-95 slide-in-from-bottom-5 duration-500 overflow-hidden flex flex-col">
+        {/* Gradiente de fundo usando cores do sistema */}
         <div
-          className="w-full"
+          className="w-full flex-1 overflow-y-auto"
           style={{
-            background: "linear-gradient(to bottom, #F4F4F4 0%, #E8F2FC 5%, #D1E6F8 10%, #B8D9F5 15%, #9BC9F0 20%, #7BB8ED 30%, #5AA5E8 45%, #3D92E3 65%, #0E78EC 100%)",
+            background: "linear-gradient(to bottom, #4A4A4B 0%, #444444 25%, #3a3a3a 50%, #2a2a2a 75%, #1a1a1a 90%, #000000 100%)",
           }}
         >
           {/* Conteúdo da modal */}
-          <div className="flex flex-col items-center px-5 py-10">
+          <div className="flex flex-col items-center px-5 py-6 pb-8">
             {/* Imagem no topo - step 3 */}
             {isLastStep && (
-              <div className="relative mb-6 w-[70%] max-w-[300px] aspect-[16/10] overflow-hidden rounded-2xl shadow-lg">
+              <div className="relative mb-4 w-[70%] max-w-[200px] aspect-[16/10] overflow-hidden rounded-2xl shadow-lg">
                 <Image
                   src={stepImages[currentStep]}
                   alt={currentStepData.title}
@@ -111,7 +112,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
             )}
             {/* Imagem no topo - steps 1 e 2 */}
             {!isLastStep && (
-              <div className="relative mb-6 w-[70%] max-w-[300px] aspect-[16/10] overflow-hidden rounded-2xl shadow-lg">
+              <div className="relative mb-4 w-[70%] max-w-[200px] aspect-[16/10] overflow-hidden rounded-2xl shadow-lg">
                 <Image
                   src={stepImages[currentStep]}
                   alt={currentStepData.title}
@@ -123,7 +124,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
             )}
 
             {/* Título */}
-            <div className="mt-2 mb-4 w-full px-2">
+            <div className="mt-2 mb-3 w-full px-2">
               {currentStep === 0 ? (
                 <h2 className="text-center text-2xl leading-8 text-white whitespace-pre-line">
                   <span className="font-normal">PERSONALIZE A</span>{"\n"}
@@ -145,12 +146,12 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
             </div>
 
             {/* Texto */}
-            <p className="mb-6 text-center text-base leading-6 text-white px-2">
+            <p className="mb-4 text-center text-base leading-6 text-white px-2">
               {currentStepData.text}
             </p>
 
             {/* Indicador de passos */}
-            <div className="mb-8 flex items-center gap-2">
+            <div className="mb-6 flex items-center gap-2">
               {steps.map((_, index) => (
                 <div
                   key={index}
@@ -159,7 +160,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
                     index === currentStep
                       ? "w-8 bg-white"
                       : index < currentStep
-                        ? "w-2 bg-blue-300"
+                        ? "w-2 bg-stone-400"
                         : "w-2 bg-white/30"
                   )}
                 />
@@ -171,7 +172,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
               <div className="w-full">
                 <button
                   onClick={handleWhatsAppClick}
-                  className="group flex w-full items-center justify-center gap-3 rounded-xl bg-[#1E40AF] px-6 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                  className="group flex w-full items-center justify-center gap-3 rounded-xl bg-stone-800 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-stone-700 hover:scale-105 active:scale-95"
                 >
                   <MessageCircle className="h-5 w-5" />
                   <span>Fale Conosco</span>
@@ -179,7 +180,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
                 </button>
                 <button
                   onClick={handleClose}
-                  className="mt-4 flex w-full items-center justify-center rounded-xl bg-white px-6 py-4 font-bold text-[#1E40AF] shadow-md transition-all hover:scale-105 active:scale-95"
+                  className="mt-4 flex w-full items-center justify-center rounded-xl bg-white px-6 py-4 font-bold text-stone-800 shadow-md transition-all hover:scale-105 active:scale-95"
                 >
                   Fechar
                 </button>
@@ -188,7 +189,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
               // Step 1: apenas botão Continuar
               <button
                 onClick={handleNext}
-                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E40AF] px-8 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-stone-800 px-8 py-4 font-bold text-white shadow-lg transition-all hover:bg-stone-700 hover:scale-105 active:scale-95"
               >
                 <span>Continuar</span>
                 <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -198,14 +199,14 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
               <div className="flex w-full gap-3">
                 <button
                   onClick={handlePrevious}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white px-6 py-4 font-semibold text-[#1E40AF] transition-all hover:scale-105 active:scale-95"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white px-6 py-4 font-semibold text-stone-800 transition-all hover:scale-105 active:scale-95"
                 >
                   <ChevronLeft className="h-5 w-5" />
                   <span>Voltar</span>
                 </button>
                 <button
                   onClick={handleNext}
-                  className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E40AF] px-6 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                  className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-stone-800 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-stone-700 hover:scale-105 active:scale-95"
                 >
                   <span>Continuar</span>
                   <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -217,4 +218,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
       </div>
     </div>
   );
+
+  if (typeof window === "undefined") return null;
+  return createPortal(modalContent, document.body);
 }

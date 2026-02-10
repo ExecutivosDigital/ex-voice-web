@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, CheckCircle2, User, Phone, Hash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { createPortal } from "react-dom";
 import z from "zod";
 import {
     Form,
@@ -120,9 +121,9 @@ export function CompleteRegistrationModal() {
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4 animate-in fade-in duration-300">
-            <div className="relative w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl flex flex-col md:flex-row min-h-[600px] animate-in zoom-in-95 slide-in-from-bottom-5 duration-500">
+    const modalContent = (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4 animate-in fade-in duration-300 overflow-y-auto">
+            <div className="relative w-full max-w-5xl my-auto rounded-3xl bg-white shadow-2xl flex flex-col md:flex-row min-h-[600px] max-h-[90vh] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-500">
 
                 {/* Left Side: Image Carousel */}
                 <div className="relative hidden w-1/2 md:block overflow-hidden bg-gray-900">
@@ -298,4 +299,7 @@ export function CompleteRegistrationModal() {
             </div>
         </div>
     );
+
+    if (typeof window === "undefined") return null;
+    return createPortal(modalContent, document.body);
 }

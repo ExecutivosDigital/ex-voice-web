@@ -13,11 +13,11 @@ import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { buildRowsFromSpeeches } from "@/utils/speeches";
 import {
+  Briefcase,
   Check,
   GripVertical,
   Loader2,
   Pencil,
-  Stethoscope,
   User,
   Users,
   X,
@@ -277,7 +277,7 @@ export function Transcription() {
             <div className="flex items-center gap-4 rounded-lg bg-slate-50 px-4 py-3">
               <div className="flex items-center gap-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100">
-                  <Stethoscope className="h-3 w-3 text-gray-600" />
+                  <Briefcase className="h-3 w-3 text-gray-600" />
                 </div>
                 <span className="text-xs font-medium text-slate-600">
                   Profissional (direita)
@@ -333,7 +333,7 @@ export function Transcription() {
                       }
                     >
                       {isActive ? (
-                        <Stethoscope className="h-5 w-5" />
+                        <Briefcase className="h-5 w-5" />
                       ) : (
                         getSpeakerInitials(config.customName || config.name)
                       )}
@@ -469,7 +469,7 @@ export function Transcription() {
                     )}
                   >
                     {isPro ? (
-                      <Stethoscope className="h-4 w-4" />
+                      <Briefcase className="h-4 w-4" />
                     ) : (
                       getSpeakerInitials(speech.name)
                     )}

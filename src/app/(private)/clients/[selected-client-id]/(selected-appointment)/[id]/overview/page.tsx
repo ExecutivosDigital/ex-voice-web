@@ -4,8 +4,8 @@ import { FileDown, Loader2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Overview, type OverviewHandle } from "../components/overview";
-import { exportOverviewToPdf } from "../utils/export-medical-record-pdf";
 import { PersonalizationModal } from "../components/personalization-modal";
+import { exportOverviewToPdf } from "../utils/export-medical-record-pdf";
 
 export default function OverviewPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -57,14 +57,14 @@ export default function OverviewPage() {
             Resumo Geral
           </h1>
           <p className="text-sm break-words text-gray-500">
-            Resumo estruturado da consulta com componentes gerados pela IA.
+            Resumo estruturado da reunião com componentes gerados pela IA.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setIsPersonalizationModalOpen(true)}
-            className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 shadow-sm transition hover:bg-blue-100"
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100"
           >
             <Sparkles className="h-4 w-4" />
             Personalizar Resumo
