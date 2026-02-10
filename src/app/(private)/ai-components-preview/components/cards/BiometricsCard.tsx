@@ -39,17 +39,17 @@ export function BiometricsCard({
 
   return (
     <div
-      className={`h-full w-full max-w-[500px] rounded-2xl border ${styles.border} bg-white p-4 shadow-sm`}
+      className={`h-full w-full max-w-[500px] min-w-0 overflow-hidden rounded-2xl border ${styles.border} bg-white p-4 shadow-sm`}
     >
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3 min-w-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <h3 className="font-semibold text-gray-900">{title}</h3>
+        <h3 className="font-semibold text-gray-900 break-words min-w-0">{title}</h3>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-3 min-w-0">
         {displayFields.length > 0 ? (
           displayFields.map((field, idx) => {
             const isLast = idx === displayFields.length - 1;
@@ -58,14 +58,14 @@ export function BiometricsCard({
             return (
               <div 
                 key={idx}
-                className={`flex items-start gap-4 ${showBorder ? 'border-b border-gray-50 pb-3' : ''} ${idx === 0 && !isGenericFormat ? 'border-t border-gray-50 pt-2' : ''}`}
+                className={`flex items-start gap-4 min-w-0 overflow-hidden ${showBorder ? 'border-b border-gray-50 pb-3' : ''} ${idx === 0 && !isGenericFormat ? 'border-t border-gray-50 pt-2' : ''}`}
               >
                 <span className="text-sm text-gray-500 min-w-[140px] flex-shrink-0 font-medium">
                   {field.label}
                 </span>
-                <div className="flex-1 text-right">
+                <div className="flex-1 text-right min-w-0 overflow-hidden">
                   {field.variant === "badge" ? (
-                    <span className="inline-block rounded-md bg-red-50 px-2 py-0.5 text-xs font-bold text-red-600">
+                    <span className="inline-block rounded-md bg-red-50 px-2 py-0.5 text-xs font-bold text-red-600 break-words">
                       {field.value}
                     </span>
                   ) : field.variant === "highlight" ? (

@@ -38,39 +38,39 @@ export function MedicationsCard({
   
   return (
     <div
-      className={`h-full w-full ${itemCount <= 2 ? 'max-w-[450px]' : ''} rounded-2xl border ${styles.border} ${styles.bg} p-4 shadow-sm`}
+      className={`h-full w-full max-w-full min-w-0 overflow-hidden rounded-2xl border ${styles.border} ${styles.bg} p-5 md:p-6 shadow-sm`}
     >
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 md:mb-5 flex items-center gap-3 min-w-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <h3 className={`font-semibold ${variant === "teal" ? "text-teal-900" : "text-gray-900"}`}>
+        <h3 className={`font-semibold break-words min-w-0 leading-relaxed ${variant === "teal" ? "text-teal-900" : "text-gray-900"}`}>
           {title}
         </h3>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3 md:space-y-4 min-w-0">
         {displayItems && displayItems.length > 0 ? (
           displayItems.map((item, idx) => (
             <div
               key={idx}
-              className={`rounded-lg border ${styles.border} bg-white p-2 shadow-sm`}
+              className={`rounded-lg border ${styles.border} bg-white p-3 md:p-4 shadow-sm w-full`}
             >
-              <span
-                className={`block text-sm font-medium ${variant === "teal" ? "text-teal-900" : "text-gray-900"}`}
+              <p
+                className={`text-sm font-medium leading-relaxed ${variant === "teal" ? "text-teal-900" : "text-gray-900"}`}
               >
                 {item.primary}
-              </span>
+              </p>
               {item.metadata && item.metadata.length > 0 && (
-                <span className="text-[10px] text-gray-500">
+                <p className="text-[10px] text-gray-500 leading-relaxed mt-1">
                   {item.metadata.map((meta, i) => (
                     <span key={i}>
                       {i > 0 && ' • '}
                       {meta.value}
                     </span>
                   ))}
-                </span>
+                </p>
               )}
             </div>
           ))

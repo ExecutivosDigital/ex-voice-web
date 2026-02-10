@@ -25,19 +25,19 @@ export function AllergiesCard({
   
   return (
     <div
-      className={`h-full w-full ${itemCount === 0 ? 'max-w-[400px] mx-auto' : itemCount <= 2 ? 'max-w-[450px]' : ''} rounded-2xl border ${styles.border} ${styles.bg} p-4 shadow-sm`}
+      className={`h-full w-full max-w-full min-w-0 overflow-hidden ${itemCount === 0 ? 'max-w-[400px] mx-auto' : itemCount <= 2 ? 'max-w-[450px]' : ''} rounded-2xl border ${styles.border} ${styles.bg} p-4 shadow-sm`}
     >
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3 min-w-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <h3 className={`font-semibold ${variant === "red" ? "text-red-900" : "text-gray-900"}`}>
+        <h3 className={`font-semibold break-words min-w-0 ${variant === "red" ? "text-red-900" : "text-gray-900"}`}>
           {title}
         </h3>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 min-w-0">
         {/* Detectar formato: genérico (items[]) ou legado (allergies[]) */}
         {(() => {
           const isGenericFormat = data.items && Array.isArray(data.items) && data.items.length > 0;
@@ -66,22 +66,24 @@ export function AllergiesCard({
 
           return displayItems.map((item, idx) => {
             const severity = item.metadata?.find((m: { label: string; value: string }) => 
-              m.label.toLowerCase().includes('severidade')
+              m.label && typeof m.label === 'string' && m.label.toLowerCase().includes('severidade')
             )?.value || ('status' in item ? item.status : '') || '';
+            
+            const severityStr = typeof severity === 'string' ? severity : String(severity || '');
             
             return (
               <div
                 key={idx}
-                className={`flex items-center justify-between rounded-lg border ${styles.border} bg-white p-2 shadow-sm`}
+                className={`flex items-center justify-between gap-2 rounded-lg border ${styles.border} bg-white p-2 shadow-sm w-full`}
               >
-                <span
-                  className={`text-sm font-medium ${variant === "red" ? "text-red-900" : "text-gray-900"}`}
+                <p
+                  className={`text-sm font-medium flex-1 leading-relaxed ${variant === "red" ? "text-red-900" : "text-gray-900"}`}
                 >
                   {item.primary}
-                </span>
-                {(severity.toLowerCase().includes("alta") || severity.toLowerCase().includes("high")) && (
+                </p>
+                {severityStr && (severityStr.toLowerCase().includes("alta") || severityStr.toLowerCase().includes("high")) && (
                   <span
-                    className="h-2 w-2 animate-pulse rounded-full bg-red-500"
+                    className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-red-500"
                     title="Alta Severidade"
                   ></span>
                 )}

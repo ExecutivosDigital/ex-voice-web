@@ -286,12 +286,12 @@ export function RequestTranscription() {
                       disabled={isRequesting}
                       className={cn(
                         "group relative flex w-full items-center gap-4 rounded-xl border-2 bg-white p-4 text-left shadow-sm transition-all duration-200",
-                        selectedPrompt?.id === prompt.id
+                        selectedPrompt && selectedPrompt !== "default" && selectedPrompt.id === prompt.id
                           ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
                           : "border-gray-100 hover:border-blue-300 hover:shadow-md hover:shadow-blue-500/10",
                         isRequesting && "cursor-not-allowed opacity-50",
                       )}
-                    >
+                    >4
                       {/* Ícone com gradiente melhorado */}
                       <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 transition-transform group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-blue-500/40">
                         <PromptIcon
@@ -316,7 +316,7 @@ export function RequestTranscription() {
                             {getSourceLabel(prompt.source)}
                           </span>
                           {/* Indicador de seleção */}
-                          {selectedPrompt?.id === prompt.id && (
+                          {selectedPrompt && selectedPrompt !== "default" && selectedPrompt.id === prompt.id && (
                             <div className="flex items-center justify-center rounded-full bg-blue-600 p-1.5 shadow-lg">
                               <Check size={16} className="text-white" />
                             </div>

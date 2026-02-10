@@ -19,22 +19,22 @@ export function FamilyHistoryCard({
   const Icon = getIcon("dna");
 
   return (
-    <div className="h-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <h3 className="mb-4 flex items-center gap-2 font-semibold text-gray-900">
-        <Icon className="h-5 w-5 text-gray-400" />
-        {title}
+    <div className="h-full w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <h3 className="mb-4 flex items-center gap-2 font-semibold text-gray-900 min-w-0">
+        <Icon className="h-5 w-5 shrink-0 text-gray-400" />
+        <span className="leading-relaxed">{title}</span>
       </h3>
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0">
         {data.familyHistory && Array.isArray(data.familyHistory) && data.familyHistory.length > 0 ? (
           data.familyHistory.map((item, idx) => (
             <div
               key={idx}
-              className="relative border-l-2 border-dashed border-gray-200 pl-4"
+              className="relative border-l-2 border-dashed border-gray-200 pl-4 min-w-0"
             >
-              <p className="text-sm font-bold text-gray-800">{item.relation || 'N/A'}</p>
-              <p className="text-sm text-gray-600">{item.condition || 'N/A'}</p>
+              <p className="text-sm font-bold text-gray-800 leading-relaxed">{item.relation || 'N/A'}</p>
+              <p className="text-sm text-gray-600 leading-relaxed">{item.condition || 'N/A'}</p>
               {item.age && (
-                <p className="mt-1 text-xs text-gray-400">
+                <p className="mt-1 text-xs text-gray-400 leading-relaxed">
                   Diagnóstico: {item.age}
                 </p>
               )}

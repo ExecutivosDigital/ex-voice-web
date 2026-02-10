@@ -36,41 +36,41 @@ export function ChronicConditionsCard({
 
   return (
     <div
-      className={`h-full rounded-2xl border ${styles.border} ${styles.bg} p-4 shadow-sm`}
+      className={`h-full w-full max-w-full min-w-0 overflow-hidden rounded-2xl border ${styles.border} ${styles.bg} p-4 shadow-sm`}
     >
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3 min-w-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <h3 className={`font-semibold ${variant === "indigo" ? "text-indigo-900" : "text-gray-900"}`}>
+        <h3 className={`font-semibold leading-relaxed ${variant === "indigo" ? "text-indigo-900" : "text-gray-900"}`}>
           {title}
         </h3>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 min-w-0">
         {displayItems && displayItems.length > 0 ? (
           displayItems.map((item, idx) => (
             <div
               key={idx}
-              className={`rounded-lg border ${styles.border} bg-white p-2 shadow-sm`}
+              className={`rounded-lg border ${styles.border} bg-white p-2 shadow-sm w-full`}
             >
-              <div className="flex items-start justify-between">
-                <span
-                  className={`text-sm font-medium ${variant === "indigo" ? "text-indigo-900" : "text-gray-900"}`}
+              <div className="flex items-start justify-between gap-2">
+                <p
+                  className={`text-sm font-medium leading-relaxed flex-1 ${variant === "indigo" ? "text-indigo-900" : "text-gray-900"}`}
                 >
                   {item.primary}
-                </span>
+                </p>
               </div>
               {item.metadata && item.metadata.length > 0 && (
-                <span className="mt-0.5 block text-[10px] text-gray-500">
+                <p className="mt-0.5 text-[10px] text-gray-500 leading-relaxed">
                   {item.metadata.map((meta: { label: string; value: string }, i: number) => (
                     <span key={i}>
                       {i > 0 && ' • '}
                       {meta.value}
                     </span>
                   ))}
-                </span>
+                </p>
               )}
             </div>
           ))

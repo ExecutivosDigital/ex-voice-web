@@ -19,17 +19,17 @@ export function ObservationsCard({
   const Icon = getIcon("info");
 
   return (
-    <div className="h-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex items-center gap-3">
+    <div className="h-full w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 md:p-6 shadow-sm">
+      <div className="mb-4 md:mb-5 flex items-center gap-3 min-w-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <h3 className="font-semibold text-gray-900">{title}</h3>
+        <h3 className="font-semibold text-gray-900 break-words min-w-0 leading-relaxed">{title}</h3>
       </div>
       {data.observations ? (
-        <p className="text-sm leading-relaxed text-gray-600">
+        <p className="text-sm leading-relaxed text-gray-600 break-words">
           {data.observations}
         </p>
       ) : (
