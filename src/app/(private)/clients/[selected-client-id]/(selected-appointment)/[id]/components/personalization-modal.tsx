@@ -1,51 +1,35 @@
 "use client";
 
 import { cn } from "@/utils/cn";
-import { ChevronRight, MessageCircle } from "lucide-react";
+import { ChevronRight, ChevronLeft, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
-// Placeholder para imagens dos passos - você precisará adicionar as imagens reais
-const STEP_IMAGES = [
-  "/images/personalization-step-1.png",
-  "/images/personalization-step-2.png",
-  "/images/personalization-step-3.png",
-  "/images/personalization-step-4.png",
-  "/images/personalization-step-5.png",
-];
-
 interface StepContent {
-  image: string;
   title: string;
   text: string;
 }
 
 const steps: StepContent[] = [
   {
-    image: STEP_IMAGES[0],
-    title: "Personalize seus Prontuários",
-    text: "Crie prompts personalizados que se adaptem perfeitamente ao seu estilo de trabalho e às necessidades da sua especialidade médica.",
+    title: "PERSONALIZE A INTELIGÊNCIA DA SUA IA !",
+    text: "Defina como nossa IA deve interpretar suas reuniões",
   },
   {
-    image: STEP_IMAGES[1],
-    title: "Economize Tempo",
-    text: "Com prompts personalizados, a IA gera prontuários e resumos exatamente como você precisa, reduzindo o tempo de edição e revisão.",
+    title: "O QUE NOSSA IA GERA ?",
+    text: "Decisões Irrevogáveis, Análises de Risco, Planos de Ação e muito mais !",
   },
   {
-    image: STEP_IMAGES[2],
-    title: "Padronize seu Trabalho",
-    text: "Mantenha consistência em todos os seus prontuários com templates personalizados que refletem suas preferências e protocolos.",
+    title: "PERSONALIZE SUA IA AGORA",
+    text: "Nossa tecnologia adaptativa aprende seus termos técnicos e padrões de governança.",
   },
-  {
-    image: STEP_IMAGES[3],
-    title: "Aumente a Qualidade",
-    text: "Prontuários mais precisos e completos, gerados com base nas suas especificações e melhores práticas da sua área.",
-  },
-  {
-    image: STEP_IMAGES[4],
-    title: "Fale com Nossa Equipe",
-    text: "Nossos especialistas estão prontos para criar prompts personalizados exclusivos para você. Entre em contato via WhatsApp!",
-  },
+];
+
+// Imagens para cada step
+const stepImages = [
+  "/modal/perso1.png",
+  "/modal/perso2.png",
+  "/modal/perso3.png",
 ];
 
 interface PersonalizationModalProps {
@@ -71,9 +55,12 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
-    } else {
-      // No último passo, pode fechar
-      handleClose();
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
@@ -100,87 +87,132 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4 animate-in fade-in duration-300">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-5 duration-500">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-blue-500" />
-            <span className="text-sm font-semibold text-gray-700">Health Voice</span>
-          </div>
-        </div>
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl animate-in zoom-in-95 slide-in-from-bottom-5 duration-500">
+        {/* Gradiente de fundo azul */}
+        <div
+          className="w-full"
+          style={{
+            background: "linear-gradient(to bottom, #F4F4F4 0%, #E8F2FC 5%, #D1E6F8 10%, #B8D9F5 15%, #9BC9F0 20%, #7BB8ED 30%, #5AA5E8 45%, #3D92E3 65%, #0E78EC 100%)",
+          }}
+        >
+          {/* Conteúdo da modal */}
+          <div className="flex flex-col items-center px-5 py-10">
+            {/* Imagem no topo - step 3 */}
+            {isLastStep && (
+              <div className="relative mb-6 w-[70%] max-w-[300px] aspect-[16/10] overflow-hidden rounded-2xl shadow-lg">
+                <Image
+                  src={stepImages[currentStep]}
+                  alt={currentStepData.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            )}
+            {/* Imagem no topo - steps 1 e 2 */}
+            {!isLastStep && (
+              <div className="relative mb-6 w-[70%] max-w-[300px] aspect-[16/10] overflow-hidden rounded-2xl shadow-lg">
+                <Image
+                  src={stepImages[currentStep]}
+                  alt={currentStepData.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            )}
 
-        {/* Conteúdo da modal */}
-        <div className="flex flex-col items-center px-8 py-8">
-          {/* Imagem com proporção 3:4 */}
-          <div className="relative mb-6 w-full max-w-[240px] aspect-[3/4] overflow-hidden rounded-2xl bg-gray-100">
-            {currentStepData.image ? (
-              <Image
-                src={currentStepData.image}
-                alt={currentStepData.title}
-                fill
-                className="object-cover"
-                priority
-              />
+            {/* Título */}
+            <div className="mt-2 mb-4 w-full px-2">
+              {currentStep === 0 ? (
+                <h2 className="text-center text-2xl leading-8 text-white whitespace-pre-line">
+                  <span className="font-normal">PERSONALIZE A</span>{"\n"}
+                  <span className="font-bold">INTELIGÊNCIA</span>{" "}
+                  <span className="font-normal">DA SUA</span>{" "}
+                  <span className="font-bold">IA</span> !
+                </h2>
+              ) : currentStep === 1 ? (
+                <h2 className="text-center text-2xl leading-8 text-white">
+                  <span className="font-normal">O QUE NOSSA</span>{" "}
+                  <span className="font-bold">IA GERA</span> ?
+                </h2>
+              ) : (
+                <h2 className="text-center text-2xl leading-8 text-white">
+                  <span className="font-normal">PERSONALIZE SUA</span>{" "}
+                  <span className="font-bold">IA AGORA</span>
+                </h2>
+              )}
+            </div>
+
+            {/* Texto */}
+            <p className="mb-6 text-center text-base leading-6 text-white px-2">
+              {currentStepData.text}
+            </p>
+
+            {/* Indicador de passos */}
+            <div className="mb-8 flex items-center gap-2">
+              {steps.map((_, index) => (
+                <div
+                  key={index}
+                  className={cn(
+                    "h-2 rounded-full transition-all duration-300",
+                    index === currentStep
+                      ? "w-8 bg-white"
+                      : index < currentStep
+                        ? "w-2 bg-blue-300"
+                        : "w-2 bg-white/30"
+                  )}
+                />
+              ))}
+            </div>
+
+            {/* Botões */}
+            {isLastStep ? (
+              <div className="w-full">
+                <button
+                  onClick={handleWhatsAppClick}
+                  className="group flex w-full items-center justify-center gap-3 rounded-xl bg-[#1E40AF] px-6 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  <span>Fale Conosco</span>
+                  <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </button>
+                <button
+                  onClick={handleClose}
+                  className="mt-4 flex w-full items-center justify-center rounded-xl bg-white px-6 py-4 font-bold text-[#1E40AF] shadow-md transition-all hover:scale-105 active:scale-95"
+                >
+                  Fechar
+                </button>
+              </div>
+            ) : currentStep === 0 ? (
+              // Step 1: apenas botão Continuar
+              <button
+                onClick={handleNext}
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E40AF] px-8 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+              >
+                <span>Continuar</span>
+                <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </button>
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600">
-                <span className="text-4xl">📋</span>
+              // Step 2: botão Voltar e Continuar
+              <div className="flex w-full gap-3">
+                <button
+                  onClick={handlePrevious}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white px-6 py-4 font-semibold text-[#1E40AF] transition-all hover:scale-105 active:scale-95"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                  <span>Voltar</span>
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#1E40AF] px-6 py-4 font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                >
+                  <span>Continuar</span>
+                  <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </button>
               </div>
             )}
           </div>
-
-          {/* Título */}
-          <h2 className="mb-4 text-center text-2xl font-bold text-gray-900">
-            {currentStepData.title}
-          </h2>
-
-          {/* Texto */}
-          <p className="mb-8 text-center text-base leading-relaxed text-gray-600">
-            {currentStepData.text}
-          </p>
-
-          {/* Indicador de passos */}
-          <div className="mb-8 flex items-center gap-2">
-            {steps.map((_, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-300",
-                  index === currentStep
-                    ? "w-8 bg-blue-500"
-                    : index < currentStep
-                      ? "w-2 bg-blue-300"
-                      : "w-2 bg-gray-300"
-                )}
-              />
-            ))}
-          </div>
-
-          {/* Botões */}
-          {isLastStep ? (
-            <div className="flex w-full flex-col gap-4">
-              <button
-                onClick={handleWhatsAppClick}
-                className="group flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-green-600 to-green-700 px-8 py-4 font-bold text-white shadow-lg shadow-green-500/20 transition-all hover:shadow-green-500/40 hover:scale-105 active:scale-95"
-              >
-                <MessageCircle className="h-5 w-5" />
-                <span>Falar com Especialista no WhatsApp</span>
-              </button>
-              <button
-                onClick={handleClose}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-8 py-4 font-medium text-gray-700 transition-all hover:bg-gray-50"
-              >
-                <span>Fechar</span>
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleNext}
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-4 font-bold text-white shadow-lg shadow-blue-500/20 transition-all hover:shadow-blue-500/40 hover:scale-105 active:scale-95"
-            >
-              <span>Próximo</span>
-              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </button>
-          )}
         </div>
       </div>
     </div>
