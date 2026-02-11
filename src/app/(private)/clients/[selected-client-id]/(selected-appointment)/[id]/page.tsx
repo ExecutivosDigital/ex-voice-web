@@ -7,7 +7,7 @@ export default function SelectedAppointment() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Resumo</h1>
           <p className="text-sm text-gray-500">
-            Resumo em texto da consulta gerado pela IA.
+            Resumo em texto da reunião gerado pela IA.
           </p>
         </div>
       </div>

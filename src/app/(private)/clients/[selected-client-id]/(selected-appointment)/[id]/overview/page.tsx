@@ -1,18 +1,19 @@
 "use client";
 
+import { useSession } from "@/context/auth";
 import { FileDown, Loader2, Sparkles } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Overview, type OverviewHandle } from "../components/overview";
-import { PersonalizationModal } from "../components/personalization-modal";
 import { exportOverviewToPdf } from "../utils/export-medical-record-pdf";
 
 export default function OverviewPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [editingCount, setEditingCount] = useState(0);
-  const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
+  const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] =
+    useState(false);
   const overviewRef = useRef<OverviewHandle | null>(null);
-
+  const { isTrial } = useSession();
   // Abrir modal quando entrar na página (apenas uma vez)
   // useEffect(() => {
   //   const hasSeenModal = sessionStorage.getItem("hasSeenPersonalizationModal-resumo");
@@ -48,7 +49,6 @@ export default function OverviewPage() {
       setIsExporting(false);
     }
   };
-
   return (
     <div className="flex w-full max-w-full min-w-0 flex-col gap-6 overflow-x-hidden">
       <div className="flex w-full min-w-0 items-center justify-between">
@@ -61,14 +61,16 @@ export default function OverviewPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsPersonalizationModalOpen(true)}
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100"
-          >
-            <Sparkles className="h-4 w-4" />
-            Personalizar Resumo
-          </button>
+          {isTrial && (
+            <button
+              type="button"
+              onClick={() => setIsPersonalizationModalOpen(true)}
+              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100"
+            >
+              <Sparkles className="h-4 w-4" />
+              Personalizar Resumo
+            </button>
+          )}
           <button
             type="button"
             onClick={handleExportPdf}
