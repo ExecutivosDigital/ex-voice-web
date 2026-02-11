@@ -14,13 +14,13 @@ export default function OverviewPage() {
   const overviewRef = useRef<OverviewHandle | null>(null);
 
   // Abrir modal quando entrar na página (apenas uma vez)
-  useEffect(() => {
-    const hasSeenModal = sessionStorage.getItem("hasSeenPersonalizationModal-resumo");
-    if (!hasSeenModal) {
-      setIsPersonalizationModalOpen(true);
-      sessionStorage.setItem("hasSeenPersonalizationModal-resumo", "true");
-    }
-  }, []);
+  // useEffect(() => {
+  //   const hasSeenModal = sessionStorage.getItem("hasSeenPersonalizationModal-resumo");
+  //   if (!hasSeenModal) {
+  //     setIsPersonalizationModalOpen(true);
+  //     sessionStorage.setItem("hasSeenPersonalizationModal-resumo", "true");
+  //   }
+  // }, []);
 
   const handleEditStart = useCallback(() => setEditingCount((c) => c + 1), []);
   const handleEditEnd = useCallback(
@@ -107,11 +107,11 @@ export default function OverviewPage() {
         </button>
       </div>
 
-      <PersonalizationModal
+      {/* <PersonalizationModal
         isOpen={isPersonalizationModalOpen}
         onClose={() => setIsPersonalizationModalOpen(false)}
         type="resumo"
-      />
+      /> */}
     </div>
   );
 }
