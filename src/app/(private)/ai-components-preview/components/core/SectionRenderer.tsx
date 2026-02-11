@@ -1,12 +1,12 @@
 "use client";
 
+import { Copy, Pencil } from "lucide-react";
 import { useState } from "react";
-import { Pencil, Copy } from "lucide-react";
 import toast from "react-hot-toast";
 import { AIComponent, AISection } from "../../types/component-types";
+import { hasValidComponentData } from "../../utils/component-data-checker";
 import { CardEditForm } from "../CardEditForm";
 import { ComponentRenderer } from "./ComponentRenderer";
-import { hasValidComponentData } from "../../utils/component-data-checker";
 
 interface SectionRendererProps {
   section: AISection;
@@ -232,7 +232,7 @@ function getComponentCopyText(component: AIComponent): string {
       lines.push(`${f.label}: ${f.value}`),
     );
     if (typeof d.content === "string" && d.content) {
-      lines.push("", "Justificativa clínica:", d.content);
+      lines.push("", "Justificativa:", d.content);
     }
     return lines.join("\n");
   }

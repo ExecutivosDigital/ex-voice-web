@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import type { AIComponent, FieldConfig } from "../types/component-types";
 
 const inputClass =
@@ -920,7 +920,7 @@ export function CardEditForm({
           <ContentEditor
             value={(d.content as string) ?? ""}
             onChange={(v) => setEditData({ ...d, content: v })}
-            label="Justificativa clínica"
+            label="Justificativa"
           />
         </>
       )}
