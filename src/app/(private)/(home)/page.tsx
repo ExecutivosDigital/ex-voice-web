@@ -240,7 +240,7 @@ export default function HomePage() {
       </div>
 
       <CompleteRegistrationModal />
-      <TrialAppModal />
+      {/* <TrialAppModal /> */}
     </div>
   );
 }

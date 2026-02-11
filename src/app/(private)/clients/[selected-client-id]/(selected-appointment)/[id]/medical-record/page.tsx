@@ -14,13 +14,13 @@ export default function MedicalRecordPage() {
   const medicalRecordRef = useRef<MedicalRecordHandle | null>(null);
 
   // Abrir modal quando entrar na página (apenas uma vez)
-  useEffect(() => {
-    const hasSeenModal = sessionStorage.getItem("hasSeenPersonalizationModal-prontuario");
-    if (!hasSeenModal) {
-      setIsPersonalizationModalOpen(true);
-      sessionStorage.setItem("hasSeenPersonalizationModal-prontuario", "true");
-    }
-  }, []);
+  // useEffect(() => {
+  //   const hasSeenModal = sessionStorage.getItem("hasSeenPersonalizationModal-prontuario");
+  //   if (!hasSeenModal) {
+  //     setIsPersonalizationModalOpen(true);
+  //     sessionStorage.setItem("hasSeenPersonalizationModal-prontuario", "true");
+  //   }
+  // }, []);
 
   const handleEditStart = useCallback(() => setEditingCount((c) => c + 1), []);
   const handleEditEnd = useCallback(
@@ -108,11 +108,11 @@ export default function MedicalRecordPage() {
         </button>
       </div>
 
-      <PersonalizationModal
+      {/* <PersonalizationModal
         isOpen={isPersonalizationModalOpen}
         onClose={() => setIsPersonalizationModalOpen(false)}
         type="prontuario"
-      />
+      /> */}
     </div>
   );
 }

@@ -149,7 +149,7 @@ export function RequestTranscription() {
       case "USER":
         return "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-sm";
       case "COMPANY":
-        return "bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-sm";
+        return "bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-sm";
       case "GLOBAL":
         return "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-sm";
       default:
@@ -209,19 +209,19 @@ export function RequestTranscription() {
       >
         <div className="flex h-full flex-col bg-gradient-to-b from-white to-gray-50/50">
           {/* Header com gradiente melhorado */}
-          <div className="relative flex shrink-0 items-center justify-between border-b border-blue-400/20 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 px-8 py-6 shadow-lg">
+          <div className="relative flex shrink-0 items-center justify-between border-b border-gray-400/20 bg-gradient-to-r from-gray-700 via-gray-600 to-neutral-700 px-8 py-6 shadow-lg">
             <div className="flex items-center gap-4">
               <Image
                 src="/logos/logo2.png"
                 alt="Health Voice Logo"
-                width={200}
-                height={80}
-                className="h-8 w-auto object-contain brightness-0 invert"
+                width={160}
+                height={64}
+                className="h-6 w-auto object-contain brightness-0 invert"
                 quality={100}
               />
               <div className="flex flex-col gap-1.5">
                 <p className="text-sm font-medium text-white/95">
-                  Escolha o prompt que será utilizado para a transcrição
+                  Escolha a IA que será utilizado para a transcrição
                 </p>
               </div>
             </div>
@@ -251,10 +251,10 @@ export function RequestTranscription() {
               />
               <input
                 type="text"
-                placeholder="Buscar prompts..."
+                placeholder="Buscar IA..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border-2 border-gray-200 bg-white py-3.5 pr-4 pl-12 text-sm shadow-sm transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none"
+                className="w-full rounded-xl border-2 border-gray-200 bg-white py-3.5 pr-4 pl-12 text-sm shadow-sm transition-all placeholder:text-gray-400 focus:border-gray-500 focus:bg-white focus:ring-4 focus:ring-gray-500/10 focus:outline-none"
               />
             </div>
 
@@ -269,9 +269,9 @@ export function RequestTranscription() {
             >
               {isLoadingPrompts ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="animate-spin text-blue-500" size={32} />
+                  <Loader2 className="animate-spin text-gray-500" size={32} />
                   <p className="mt-4 text-sm text-gray-500">
-                    Carregando prompts...
+                    Carregando IA...
                   </p>
                 </div>
               ) : (
@@ -296,11 +296,11 @@ export function RequestTranscription() {
                     {/* Conteúdo do prompt padrão */}
                     <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
                       <span className="truncate font-medium text-gray-600 transition-colors group-hover:text-gray-700">
-                        Prompt Padrão
+                        IA Padrão
                       </span>
                       <div className="flex shrink-0 items-center gap-3">
                         <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-medium whitespace-nowrap text-gray-600">
-                          Padrão
+                          IA Padrão
                         </span>
                         {/* Indicador de seleção */}
                         {selectedPrompt === "default" && (
@@ -319,7 +319,7 @@ export function RequestTranscription() {
                         <Search className="text-gray-400" size={24} />
                       </div>
                       <p className="mt-3 text-center text-sm font-medium text-gray-600">
-                        Nenhum prompt encontrado para esta busca
+                        Nenhuma IA encontrada para esta busca
                       </p>
                     </div>
                   ) : (
@@ -333,13 +333,13 @@ export function RequestTranscription() {
                           selectedPrompt &&
                             selectedPrompt !== "default" &&
                             selectedPrompt.id === prompt.id
-                            ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
-                            : "border-gray-100 hover:border-blue-300 hover:shadow-md hover:shadow-blue-500/10",
+                            ? "border-gray-500 bg-gray-50 shadow-md shadow-gray-500/20"
+                            : "border-gray-100 hover:border-gray-300 hover:shadow-md hover:shadow-gray-500/10",
                           isRequesting && "cursor-not-allowed opacity-50",
                         )}
                       >
-                        4{/* Ícone com gradiente melhorado */}
-                        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 transition-transform group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-blue-500/40">
+                        {/* Ícone com gradiente melhorado */}
+                        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-500 via-gray-600 to-neutral-600 shadow-lg shadow-gray-500/30 transition-transform group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-gray-500/40">
                           <PromptIcon
                             icon={prompt.icon}
                             size={24}
@@ -348,7 +348,7 @@ export function RequestTranscription() {
                         </div>
                         {/* Conteúdo do prompt */}
                         <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-                          <span className="truncate font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
+                          <span className="truncate font-semibold text-gray-900 transition-colors group-hover:text-gray-600">
                             {prompt.name}
                           </span>
                           <div className="flex shrink-0 items-center gap-3">
@@ -364,7 +364,7 @@ export function RequestTranscription() {
                             {selectedPrompt &&
                               selectedPrompt !== "default" &&
                               selectedPrompt.id === prompt.id && (
-                                <div className="flex items-center justify-center rounded-full bg-blue-600 p-1.5 shadow-lg">
+                                <div className="flex items-center justify-center rounded-full bg-gray-600 p-1.5 shadow-lg">
                                   <Check size={16} className="text-white" />
                                 </div>
                               )}
@@ -384,7 +384,7 @@ export function RequestTranscription() {
                   onClick={handleConfirmSelection}
                   disabled={isRequesting}
                   className={cn(
-                    "flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 font-semibold text-white shadow-lg shadow-blue-500/50 transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/60 disabled:cursor-not-allowed disabled:opacity-50",
+                    "flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-gray-600 to-neutral-600 px-6 py-4 font-semibold text-white shadow-lg shadow-gray-500/50 transition-all hover:from-gray-700 hover:to-neutral-700 hover:shadow-xl hover:shadow-gray-500/60 disabled:cursor-not-allowed disabled:opacity-50",
                   )}
                 >
                   {isRequesting ? (
@@ -396,9 +396,9 @@ export function RequestTranscription() {
                     <>
                       <Check size={20} />
                       <span>
-                        Confirmar seleção:{" "}
+                        Confirmar seleção de IA:{" "}
                         {selectedPrompt === "default"
-                          ? "Prompt Padrão"
+                          ? "IA Padrão"
                           : selectedPrompt.name}
                       </span>
                     </>
