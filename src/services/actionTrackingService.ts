@@ -8,6 +8,7 @@ export enum UserActionType {
   PDF_EXPORTED = 'PDF_EXPORTED',
   SCREEN_VIEWED = 'SCREEN_VIEWED',
   TAB_CLICKED = 'TAB_CLICKED',
+  CONVERSATION_STARTED = 'CONVERSATION_STARTED',
 }
 
 interface TrackActionParams {
@@ -35,8 +36,8 @@ export async function trackAction(
 ): Promise<void> {
   try {
     const platform = getCurrentPlatform();
-    
-    await PostAPI(
+
+    const result = await PostAPI(
       '/analytics/actions',
       {
         actionType: params.actionType,
@@ -46,8 +47,13 @@ export async function trackAction(
       },
       true
     );
+
+    if (result.status < 200 || result.status >= 300) {
+      throw { status: result.status, body: result.body };
+    }
   } catch (error) {
     // Erro silencioso - não deve quebrar funcionalidades principais
     console.warn('Erro ao registrar ação de tracking:', error);
+    throw error;
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { FileDown, Loader2, Sparkles } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Overview, type OverviewHandle } from "../components/overview";
@@ -15,6 +16,7 @@ export default function OverviewPage() {
   const [editingCount, setEditingCount] = useState(0);
   const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
   const overviewRef = useRef<OverviewHandle | null>(null);
+  const pathname = usePathname();
   const { PostAPI } = useApiContext();
   const { selectedRecording, selectedClient } = useGeneralContext();
 
@@ -27,9 +29,10 @@ export default function OverviewPage() {
   //   }
   // }, []);
 
-  // Tracking quando a página é visualizada
+  // Tracking quando a página é visualizada (pathname garante disparo a cada acesso à tela)
   useEffect(() => {
     if (selectedRecording?.id) {
+      console.log('[Tracking] Disparando SCREEN_VIEWED: overview (Resumo Geral)');
       trackAction(
         {
           actionType: UserActionType.SCREEN_VIEWED,
@@ -37,14 +40,15 @@ export default function OverviewPage() {
           metadata: {
             screen: 'overview',
             screenName: 'Resumo Geral',
+            recordingId: selectedRecording.id,
           },
         },
         PostAPI
-      ).catch((error) => {
-        console.warn('Erro ao registrar tracking de visualização:', error);
+      ).catch((err: { status?: number; body?: unknown }) => {
+        console.warn('[Tracking] Falha ao registrar Overview:', err?.status ?? err, err?.body ?? err);
       });
     }
-  }, [selectedRecording?.id, PostAPI]);
+  }, [selectedRecording?.id, PostAPI, pathname]);
 
   const handleEditStart = useCallback(() => setEditingCount((c) => c + 1), []);
   const handleEditEnd = useCallback(
@@ -72,6 +76,7 @@ export default function OverviewPage() {
             metadata: {
               type: 'overview',
               patientName: selectedClient?.name || undefined,
+              recordingId: selectedRecording.id,
             },
           },
           PostAPI

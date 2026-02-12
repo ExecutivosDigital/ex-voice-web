@@ -11,6 +11,7 @@ import { generalPrompt } from "@/utils/prompts";
 import { PromptIcon } from "@/utils/prompt-icon";
 import { ArrowLeft, Maximize2, Minimize2, Plus } from "lucide-react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChatInput } from "./components/chat-input";
 import { SuggestionCard } from "./components/suggestion-card";
@@ -24,11 +25,13 @@ function useInputRef(value: string) {
 }
 
 export default function ChatPage() {
+  const pathname = usePathname();
   const { profile } = useSession();
   const { PostAPI } = useApiContext();
   const { selectedRecording } = useGeneralContext();
   const { prompts, isLoading: isLoadingPrompts } = useChatPrompts();
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const conversationStartedTrackedRef = useRef(false);
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<ChatPrompt | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -46,6 +49,26 @@ export default function ChatPage() {
   const handleSendMessage = () => {
     const textToSend = inputMessageRef.current;
     if (textToSend.trim() || engine.fileHandler.files.length > 0 || engine.audioRecorder.audioFile) {
+      const userMessagesCount = engine.messages.filter((m) => m.role === 'user').length;
+      if (userMessagesCount === 0 && !conversationStartedTrackedRef.current) {
+        conversationStartedTrackedRef.current = true;
+        console.log('[Tracking] Disparando CONVERSATION_STARTED (chat)');
+        trackAction(
+          {
+            actionType: UserActionType.CONVERSATION_STARTED,
+            recordingId: selectedRecording?.id,
+            metadata: {
+              screen: 'chat',
+              screenName: 'Conversar',
+              recordingId: selectedRecording?.id,
+              conversationStarted: true,
+            },
+          },
+          PostAPI
+        ).catch((err: { status?: number; body?: unknown }) => {
+          console.warn('[Tracking] Falha ao registrar início de conversa:', err?.status ?? err, err?.body ?? err);
+        });
+      }
       engine.sendMessage(textToSend);
       setInputMessage("");
     }
@@ -92,9 +115,10 @@ export default function ChatPage() {
     }
   };
 
-  // Tracking quando a página é visualizada
+  // Tracking quando a página é visualizada (pathname garante disparo a cada acesso à tela)
   useEffect(() => {
     if (selectedRecording?.id) {
+      console.log('[Tracking] Disparando SCREEN_VIEWED: chat (Conversar)');
       trackAction(
         {
           actionType: UserActionType.SCREEN_VIEWED,
@@ -102,14 +126,15 @@ export default function ChatPage() {
           metadata: {
             screen: 'chat',
             screenName: 'Conversar',
+            recordingId: selectedRecording.id,
           },
         },
         PostAPI
-      ).catch((error) => {
-        console.warn('Erro ao registrar tracking de visualização:', error);
+      ).catch((err: { status?: number; body?: unknown }) => {
+        console.warn('[Tracking] Falha ao registrar Chat:', err?.status ?? err, err?.body ?? err);
       });
     }
-  }, [selectedRecording?.id, PostAPI]);
+  }, [selectedRecording?.id, PostAPI, pathname]);
 
   // Re-inject transcription if messages cleared usually happens via useEffect logic
   useEffect(() => {
