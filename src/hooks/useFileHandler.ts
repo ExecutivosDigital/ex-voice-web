@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import toast from "react-hot-toast";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 const MAX_FILES = 5; // Limite de arquivos simultâneos
@@ -24,7 +25,7 @@ export function useFileHandler() {
       const filesArray = Array.from(newFiles);
 
       if (files.length + filesArray.length > MAX_FILES) {
-        alert(`Você só pode enviar no máximo ${MAX_FILES} arquivos por vez.`);
+        toast.error(`Você só pode enviar no máximo ${MAX_FILES} arquivos por vez.`);
         return;
       }
 
@@ -34,7 +35,7 @@ export function useFileHandler() {
 
       for (const file of filesArray) {
         if (file.size >= MAX_FILE_SIZE) {
-          alert(`O arquivo ${file.name} excede o limite de 20MB.`);
+          toast.error(`O arquivo ${file.name} excede o limite de 20MB.`);
           continue;
         }
 
@@ -86,12 +87,12 @@ export function useFileHandler() {
   const addFile = useCallback(
     async (file: File) => {
       if (files.length >= MAX_FILES) {
-        alert(`Você só pode enviar no máximo ${MAX_FILES} arquivos por vez.`);
+        toast.error(`Você só pode enviar no máximo ${MAX_FILES} arquivos por vez.`);
         return;
       }
 
       if (file.size >= MAX_FILE_SIZE) {
-        alert(`O arquivo ${file.name} excede o limite de 20MB.`);
+        toast.error(`O arquivo ${file.name} excede o limite de 20MB.`);
         return;
       }
 

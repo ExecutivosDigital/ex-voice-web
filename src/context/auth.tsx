@@ -13,6 +13,7 @@ import React, {
 } from "react";
 import config from "../utils/amplify.json";
 import { useApiContext } from "./ApiContext";
+import { startSession } from "../services/analyticsService";
 
 export interface User {
   id: string;
@@ -52,7 +53,7 @@ export function useSession() {
 }
 
 export function SessionProvider({ children }: PropsWithChildren) {
-  const { GetAPI } = useApiContext();
+  const { GetAPI, PostAPI } = useApiContext();
   Amplify.configure(config);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<User | null>(null);
@@ -251,6 +252,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
         console.log("🚀 ~ handleGetProfile ~ response:", response);
         if (response.status === 200) {
           setProfile(response.body.profile);
+          // Iniciar tracking de sessão após sucesso na busca do perfil
+          try {
+            await startSession(PostAPI);
+          } catch (error) {
+            // Erro silencioso - não deve bloquear o fluxo de autenticação
+            console.error("Erro ao iniciar sessão de analytics:", error);
+          }
         } else if (response.status === 401 && retryCount < 1) {
           invalidateSessionCache();
           await fetchAuthSession({ forceRefresh: true });
@@ -282,7 +290,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         isLoadingProfile.current = false;
       }
     },
-    [GetAPI, checkSession, forceSignOut, invalidateSessionCache, waitForTokens],
+    [GetAPI, PostAPI, checkSession, forceSignOut, invalidateSessionCache, waitForTokens],
   );
 
   /**

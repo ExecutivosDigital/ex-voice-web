@@ -1,6 +1,9 @@
 "use client";
 
 import { useGeneralContext } from "@/context/GeneralContext";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { useApiContext } from "@/context/ApiContext";
+import { startSession } from "@/services/analyticsService";
 import { Activity, Clock, Loader2, Mic, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -26,6 +29,10 @@ const formatDateForAPI = (date: Date): string => {
 export default function HomePage() {
   const { dashboardStats, isGettingDashboardStats, GetDashboardStats } =
     useGeneralContext();
+  const { PostAPI } = useApiContext();
+
+  // Geolocalização
+  const { latitude, longitude, fullData, error: geolocationError, isLoading: isLoadingLocation, requestLocation } = useGeolocation();
 
   // Date range state - default to last 7 days
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
@@ -54,6 +61,20 @@ export default function HomePage() {
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+
+  // Solicitar localização quando a página carregar
+  useEffect(() => {
+    requestLocation();
+  }, [requestLocation]);
+
+  // Enviar localização para startSession quando disponível
+  useEffect(() => {
+    if (fullData) {
+      startSession(PostAPI, fullData).catch((error) => {
+        console.warn('Erro ao enviar localização na sessão:', error);
+      });
+    }
+  }, [fullData, PostAPI]);
 
   // Converter dados da API para o formato do gráfico
   const chartData = useMemo(() => {
@@ -184,6 +205,7 @@ export default function HomePage() {
     },
   ];
   console.log(chartData, "chartData");
+  
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="mb-4 flex w-full flex-row items-center justify-between gap-2">

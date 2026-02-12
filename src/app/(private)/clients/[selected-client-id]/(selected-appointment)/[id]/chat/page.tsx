@@ -1,9 +1,11 @@
 "use client";
 
 import { useSession } from "@/context/auth";
+import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useChatEngine } from "@/hooks/useChatEngine";
 import { useChatPrompts, type ChatPrompt } from "@/hooks/useChatPrompts";
+import { trackAction, UserActionType } from "@/services/actionTrackingService";
 import { cn } from "@/utils/cn";
 import { generalPrompt } from "@/utils/prompts";
 import { PromptIcon } from "@/utils/prompt-icon";
@@ -23,6 +25,7 @@ function useInputRef(value: string) {
 
 export default function ChatPage() {
   const { profile } = useSession();
+  const { PostAPI } = useApiContext();
   const { selectedRecording } = useGeneralContext();
   const { prompts, isLoading: isLoadingPrompts } = useChatPrompts();
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -88,6 +91,25 @@ export default function ChatPage() {
       }, 100);
     }
   };
+
+  // Tracking quando a página é visualizada
+  useEffect(() => {
+    if (selectedRecording?.id) {
+      trackAction(
+        {
+          actionType: UserActionType.SCREEN_VIEWED,
+          recordingId: selectedRecording.id,
+          metadata: {
+            screen: 'chat',
+            screenName: 'Conversar',
+          },
+        },
+        PostAPI
+      ).catch((error) => {
+        console.warn('Erro ao registrar tracking de visualização:', error);
+      });
+    }
+  }, [selectedRecording?.id, PostAPI]);
 
   // Re-inject transcription if messages cleared usually happens via useEffect logic
   useEffect(() => {

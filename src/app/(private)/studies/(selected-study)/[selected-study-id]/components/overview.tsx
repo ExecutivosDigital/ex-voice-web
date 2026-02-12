@@ -1,29 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from "react";
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef, useMemo } from "react";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useApiContext } from "@/context/ApiContext";
-import { trackAction, UserActionType } from "@/services/actionTrackingService";
-import { handleApiError } from "@/utils/error-handler";
 import { DynamicComponentRenderer } from "@/app/(private)/ai-components-preview/components/core/DynamicComponentRenderer";
 import type { AIComponentResponse } from "@/app/(private)/ai-components-preview/types/component-types";
 import { convertToAIComponentResponse } from "../utils/summary-converter";
+import { OVERVIEW_CONTENT_ID } from "../utils/export-overview-pdf";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-export interface MedicalRecordHandle {
+export interface OverviewHandle {
   getResponse: () => AIComponentResponse | null;
 }
 
-interface MedicalRecordProps {
+interface OverviewProps {
   onEditStart?: () => void;
   onEditEnd?: () => void;
 }
 
-export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>(function MedicalRecord({ onEditStart, onEditEnd }, ref) {
-  const { selectedRecording, selectedClient, setSelectedRecording } =
+export const Overview = forwardRef<OverviewHandle, OverviewProps>(function Overview({ onEditStart, onEditEnd }, ref) {
+  const { selectedRecording, setSelectedRecording } =
     useGeneralContext();
-  const { PutAPI, PostAPI } = useApiContext();
+  const { PutAPI } = useApiContext();
   const [response, setResponse] = useState<AIComponentResponse | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const responseRef = useRef<AIComponentResponse | null>(null);
@@ -31,7 +30,7 @@ export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>
   const initialSummary = useMemo(
     () =>
       selectedRecording
-        ? convertToAIComponentResponse(selectedRecording.specificSummary)
+        ? convertToAIComponentResponse(selectedRecording.structuredSummary)
         : null,
     [selectedRecording],
   );
@@ -49,7 +48,7 @@ export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>
   useEffect(() => {
     if (!selectedRecording) return;
     const next = convertToAIComponentResponse(
-      selectedRecording.specificSummary,
+      selectedRecording.structuredSummary,
     );
     if (next) setResponse(next);
   }, [selectedRecording?.id]);
@@ -63,11 +62,6 @@ export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>
       if (!selectedRecording?.id) return;
       const prev = responseRef.current;
       if (!prev?.sections) return;
-      
-      // Verificar se houve alteração real comparando o componente anterior com o atual
-      const prevComponent = prev.sections[sectionIndex]?.components[componentIndex];
-      const hasChanges = JSON.stringify(prevComponent) !== JSON.stringify(updated);
-      
       const next: AIComponentResponse = {
         pageTitle: prev.pageTitle ?? "",
         sections: prev.sections.map((section, si) =>
@@ -86,45 +80,24 @@ export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>
       try {
         const { status } = await PutAPI(
           `/recording/${selectedRecording.id}`,
-          { specificSummary: next },
+          { structuredSummary: next },
           true,
         );
         if (status >= 200 && status < 300) {
           setSelectedRecording((prevRec) =>
-            prevRec ? { ...prevRec, specificSummary: next } : prevRec,
+            prevRec ? { ...prevRec, structuredSummary: next } : prevRec,
           );
-          // Tracking de edição de prontuário - apenas se houver alterações reais
-          if (hasChanges && selectedRecording?.id) {
-            trackAction(
-              {
-                actionType: UserActionType.SUMMARY_EDITED,
-                recordingId: selectedRecording.id,
-                metadata: {
-                  screen: 'medical-record',
-                  screenName: 'Prontuário Médico',
-                },
-              },
-              PostAPI
-            ).catch((error) => {
-              console.warn('Erro ao registrar tracking de edição:', error);
-            });
-          }
-          toast.success("Alterações salvas no prontuário.");
+          toast.success("Alterações salvas no resumo.");
         } else {
-          const errorMessage = handleApiError(
-            { status, body: {} },
-            "Falha ao salvar. Tente novamente.",
-          );
-          toast.error(errorMessage);
+          toast.error("Falha ao salvar. Tente novamente.");
         }
-      } catch (error) {
-        console.error("Erro ao salvar prontuário:", error);
+      } catch {
         toast.error("Falha ao salvar. Tente novamente.");
       } finally {
         setIsSaving(false);
       }
     },
-    [selectedRecording?.id, PutAPI, PostAPI, setSelectedRecording],
+    [selectedRecording?.id, PutAPI, setSelectedRecording],
   );
 
   if (!selectedRecording) {
@@ -143,11 +116,10 @@ export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>
       <div className="flex w-full flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-12">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-900">
-            Prontuário Médico não disponível
+            Resumo Estruturado não disponível
           </h3>
           <p className="mt-2 text-sm text-gray-500">
-            Esta gravação ainda não possui um prontuário médico estruturado
-            gerado pela IA.
+            Esta gravação ainda não possui um resumo estruturado gerado pela IA.
             {selectedRecording.summary && (
               <span className="mt-4 block">
                 Você pode visualizar o resumo em texto na aba "Geral".
@@ -161,13 +133,12 @@ export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>
 
   return (
     <div
-      id="medical-record-content"
+      id={OVERVIEW_CONTENT_ID}
       className="animate-in fade-in w-full duration-500"
     >
       <DynamicComponentRenderer
         response={currentResponse!}
         showCardActions
-        clientId={selectedClient?.id}
         recordingId={selectedRecording.id}
         onUpdateComponent={handleUpdateComponent}
         onEditStart={onEditStart}

@@ -2,6 +2,7 @@
 
 import { useSession } from "@/context/auth";
 import { useApiContext } from "@/context/ApiContext";
+import { getCurrentPlatform } from "@/utils/platform";
 import { cn } from "@/utils/cn";
 import { maskCpfCnpj, maskPhone } from "@/utils/masks";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -95,6 +96,7 @@ export function CompleteRegistrationModal() {
                     name: data.name,
                     mobilePhone: cleanPhone,
                     cpfCnpj: cleanCpfCnpj,
+                    registrationPlatform: getCurrentPlatform(),
                 },
                 true // true = requer autenticação
             );

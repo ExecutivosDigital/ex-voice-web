@@ -3,7 +3,9 @@
 import { ReminderProps } from "@/@types/general-client";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { handleApiError } from "@/utils/error-handler";
 import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export function useReminderData(reminderId: string | string[] | undefined) {
   const { GetAPI } = useApiContext();
@@ -57,11 +59,17 @@ export function useReminderData(reminderId: string | string[] | undefined) {
               });
             } else {
               // Se não conseguir buscar a gravação completa, mantém a básica do reminder
+              const errorMessage = handleApiError(
+                recordingResponse,
+                "Não foi possível carregar a gravação do lembrete.",
+              );
+              console.error("Erro ao buscar gravação do lembrete:", errorMessage);
               setSelectedReminder(reminder);
               setSelectedRecording(null);
             }
           } catch (recordingErr) {
             console.error("Erro ao buscar gravação do lembrete:", recordingErr);
+            toast.error("Erro ao carregar gravação do lembrete. Tente novamente.");
             // Em caso de erro, mantém o reminder com a gravação básica
             setSelectedReminder(reminder);
             setSelectedRecording(null);
@@ -72,13 +80,20 @@ export function useReminderData(reminderId: string | string[] | undefined) {
           setSelectedRecording(null);
         }
       } else {
-        setError("Lembrete não encontrado");
+        const errorMessage = handleApiError(
+          reminderResponse,
+          "Lembrete não encontrado.",
+        );
+        setError(errorMessage);
+        toast.error(errorMessage);
         setSelectedReminder(null);
         setSelectedRecording(null);
       }
     } catch (err) {
       console.error("Erro ao buscar lembrete:", err);
-      setError("Erro ao carregar lembrete");
+      const errorMessage = "Erro ao carregar lembrete. Tente novamente.";
+      setError(errorMessage);
+      toast.error(errorMessage);
       setSelectedReminder(null);
       setSelectedRecording(null);
     } finally {

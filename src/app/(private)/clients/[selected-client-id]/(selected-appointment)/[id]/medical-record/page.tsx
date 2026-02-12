@@ -6,12 +6,17 @@ import toast from "react-hot-toast";
 import { MedicalRecord, type MedicalRecordHandle } from "../components/medical-record";
 import { exportMedicalRecordToPdf } from "../utils/export-medical-record-pdf";
 import { PersonalizationModal } from "../components/personalization-modal";
+import { useApiContext } from "@/context/ApiContext";
+import { useGeneralContext } from "@/context/GeneralContext";
+import { trackAction, UserActionType } from "@/services/actionTrackingService";
 
 export default function MedicalRecordPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [editingCount, setEditingCount] = useState(0);
   const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
   const medicalRecordRef = useRef<MedicalRecordHandle | null>(null);
+  const { PostAPI } = useApiContext();
+  const { selectedRecording, selectedClient } = useGeneralContext();
 
   // Abrir modal quando entrar na página (apenas uma vez)
   // useEffect(() => {
@@ -21,6 +26,25 @@ export default function MedicalRecordPage() {
   //     sessionStorage.setItem("hasSeenPersonalizationModal-prontuario", "true");
   //   }
   // }, []);
+
+  // Tracking quando a página é visualizada
+  useEffect(() => {
+    if (selectedRecording?.id) {
+      trackAction(
+        {
+          actionType: UserActionType.SCREEN_VIEWED,
+          recordingId: selectedRecording.id,
+          metadata: {
+            screen: 'medical-record',
+            screenName: 'Prontuário Médico',
+          },
+        },
+        PostAPI
+      ).catch((error) => {
+        console.warn('Erro ao registrar tracking de visualização:', error);
+      });
+    }
+  }, [selectedRecording?.id, PostAPI]);
 
   const handleEditStart = useCallback(() => setEditingCount((c) => c + 1), []);
   const handleEditEnd = useCallback(
@@ -39,6 +63,22 @@ export default function MedicalRecordPage() {
     try {
       const data = medicalRecordRef.current?.getResponse() ?? null;
       await exportMedicalRecordToPdf(data);
+      // Tracking de exportação de PDF
+      if (selectedRecording?.id) {
+        trackAction(
+          {
+            actionType: UserActionType.PDF_EXPORTED,
+            recordingId: selectedRecording.id,
+            metadata: {
+              type: 'medical-record',
+              patientName: selectedClient?.name || undefined,
+            },
+          },
+          PostAPI
+        ).catch((error) => {
+          console.warn('Erro ao registrar tracking de PDF:', error);
+        });
+      }
       toast.success("PDF exportado com sucesso!");
     } catch (err) {
       const message =

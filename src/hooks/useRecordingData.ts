@@ -3,7 +3,9 @@
 import { RecordingDetailsProps } from "@/@types/general-client";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { handleApiError } from "@/utils/error-handler";
 import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export function useRecordingData(recordingId: string | string[] | undefined) {
   const { GetAPI } = useApiContext();
@@ -31,12 +33,19 @@ export function useRecordingData(recordingId: string | string[] | undefined) {
         // Atualizar o contexto com os dados da API
         setSelectedRecording(recording);
       } else {
-        setError("Gravação não encontrada");
+        const errorMessage = handleApiError(
+          response,
+          "Gravação não encontrada.",
+        );
+        setError(errorMessage);
+        toast.error(errorMessage);
         setSelectedRecording(null);
       }
     } catch (err) {
       console.error("Erro ao buscar gravação:", err);
-      setError("Erro ao carregar gravação");
+      const errorMessage = "Erro ao carregar gravação. Tente novamente.";
+      setError(errorMessage);
+      toast.error(errorMessage);
       setSelectedRecording(null);
     } finally {
       setLoading(false);
