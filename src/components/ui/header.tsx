@@ -616,7 +616,7 @@ export function Header() {
                       }
                     >
                       <GeneralVisionIcon />
-                      Visão Geral
+                      Resumo
                     </span>
                     <span
                       className={cn(
@@ -632,7 +632,7 @@ export function Header() {
                       }
                     >
                       <GeneralVisionIcon />
-                      Resumo
+                      Visão Geral
                     </span>
                     <span
                       className={cn(
@@ -721,7 +721,7 @@ export function Header() {
                       }
                     >
                       <GeneralVisionIcon />
-                      Visão Geral
+                      Resumo
                     </span>
                     <span
                       className={cn(
@@ -737,7 +737,7 @@ export function Header() {
                       }
                     >
                       <GeneralVisionIcon />
-                      Resumo
+                      Visão Geral
                     </span>
                     <span
                       className={cn(

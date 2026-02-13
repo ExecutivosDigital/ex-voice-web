@@ -21,13 +21,13 @@ export default function OverviewPage() {
   const { selectedRecording, selectedClient } = useGeneralContext();
 
   // Abrir modal quando entrar na página (apenas uma vez)
-  // useEffect(() => {
-  //   const hasSeenModal = sessionStorage.getItem("hasSeenPersonalizationModal-resumo");
-  //   if (!hasSeenModal) {
-  //     setIsPersonalizationModalOpen(true);
-  //     sessionStorage.setItem("hasSeenPersonalizationModal-resumo", "true");
-  //   }
-  // }, []);
+  useEffect(() => {
+    const hasSeenModal = sessionStorage.getItem("hasSeenPersonalizationModal-resumo");
+    if (!hasSeenModal) {
+      setIsPersonalizationModalOpen(true);
+      sessionStorage.setItem("hasSeenPersonalizationModal-resumo", "true");
+    }
+  }, []);
 
   // Tracking quando a página é visualizada (pathname garante disparo a cada acesso à tela)
   useEffect(() => {
@@ -152,11 +152,11 @@ export default function OverviewPage() {
         </button>
       </div>
 
-      {/* <PersonalizationModal
+      <PersonalizationModal
         isOpen={isPersonalizationModalOpen}
         onClose={() => setIsPersonalizationModalOpen(false)}
         type="resumo"
-      /> */}
+      />
     </div>
   );
 }
