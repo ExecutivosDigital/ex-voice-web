@@ -546,8 +546,8 @@ export function Header() {
                         router.push(`/reminders/${reminderIdFromUrl}`)
                       }
                     >
-                      <GeneralVisionIcon />
-                      Visão Geral
+                      <Sparkles className="w-4 h-4" />
+                      Insights
                     </span>
                     <span
                       className={cn(
@@ -635,8 +635,8 @@ export function Header() {
                         )
                       }
                     >
-                      <GeneralVisionIcon />
-                      Visão Geral
+                      <Sparkles className="w-4 h-4" />
+                      Insights
                     </span>
                     <span
                       className={cn(
@@ -740,8 +740,8 @@ export function Header() {
                         )
                       }
                     >
-                      <GeneralVisionIcon />
-                      Visão Geral
+                      <Sparkles className="w-4 h-4" />
+                      Insights
                     </span>
                     <span
                       className={cn(
