@@ -33,14 +33,14 @@ export default function OverviewPage() {
   // Tracking quando a página é visualizada (pathname garante disparo a cada acesso à tela)
   useEffect(() => {
     if (selectedRecording?.id) {
-      console.log('[Tracking] Disparando SCREEN_VIEWED: overview (Resumo Geral)');
+      console.log('[Tracking] Disparando SCREEN_VIEWED: overview (Insights)');
       trackAction(
         {
           actionType: UserActionType.SCREEN_VIEWED,
           recordingId: selectedRecording.id,
           metadata: {
             screen: 'overview',
-            screenName: 'Resumo Geral',
+            screenName: 'Insights',
             recordingId: selectedRecording.id,
           },
         },
@@ -99,10 +99,10 @@ export default function OverviewPage() {
       <div className="flex w-full min-w-0 items-center justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold break-words text-gray-900">
-            Resumo Geral
+            Insights
           </h1>
           <p className="text-sm break-words text-gray-500">
-            Resumo estruturado da reunião com componentes gerados pela IA.
+            Insights estruturados da reunião com componentes gerados pela IA.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -113,7 +113,7 @@ export default function OverviewPage() {
               className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-100"
             >
               <Sparkles className="h-4 w-4" />
-              Personalizar Resumo
+              Personalizar Insights
             </button>
           {/* )} */}
           <button

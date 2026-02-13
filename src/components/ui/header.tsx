@@ -8,6 +8,7 @@ import {
   ChevronRight,
   MessageCircle,
   Smartphone,
+  Sparkles,
   UserIcon,
 } from "lucide-react";
 import moment from "moment";
@@ -423,8 +424,8 @@ export function Header() {
                         )
                       }
                     >
-                      <GeneralVisionIcon />
-                      Resumo Geral
+                      <Sparkles className="h-4 w-4" />
+                      Insights
                     </span>
                     <span
                       className={cn(
