@@ -138,7 +138,7 @@ export function MainDiagnosisCard({
             className={`mb-2 flex items-center gap-2 text-sm font-semibold ${styles.text} min-w-0`}
           >
             <FileIcon className="h-4 w-4 shrink-0" />
-            <span className="break-words">Justificativa Clínica</span>
+            <span className="break-words">Justificativa</span>
           </h3>
           <p className="leading-relaxed text-gray-700 break-words">{justification}</p>
         </div>

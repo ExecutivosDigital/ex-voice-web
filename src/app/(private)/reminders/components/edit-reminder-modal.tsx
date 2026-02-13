@@ -3,6 +3,8 @@
 import { ReminderProps } from "@/@types/general-client";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { getCurrentPlatform } from "@/utils/platform";
+import { handleApiError } from "@/utils/error-handler";
 import { Check, X, Bell, Clock, Type, Calendar } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -39,6 +41,7 @@ export function EditReminderModal({
                 date: `${date}T12:00:00.000Z`,
                 name,
                 description,
+                platform: getCurrentPlatform(),
             }, true);
 
             if (response.status === 200) {
@@ -46,11 +49,15 @@ export function EditReminderModal({
                 GetReminders();
                 onClose();
             } else {
-                toast.error("Erro ao atualizar lembrete.");
+                const errorMessage = handleApiError(
+                    response,
+                    "Erro ao atualizar lembrete. Tente novamente.",
+                );
+                toast.error(errorMessage);
             }
         } catch (error) {
             console.error(error);
-            toast.error("Ocorreu um erro inesperado.");
+            toast.error("Ocorreu um erro inesperado. Tente novamente.");
         } finally {
             setLoading(false);
         }

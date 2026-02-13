@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from "react";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useApiContext } from "@/context/ApiContext";
+import { trackAction, UserActionType } from "@/services/actionTrackingService";
+import { handleApiError } from "@/utils/error-handler";
 import { DynamicComponentRenderer } from "@/app/(private)/ai-components-preview/components/core/DynamicComponentRenderer";
 import type { AIComponentResponse } from "@/app/(private)/ai-components-preview/types/component-types";
 import { convertToAIComponentResponse } from "../utils/summary-converter";
@@ -21,7 +23,7 @@ interface MedicalRecordProps {
 export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>(function MedicalRecord({ onEditStart, onEditEnd }, ref) {
   const { selectedRecording, selectedClient, setSelectedRecording } =
     useGeneralContext();
-  const { PutAPI } = useApiContext();
+  const { PutAPI, PostAPI } = useApiContext();
   const [response, setResponse] = useState<AIComponentResponse | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const responseRef = useRef<AIComponentResponse | null>(null);
@@ -61,6 +63,11 @@ export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>
       if (!selectedRecording?.id) return;
       const prev = responseRef.current;
       if (!prev?.sections) return;
+      
+      // Verificar se houve alteração real comparando o componente anterior com o atual
+      const prevComponent = prev.sections[sectionIndex]?.components[componentIndex];
+      const hasChanges = JSON.stringify(prevComponent) !== JSON.stringify(updated);
+      
       const next: AIComponentResponse = {
         pageTitle: prev.pageTitle ?? "",
         sections: prev.sections.map((section, si) =>
@@ -86,17 +93,38 @@ export const MedicalRecord = forwardRef<MedicalRecordHandle, MedicalRecordProps>
           setSelectedRecording((prevRec) =>
             prevRec ? { ...prevRec, specificSummary: next } : prevRec,
           );
+          // Tracking de edição de prontuário - apenas se houver alterações reais
+          if (hasChanges && selectedRecording?.id) {
+            trackAction(
+              {
+                actionType: UserActionType.SUMMARY_EDITED,
+                recordingId: selectedRecording.id,
+                metadata: {
+                  screen: 'medical-record',
+                  screenName: 'Prontuário Médico',
+                },
+              },
+              PostAPI
+            ).catch((error) => {
+              console.warn('Erro ao registrar tracking de edição:', error);
+            });
+          }
           toast.success("Alterações salvas no prontuário.");
         } else {
-          toast.error("Falha ao salvar. Tente novamente.");
+          const errorMessage = handleApiError(
+            { status, body: {} },
+            "Falha ao salvar. Tente novamente.",
+          );
+          toast.error(errorMessage);
         }
-      } catch {
+      } catch (error) {
+        console.error("Erro ao salvar prontuário:", error);
         toast.error("Falha ao salvar. Tente novamente.");
       } finally {
         setIsSaving(false);
       }
     },
-    [selectedRecording?.id, PutAPI, setSelectedRecording],
+    [selectedRecording?.id, PutAPI, PostAPI, setSelectedRecording],
   );
 
   if (!selectedRecording) {

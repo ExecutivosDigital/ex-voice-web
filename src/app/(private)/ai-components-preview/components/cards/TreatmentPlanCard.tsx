@@ -1,6 +1,5 @@
 "use client";
 
-import { CheckCircle2, Pill } from "lucide-react";
 import { TreatmentPlanCardData } from "../../types/component-types";
 import { getIcon, getVariantStyles } from "../../utils/icon-mapper";
 
@@ -46,7 +45,7 @@ export function TreatmentPlanCard({
         <div>
           <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-            Medicamentos Sugeridos
+            Implementação
           </h4>
           <div className="space-y-3">
             {data.treatment && data.treatment.medications && Array.isArray(data.treatment.medications) && data.treatment.medications.length > 0 ? (
@@ -76,7 +75,7 @@ export function TreatmentPlanCard({
               ))
             ) : (
               <div className="text-center py-4 text-sm text-gray-500">
-                Nenhum medicamento sugerido
+                Nenhuma implementação sugerida
               </div>
             )}
           </div>
@@ -85,7 +84,7 @@ export function TreatmentPlanCard({
         <div>
           <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
             <span className="h-1.5 w-1.5 rounded-full bg-gray-500"></span>
-            Estilo de Vida
+            Orientação
           </h4>
           <ul className="space-y-2">
             {data.treatment && data.treatment.lifestyle && Array.isArray(data.treatment.lifestyle) && data.treatment.lifestyle.length > 0 ? (
@@ -100,7 +99,7 @@ export function TreatmentPlanCard({
               ))
             ) : (
               <li className="text-center py-4 text-sm text-gray-500">
-                Nenhuma orientação de estilo de vida
+                Nenhuma orientação sugerida
               </li>
             )}
           </ul>

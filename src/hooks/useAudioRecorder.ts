@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 export function useAudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -76,7 +77,7 @@ export function useAudioRecorder() {
       }, 1000);
     } catch (error) {
       console.error("Erro ao iniciar gravação:", error);
-      alert("Permissão de microfone negada ou indisponível.");
+      toast.error("Permissão de microfone negada ou indisponível.");
     }
   }, []);
 

@@ -1,22 +1,24 @@
 "use client";
 
 import {
-    ClientProps,
-    DashboardStatsRequest,
-    DashboardStatsResponse,
-    FetchClientRequest,
-    FetchRecordingsRequest,
-    FetchRemindersRequest,
-    RecordingDetailsProps,
-    ReminderProps,
+  ClientProps,
+  DashboardStatsRequest,
+  DashboardStatsResponse,
+  FetchClientRequest,
+  FetchRecordingsRequest,
+  FetchRemindersRequest,
+  RecordingDetailsProps,
+  ReminderProps,
 } from "@/@types/general-client";
+import { handleApiError } from "@/utils/error-handler";
 import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
+import toast from "react-hot-toast";
 import { useApiContext } from "./ApiContext";
 import { useSession } from "./auth"; // Para saber quando buscar dados
 
@@ -185,11 +187,17 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
         setRecordingsTotalPages(response.body.pages || 0);
       } else {
         console.error("Erro ao buscar gravações:", response.status);
+        const errorMessage = handleApiError(
+          response,
+          "Não foi possível carregar as gravações.",
+        );
+        toast.error(errorMessage);
         setRecordings([]);
         setRecordingsTotalPages(0);
       }
     } catch (error) {
       console.error("Erro no GetRecordings:", error);
+      toast.error("Erro ao carregar gravações. Tente novamente.");
       setRecordings([]);
       setRecordingsTotalPages(0);
     } finally {
@@ -208,10 +216,12 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
           setDashboardStats(response.body);
         } else {
           console.error("Erro ao buscar stats:", response.status);
+          // Não mostra toast para stats pois é carregado em background
           setDashboardStats(null);
         }
       } catch (error) {
         console.error("Erro no GetDashboardStats:", error);
+        // Não mostra toast para stats pois é carregado em background
         setDashboardStats(null);
       } finally {
         setIsGettingDashboardStats(false);
@@ -232,12 +242,18 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
         setClients(response.body.clients || []);
         setClientsTotalPages(response.body.pages || 0);
       } else {
-        console.error("Erro ao buscar clientes:", response.status);
+        console.error("Erro ao buscar pacientes:", response.status);
+        const errorMessage = handleApiError(
+          response,
+          "Não foi possível carregar os pacientes.",
+        );
+        toast.error(errorMessage);
         setClients([]);
         setClientsTotalPages(0);
       }
     } catch (error) {
       console.error("Erro no GetClients:", error);
+      toast.error("Erro ao carregar pacientes. Tente novamente.");
       setClients([]);
       setClientsTotalPages(0);
     } finally {
@@ -256,11 +272,17 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
         setRemindersTotalPages(response.body.pages || 0);
       } else {
         console.error("Erro ao buscar lembretes:", response.status);
+        const errorMessage = handleApiError(
+          response,
+          "Não foi possível carregar os lembretes.",
+        );
+        toast.error(errorMessage);
         setReminders([]);
         setRemindersTotalPages(0);
       }
     } catch (error) {
       console.error("Erro no GetReminders:", error);
+      toast.error("Erro ao carregar lembretes. Tente novamente.");
       setReminders([]);
       setRemindersTotalPages(0);
     } finally {

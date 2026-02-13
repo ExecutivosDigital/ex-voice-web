@@ -609,12 +609,29 @@ export function Header() {
                       className={cn(
                         "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                         !pathname.includes("/chat") &&
-                          !pathname.includes("/transcription")
+                          !pathname.includes("/transcription") &&
+                          !pathname.includes("/overview")
                           ? "border-b-white"
                           : "border-b-white/10 text-white/50",
                       )}
                       onClick={() =>
                         router.push(`/studies/${selectedRecording?.id}`)
+                      }
+                    >
+                      <GeneralVisionIcon />
+                      Resumo
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/overview")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(
+                          `/studies/${selectedRecording?.id}/overview`,
+                        )
                       }
                     >
                       <GeneralVisionIcon />
@@ -697,12 +714,29 @@ export function Header() {
                       className={cn(
                         "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                         !pathname.includes("/chat") &&
-                          !pathname.includes("/transcription")
+                          !pathname.includes("/transcription") &&
+                          !pathname.includes("/overview")
                           ? "border-b-white"
                           : "border-b-white/10 text-white/50",
                       )}
                       onClick={() =>
                         router.push(`/others/${selectedRecording?.id}`)
+                      }
+                    >
+                      <GeneralVisionIcon />
+                      Resumo
+                    </span>
+                    <span
+                      className={cn(
+                        "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                        pathname.includes("/overview")
+                          ? "border-b-white"
+                          : "border-b-white/10 text-white/50",
+                      )}
+                      onClick={() =>
+                        router.push(
+                          `/others/${selectedRecording?.id}/overview`,
+                        )
                       }
                     >
                       <GeneralVisionIcon />

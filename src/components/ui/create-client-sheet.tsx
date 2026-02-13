@@ -1,6 +1,7 @@
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
+import { handleApiError } from "@/utils/error-handler";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
@@ -133,8 +134,12 @@ export function CreateClientSheet({
         setIsLoading(false);
         return onClose();
       }
-      toast.error(data?.body?.message ?? "Falha ao enviar o formulário.");
-      return setIsLoading(false);
+      const errorMessage = handleApiError(
+        data,
+        "Falha ao enviar o formulário. Tente novamente.",
+      );
+      toast.error(errorMessage);
+      setIsLoading(false);
     }
   };
 

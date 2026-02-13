@@ -2,7 +2,9 @@
 
 import { Message } from "@/components/chatPopup/types";
 import { useApiContext } from "@/context/ApiContext";
+import { handleApiError } from "@/utils/error-handler";
 import { useCallback, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { useAudioRecorder } from "./useAudioRecorder";
 import { useFileHandler } from "./useFileHandler";
 
@@ -62,11 +64,13 @@ export function useChatEngine({
       const tempName =
         firstMessageText.split(" ").slice(0, 5).join(" ") || "Novo Chat";
 
+      const { getCurrentPlatform } = await import("@/utils/platform");
       const res = await PostAPI(
         "/chat",
         {
           name: tempName,
           promptId: promptId || undefined,
+          platform: getCurrentPlatform(),
         },
         true,
       );
@@ -75,9 +79,16 @@ export function useChatEngine({
         const newId = res.body?.id || res.body?.chat?.id;
         setCurrentChatId(newId);
         return newId;
+      } else {
+        const errorMessage = handleApiError(
+          res,
+          "Erro ao criar chat. Tente novamente.",
+        );
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error("Erro ao criar chat no backend:", error);
+      toast.error("Erro ao criar chat. Tente novamente.");
     }
     return null;
   };
@@ -115,6 +126,7 @@ export function useChatEngine({
       setMessages(mappedMessages);
     } catch (error) {
       console.error("Erro ao carregar chat:", error);
+      toast.error("Erro ao carregar chat. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -127,17 +139,20 @@ export function useChatEngine({
     mimeType: string = "text",
   ) => {
     try {
+      const { getCurrentPlatform } = await import("@/utils/platform");
       await PostAPI(
         `/message/${chatId}`,
         {
           text,
           entity,
           mimeType,
+          platform: getCurrentPlatform(),
         },
         true,
       );
     } catch (error) {
       console.error("Erro ao salvar mensagem:", error);
+      // Não mostra toast para erros de persistência silenciosa
     }
   };
 
@@ -146,17 +161,30 @@ export function useChatEngine({
       const formData = new FormData();
       formData.append("file", file);
       // Rota para upload isolado
-      await PostAPI(`/message/${chatId}/file`, formData, true);
+      const response = await PostAPI(`/message/${chatId}/file`, formData, true);
+      if (response.status >= 400) {
+        const errorMessage = handleApiError(
+          response,
+          "Erro ao fazer upload do arquivo. Tente novamente.",
+        );
+        toast.error(errorMessage);
+      }
     } catch (error) {
       console.error("Erro ao fazer upload do arquivo:", error);
+      toast.error("Erro ao fazer upload do arquivo. Tente novamente.");
     }
   };
 
   const updateTitleOnBackend = async (chatId: string, newTitle: string) => {
     try {
-      await PutAPI(`/chat/${chatId}`, { name: newTitle }, true);
+      const response = await PutAPI(`/chat/${chatId}`, { name: newTitle }, true);
+      if (response.status >= 400) {
+        // Não mostra toast para erros de atualização de título (não crítico)
+        console.error("Erro ao atualizar título:", response);
+      }
     } catch (error) {
       console.error("Erro ao atualizar título:", error);
+      // Não mostra toast para erros de atualização de título (não crítico)
     }
   };
 

@@ -21,7 +21,7 @@ const MobileAppBlocker = () => {
       <div className="animate-fade-in relative z-10 flex w-full max-w-sm flex-col items-center">
         {/* Logo / Branding */}
         <Image
-          src="/logos/logo.png"
+          src="/logos/logo-1.png"
           alt=""
           width={1000}
           height={500}

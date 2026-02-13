@@ -4,6 +4,7 @@ import { Modal } from "@/components/ui/modal";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
+import { handleApiError } from "@/utils/error-handler";
 import { PromptIcon } from "@/utils/prompt-icon";
 import { Check, Loader2, Search, Sparkles, X } from "lucide-react";
 import Image from "next/image";
@@ -55,9 +56,16 @@ export function RequestTranscription() {
       setPrompts(filtered);
       if (response.status !== 200) {
         console.error("Erro ao buscar prompts:", response.status);
+        const errorMessage = handleApiError(
+          response,
+          "Não foi possível carregar os prompts.",
+        );
+        toast.error(errorMessage);
+        setPrompts([]);
       }
     } catch (error) {
       console.error("Erro ao buscar prompts:", error);
+      toast.error("Erro ao buscar prompts. Tente novamente.");
       setPrompts([]);
     } finally {
       setIsLoadingPrompts(false);
@@ -108,9 +116,14 @@ export function RequestTranscription() {
         transcriptionStatus: "PENDING",
       });
       setIsModalOpen(false);
-      return setIsRequesting(false);
+      setIsRequesting(false);
+      return;
     }
-    toast.error("Erro ao solicitar transcrição!");
+    const errorMessage = handleApiError(
+      request,
+      "Erro ao solicitar transcrição. Tente novamente.",
+    );
+    toast.error(errorMessage);
     setIsRequesting(false);
   }
 
