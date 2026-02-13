@@ -99,10 +99,10 @@ export default function ChatBusiness() {
 
   return (
     <div
-      className={cn("flex h-[calc(100vh-8rem)] w-full gap-6")}
-      style={{
-        minHeight: 0, // Previne problemas de layout
-      }}
+    className={cn("flex h-[calc(100vh-8rem)] w-full gap-6")}
+    style={{
+      minHeight: 0, // Previne problemas de layout
+    }}
     >
       {/* Sidebar - Histórico */}
       <div

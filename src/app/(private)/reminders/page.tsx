@@ -72,7 +72,7 @@ export default function Reminders() {
             </div>
             <button
               onClick={() => openNewRecording("PERSONAL", "REMINDER")}
-              className="flex shrink-0 items-center gap-2 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/40 active:scale-95"
+              className="flex shrink-0 items-center gap-2 rounded-lg bg-gradient-to-r from-neutral-500   to-neutral-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-neutral-500/25 transition-all hover:shadow-neutral-500/40 active:scale-95"
             >
               <Plus className="h-4 w-4" />
               Novo Lembrete

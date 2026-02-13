@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef, useMemo } from "react";
-import { useGeneralContext } from "@/context/GeneralContext";
-import { useApiContext } from "@/context/ApiContext";
 import { DynamicComponentRenderer } from "@/app/(private)/ai-components-preview/components/core/DynamicComponentRenderer";
 import type { AIComponentResponse } from "@/app/(private)/ai-components-preview/types/component-types";
-import { convertToAIComponentResponse } from "../utils/summary-converter";
-import { OVERVIEW_CONTENT_ID } from "../utils/export-overview-pdf";
+import { useApiContext } from "@/context/ApiContext";
+import { useGeneralContext } from "@/context/GeneralContext";
 import { Loader2 } from "lucide-react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { OVERVIEW_CONTENT_ID } from "../utils/export-overview-pdf";
+import { convertToAIComponentResponse } from "../utils/summary-converter";
 
 export interface OverviewHandle {
   getResponse: () => AIComponentResponse | null;
@@ -104,7 +104,7 @@ export const Overview = forwardRef<OverviewHandle, OverviewProps>(function Overv
     return (
       <div className="flex h-64 w-full items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-neutral-600" />
           <p className="text-sm text-gray-500">Carregando gravação...</p>
         </div>
       </div>

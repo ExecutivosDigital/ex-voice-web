@@ -1,27 +1,25 @@
 "use client";
 
-import { useSession } from "@/context/auth";
-import { useApiContext } from "@/context/ApiContext";
-import { getCurrentPlatform } from "@/utils/platform";
-import { cn } from "@/utils/cn";
-import { maskCpfCnpj, maskPhone } from "@/utils/masks";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, CheckCircle2, User, Phone, Hash } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { createPortal } from "react-dom";
-import z from "zod";
+import Field from "@/app/(public)/login/components/field";
 import {
     Form,
-    FormControl,
     FormField,
     FormItem,
-    FormLabel,
-    FormMessage,
+    FormMessage
 } from "@/components/ui/blocks/form";
-import Field from "@/app/(public)/login/components/field";
-import toast from "react-hot-toast";
+import { useApiContext } from "@/context/ApiContext";
+import { useSession } from "@/context/auth";
+import { cn } from "@/utils/cn";
+import { maskCpfCnpj, maskPhone } from "@/utils/masks";
+import { getCurrentPlatform } from "@/utils/platform";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2, Hash, Loader2, Phone, User } from "lucide-react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import z from "zod";
 
 const FormSchema = z.object({
     name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),

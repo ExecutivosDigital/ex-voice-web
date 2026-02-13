@@ -143,7 +143,7 @@ export function ChatInput({
                 key={fileKey}
                 className="group relative flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 shadow-sm"
               >
-                <div className="text-blue-500">{getFileIcon(file)}</div>
+                <div className="text-neutral-500">{getFileIcon(file)}</div>
                 <span className="max-w-[150px] truncate text-xs text-gray-700">
                   {file.name}
                 </span>

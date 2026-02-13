@@ -1,10 +1,10 @@
 "use client";
 
 import { cn } from "@/utils/cn";
-import { ChevronRight, ChevronLeft, MessageCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import Image from "next/image";
 
 interface StepContent {
   title: string;
@@ -73,8 +73,8 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
 
   const handleWhatsAppClick = () => {
     const message = type === "resumo" 
-      ? "Olá! Gostaria de personalizar meus resumos gerais no Health Voice."
-      : "Olá! Gostaria de personalizar meus prontuários médicos no Health Voice.";
+      ? "Olá! Gostaria de personalizar meus resumos gerais no EX Voice."
+      : "Olá! Gostaria de personalizar minha IA no EX Voice.";
     
     const whatsappUrl = `${WHATSAPP_LINK}&text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
@@ -93,7 +93,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
         <div
           className="w-full flex-1 overflow-y-auto"
           style={{
-            background: "linear-gradient(to bottom, #4A4A4B 0%, #444444 25%, #3a3a3a 50%, #2a2a2a 75%, #1a1a1a 90%, #000000 100%)",
+            background: "linear-gradient(to bottom, #767676 0%, #666666 25%, #565656 50%, #464646 75%, #363636 90%, #262626 100%)",
           }}
         >
           {/* Conteúdo da modal */}
@@ -172,7 +172,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
               <div className="w-full">
                 <button
                   onClick={handleWhatsAppClick}
-                  className="group flex w-full items-center justify-center gap-3 rounded-xl bg-stone-800 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-stone-700 hover:scale-105 active:scale-95"
+                  className="group flex w-full items-center justify-center gap-3 rounded-xl bg-neutral-800 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-neutral-700 hover:scale-105 active:scale-95"
                 >
                   <MessageCircle className="h-5 w-5" />
                   <span>Fale Conosco</span>
@@ -189,7 +189,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
               // Step 1: apenas botão Continuar
               <button
                 onClick={handleNext}
-                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-stone-800 px-8 py-4 font-bold text-white shadow-lg transition-all hover:bg-stone-700 hover:scale-105 active:scale-95"
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-900 px-8 py-4 font-bold text-white shadow-lg transition-all hover:bg-neutral-800 hover:scale-105 active:scale-95"
               >
                 <span>Continuar</span>
                 <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -206,7 +206,7 @@ export function PersonalizationModal({ isOpen, onClose, type }: PersonalizationM
                 </button>
                 <button
                   onClick={handleNext}
-                  className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-stone-800 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-stone-700 hover:scale-105 active:scale-95"
+                  className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-neutral-800 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-neutral-700 hover:scale-105 active:scale-95"
                 >
                   <span>Continuar</span>
                   <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

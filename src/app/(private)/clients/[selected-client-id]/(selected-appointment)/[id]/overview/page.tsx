@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Overview, type OverviewHandle } from "../components/overview";
+import { PersonalizationModal } from "../components/personalization-modal";
 import { exportOverviewToPdf } from "../utils/export-medical-record-pdf";
 
 export default function OverviewPage() {
@@ -105,7 +106,7 @@ export default function OverviewPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {isTrial && (
+          {/* {isTrial && ( */}
             <button
               type="button"
               onClick={() => setIsPersonalizationModalOpen(true)}
@@ -114,7 +115,7 @@ export default function OverviewPage() {
               <Sparkles className="h-4 w-4" />
               Personalizar Resumo
             </button>
-          )}
+          {/* )} */}
           <button
             type="button"
             onClick={handleExportPdf}
@@ -153,11 +154,11 @@ export default function OverviewPage() {
         </button>
       </div>
 
-      {/* <PersonalizationModal
+      <PersonalizationModal
         isOpen={isPersonalizationModalOpen}
         onClose={() => setIsPersonalizationModalOpen(false)}
         type="resumo"
-      /> */}
+      />
     </div>
   );
 }

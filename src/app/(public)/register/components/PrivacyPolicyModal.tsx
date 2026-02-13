@@ -126,7 +126,7 @@ const PRIVACY_CONTENT = (
     <ul className="mb-2 list-disc space-y-1 pl-6 text-gray-700">
       <li>
         Áudios de reuniões: Gravações de voz de interações profissionais
-        (médico-paciente, reuniões etc.).
+        (executivo-cliente, reuniões etc.).
       </li>
       <li>
         Transcrições de Áudio: Texto gerado a partir do processamento dos

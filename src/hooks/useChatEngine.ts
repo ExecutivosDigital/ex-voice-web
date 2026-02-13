@@ -2,6 +2,7 @@
 
 import { Message } from "@/components/chatPopup/types";
 import { useApiContext } from "@/context/ApiContext";
+import { DEFAULT_GENERIC_PROMPT } from "@/utils/prompts";
 import { handleApiError } from "@/utils/error-handler";
 import { useCallback, useRef, useState } from "react";
 import toast from "react-hot-toast";
@@ -372,11 +373,7 @@ export function useChatEngine({
       }));
 
       // Usa prompt padrão genérico se nenhum prompt específico foi fornecido
-      const finalSystemPrompt =
-        promptContent ||
-        `Você é um assistente de IA especializado em saúde e medicina. Seu objetivo é ajudar profissionais de saúde e Contatos com informações precisas, análises de exames, suporte para diagnósticos e respostas a perguntas relacionadas à área médica.
-
-Sempre responda de forma clara, objetiva e em português do Brasil. Seja profissional, empático e cuidadoso ao fornecer informações médicas, lembrando sempre que suas respostas são complementares e não substituem a reunião presencial.`;
+      const finalSystemPrompt = promptContent || DEFAULT_GENERIC_PROMPT;
 
       const response = await fetch("/api/chat", {
         method: "POST",

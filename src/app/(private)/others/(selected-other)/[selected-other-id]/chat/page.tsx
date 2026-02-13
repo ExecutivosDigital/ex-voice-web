@@ -5,8 +5,8 @@ import { useGeneralContext } from "@/context/GeneralContext";
 import { useChatEngine } from "@/hooks/useChatEngine";
 import { useChatPrompts, type ChatPrompt } from "@/hooks/useChatPrompts";
 import { cn } from "@/utils/cn";
-import { generalPrompt } from "@/utils/prompts";
 import { PromptIcon } from "@/utils/prompt-icon";
+import { generalPrompt } from "@/utils/prompts";
 import { ArrowLeft, Maximize2, Minimize2, Plus } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -121,7 +121,7 @@ export default function ChatPage() {
       <div className="flex w-full items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Assistente Médico
+            Assistente Executivo
           </h1>
           <p className="text-sm text-gray-500">
             Analisando: {selectedRecording?.name || "Consulta"}

@@ -1,8 +1,8 @@
 "use client";
 
+import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { useApiContext } from "@/context/ApiContext";
 import { startSession } from "@/services/analyticsService";
 import { Activity, Clock, Loader2, Mic, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -262,7 +262,7 @@ export default function HomePage() {
       </div>
 
       <CompleteRegistrationModal />
-      {/* <TrialAppModal /> */}
+      <TrialAppModal />
     </div>
   );
 }

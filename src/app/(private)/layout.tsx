@@ -5,8 +5,8 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { GeneralContextProvider } from "@/context/GeneralContext";
 import { ChatPageProvider } from "@/context/chatContext";
 import { cn } from "@/utils/cn";
-import Lenis from "lenis";
 import { motion } from "framer-motion";
+import Lenis from "lenis";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 // coment
