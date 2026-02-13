@@ -34,18 +34,18 @@ export function SocialHistoryCard({
   const displayFields = isGenericFormat ? fields : legacyFields;
 
   return (
-    <div className="h-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <h3 className="mb-4 flex items-center gap-2 font-semibold text-gray-900">
-        <UsersIcon className="h-5 w-5 text-gray-400" />
-        {title}
+    <div className="h-full w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <h3 className="mb-4 flex items-center gap-2 font-semibold text-gray-900 min-w-0">
+        <UsersIcon className="h-5 w-5 shrink-0 text-gray-400" />
+        <span className="break-words min-w-0">{title}</span>
       </h3>
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0">
         {displayFields.length > 0 ? displayFields.map((field, idx) => (
-          <div key={idx} className="flex items-start gap-3">
-            <div className="mt-0.5 h-5 w-5 rounded-full bg-gray-200" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">{field.label}</p>
-              <p className="text-sm text-gray-500">{field.value}</p>
+          <div key={idx} className="flex items-start gap-3 min-w-0 overflow-hidden">
+            <div className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-gray-200" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-gray-900 break-words">{field.label}</p>
+              <p className="text-sm text-gray-500 break-words">{field.value}</p>
             </div>
           </div>
         )) : (

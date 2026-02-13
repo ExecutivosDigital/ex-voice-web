@@ -45,16 +45,16 @@ export function NextAppointmentsCard({
     : legacyItems.length;
 
   return (
-    <section className={appointmentCount <= 1 ? "max-w-[500px]" : ""}>
-      <div className="mb-4 flex items-center gap-3">
+    <section className={`w-full max-w-full min-w-0 ${appointmentCount <= 1 ? "max-w-[500px]" : ""}`}>
+      <div className="mb-4 flex items-center gap-3 min-w-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${styles.gradientFrom} ${styles.gradientTo} text-white`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${styles.gradientFrom} ${styles.gradientTo} text-white`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+        <h2 className="text-xl font-bold text-gray-900 break-words min-w-0">{title}</h2>
       </div>
-      <div className="grid w-full gap-4 sm:grid-cols-1 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 w-full max-w-full min-w-0">
         {/* Detectar formato: genérico (items[]) ou legado (appointments[]) */}
         {(() => {
           const isGenericFormat =
@@ -89,50 +89,62 @@ export function NextAppointmentsCard({
           return displayItems.map((item, idx) => {
             const dateMeta = item.metadata?.find(
               (m: { label: string; value: string }) =>
-                m.label.toLowerCase().includes("data"),
+                m.label && typeof m.label === 'string' && m.label.toLowerCase().includes("data"),
             );
             const timeMeta = item.metadata?.find(
               (m: { label: string; value: string }) =>
-                m.label.toLowerCase().includes("hora"),
+                m.label && typeof m.label === 'string' && m.label.toLowerCase().includes("hora"),
             );
 
             const dateStr = dateMeta?.value || "";
-            const [day, month] = dateStr ? dateStr.split("/") : ["", ""];
+            // Tentar parsear data no formato DD/MM ou DD/MM/YYYY
+            let day = "";
+            let month = "";
+            if (dateStr) {
+              const parts = dateStr.split("/");
+              if (parts.length >= 2) {
+                day = parts[0]?.trim() || "";
+                month = parts[1]?.trim() || "";
+              } else {
+                // Se não estiver no formato esperado, usar a string completa
+                day = dateStr;
+              }
+            }
+
+            // Só mostrar o card de data se tiver dia e mês válidos (números)
+            const hasValidDate = day && month && !isNaN(parseInt(day)) && !isNaN(parseInt(month)) && parseInt(month) >= 1 && parseInt(month) <= 12;
 
             return (
               <div
                 key={item.id || idx}
-                className={`grid min-h-[100px] w-full grid-cols-1 gap-4 rounded-2xl border ${styles.border} bg-gradient-to-r ${styles.bg} to-white p-5 shadow-sm transition-shadow sm:grid-cols-[auto_1fr] sm:gap-5`}
+                className={`flex items-start gap-5 rounded-2xl border ${styles.border} bg-gradient-to-r ${styles.bg} to-white p-5 transition-all w-full max-w-full min-w-0 overflow-hidden`}
               >
-                {dateStr && (
-                    <div
-                      className={`flex h-fit w-16 flex-shrink-0 flex-col items-center justify-center self-start rounded-xl border ${styles.border} bg-white p-3`}
-                    >
-                      <span className={`text-2xl font-bold leading-tight ${styles.text}`}>
-                        {day}
+                {hasValidDate && (
+                  <div
+                    className={`flex min-w-[70px] shrink-0 flex-col items-center justify-center rounded-xl border ${styles.border} bg-white p-3`}
+                  >
+                    <span className={`text-2xl font-bold ${styles.text} break-words text-center`}>
+                      {day}
+                    </span>
+                    {month && (
+                      <span className="text-[10px] font-bold tracking-wider text-gray-400 uppercase break-words text-center">
+                        {monthNames[parseInt(month) - 1] || month}
                       </span>
-                      {month && (
-                        <span className="mt-0.5 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
-                          {monthNames[parseInt(month, 10) - 1] || month}
-                        </span>
-                      )}
-                    </div>
-                 
+                    )}
+                  </div>
                 )}
-                <div
-                  className={`flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-1`}
-                >
-                  <p className="font-bold text-gray-900">{item.primary}</p>
-                  {(timeMeta?.value || item.secondary) && (
-                    <p className={`text-sm font-medium ${styles.text}`}>
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <p className="font-bold text-gray-900 break-words">{item.primary}</p>
+                  {(timeMeta || item.secondary) && (
+                    <p className={`text-sm font-medium ${styles.text} break-words`}>
                       {timeMeta?.value || ""}{" "}
                       {timeMeta && item.secondary ? "•" : ""}{" "}
                       {item.secondary || ""}
                     </p>
                   )}
                   {item.tags && item.tags.length > 0 && (
-                    <p className="mt-2 inline-flex w-fit max-w-full flex-wrap rounded-lg border border-gray-100 bg-white/80 px-2.5 py-1 text-xs text-gray-600">
-                      <span className="font-medium text-gray-500">Obs:</span>{" "}{item.tags[0]}
+                    <p className="mt-2 inline-block rounded border border-gray-100 bg-white/50 px-2 py-1 text-xs text-gray-500 break-words max-w-full">
+                      <span className="font-medium">Obs:</span> {item.tags[0]}
                     </p>
                   )}
                 </div>

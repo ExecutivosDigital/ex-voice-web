@@ -1,9 +1,8 @@
 "use client";
 
-import { useSectionChat } from "@/components/chatPopup/chat-handler";
-import { Prompt } from "@/components/chatPopup/types";
 import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { useChatEngine } from "@/hooks/useChatEngine";
 import { useChatPrompts, type ChatPrompt } from "@/hooks/useChatPrompts";
 import { cn } from "@/utils/cn";
 import { generalPrompt } from "@/utils/prompts";
@@ -15,6 +14,13 @@ import { ChatInput } from "./components/chat-input";
 import { SuggestionCard } from "./components/suggestion-card";
 import { Messages } from "./messages";
 
+// Ref para garantir que o texto do input seja enviado junto com o áudio (evita closure obsoleta)
+function useInputRef(value: string) {
+  const ref = useRef(value);
+  ref.current = value;
+  return ref;
+}
+
 export default function ChatPage() {
   const { profile } = useSession();
   const { selectedRecording } = useGeneralContext();
@@ -23,53 +29,46 @@ export default function ChatPage() {
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<ChatPrompt | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedPrompt] = useState(generalPrompt);
+  const [inputMessage, setInputMessage] = useState("");
+  const inputMessageRef = useInputRef(inputMessage);
 
-  const hookPrompt: Prompt | undefined = selectedSuggestion
-    ? {
-        id: selectedSuggestion.id,
-        name: selectedSuggestion.name,
-        prompt: selectedSuggestion.content,
-      }
-    : selectedPrompt;
+  // Usa useChatEngine sem persistência (chat independente); prompt base de utils quando nenhuma sugestão selecionada
+  const engine = useChatEngine({
+    promptContent: selectedSuggestion
+      ? selectedSuggestion.content
+      : generalPrompt.prompt,
+    skipPersistence: true, // Não salva no backend
+  });
 
-  const {
-    messages,
-    setMessages,
-    inputMessage,
-    handleSendMessage,
-    setInputMessage,
-    isRecording,
-    startRecording,
-    stopRecording,
-    file,
-    setFile,
-    files,
-    setFiles,
-    loading,
-  } = useSectionChat({ selectedPrompt: hookPrompt });
+  const handleSendMessage = () => {
+    const textToSend = inputMessageRef.current;
+    if (textToSend.trim() || engine.fileHandler.files.length > 0 || engine.audioRecorder.audioFile) {
+      engine.sendMessage(textToSend);
+      setInputMessage("");
+    }
+  };
 
   // Auto-scroll to bottom
   useEffect(() => {
-    if (messages.length > 0 && bottomRef.current) {
+    if (engine.messages.length > 0 && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [engine.messages]);
 
   const handleSuggestionClick = (prompt: ChatPrompt) => {
     setSelectedSuggestion(prompt);
-    setMessages([]);
+    engine.clearChat();
     setInputMessage("");
   };
 
   const handleBack = () => {
     setSelectedSuggestion(null);
-    setMessages([]);
+    engine.clearChat();
     setInputMessage("");
   };
 
   const handleNewChat = () => {
-    setMessages([]);
+    engine.clearChat();
     setInputMessage("");
     setSelectedSuggestion(null);
   };
@@ -92,25 +91,25 @@ export default function ChatPage() {
 
   // Re-inject transcription if messages cleared usually happens via useEffect logic
   useEffect(() => {
-    if (messages.length === 0) {
+    if (engine.messages.length === 0) {
       if (selectedRecording && selectedRecording?.transcription) {
-        setMessages((prev) => [
-          ...prev,
+        // Adiciona a transcrição como mensagem do sistema para contexto
+        engine.setMessages([
           {
             role: "system",
             content: selectedRecording.transcription as string,
-          },
+          } as any,
         ]);
       }
     }
-  }, [messages.length, selectedRecording]);
+  }, [engine.messages.length, selectedRecording, engine.setMessages]);
 
   const styles = {
     iconGradient: "bg-gradient-to-r from-neutral-500 to-neutral-900",
     border: "border-gray-200",
   };
 
-  const isChatEmpty = messages.filter((m) => m.role !== "system").length === 0;
+  const isChatEmpty = engine.messages.filter((m) => m.role !== "system").length === 0;
 
   return (
     <div
@@ -122,10 +121,10 @@ export default function ChatPage() {
       <div className="flex w-full items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Assistente de Transcrição
+            Assistente Médico
           </h1>
           <p className="text-sm text-gray-500">
-            Conversando sobre: {selectedRecording?.name || "Gravação"}
+            Analisando: {selectedRecording?.name || "Consulta"}
           </p>
         </div>
 
@@ -223,15 +222,30 @@ export default function ChatPage() {
                   <ChatInput
                     value={inputMessage}
                     onChange={setInputMessage}
-                    onSend={() => handleSendMessage()}
-                    isRecording={isRecording}
-                    onRecordStart={startRecording}
-                    onRecordStop={stopRecording}
-                    isLoading={loading}
-                    files={files}
-                    onFilesChange={setFiles}
-                    pendingAudioFile={file}
-                    onDiscardAudio={() => setFile(null)}
+                    onSend={handleSendMessage}
+                    isRecording={engine.audioRecorder.isRecording}
+                    onRecordStart={engine.audioRecorder.startRecording}
+                    onRecordStop={engine.audioRecorder.stopRecording}
+                    isLoading={engine.loading}
+                    files={engine.fileHandler.files.map(f => f.file)}
+                    onFilesChange={(newFiles) => {
+                      // Sincroniza com fileHandler
+                      const currentFiles = engine.fileHandler.files.map(f => f.file);
+                      const filesToAdd = newFiles.filter(f => !currentFiles.some(cf => cf.name === f.name && cf.size === f.size));
+                      const filesToRemove = currentFiles.filter(cf => !newFiles.some(nf => nf.name === cf.name && nf.size === cf.size));
+                      
+                      filesToAdd.forEach(file => {
+                        engine.fileHandler.addFile(file);
+                      });
+                      filesToRemove.forEach(file => {
+                        const fileItem = engine.fileHandler.files.find(f => f.file === file);
+                        if (fileItem) {
+                          engine.fileHandler.removeFile(fileItem.id);
+                        }
+                      });
+                    }}
+                    pendingAudioFile={engine.audioRecorder.audioFile}
+                    onDiscardAudio={engine.audioRecorder.clearAudio}
                   />
                 </div>
               </div>
@@ -274,11 +288,11 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {messages.map(
+              {engine.messages.map(
                 (message, i) =>
                   message.role !== "system" && (
                     <Messages
-                      key={`business-msg-${i}-${message.content.substring(0, 10)}`}
+                      key={`business-msg-${i}-${message.content?.substring(0, 10) || i}`}
                       message={message}
                     />
                   ),
@@ -293,15 +307,30 @@ export default function ChatPage() {
             <ChatInput
               value={inputMessage}
               onChange={setInputMessage}
-              onSend={() => handleSendMessage()}
-              isRecording={isRecording}
-              onRecordStart={startRecording}
-              onRecordStop={stopRecording}
-              isLoading={typeof loading !== "undefined" ? loading : false}
-              files={files}
-              onFilesChange={setFiles}
-              pendingAudioFile={file}
-              onDiscardAudio={() => setFile(null)}
+              onSend={handleSendMessage}
+              isRecording={engine.audioRecorder.isRecording}
+              onRecordStart={engine.audioRecorder.startRecording}
+              onRecordStop={engine.audioRecorder.stopRecording}
+              isLoading={engine.loading}
+              files={engine.fileHandler.files.map(f => f.file)}
+              onFilesChange={(newFiles) => {
+                // Sincroniza com fileHandler
+                const currentFiles = engine.fileHandler.files.map(f => f.file);
+                const filesToAdd = newFiles.filter(f => !currentFiles.some(cf => cf.name === f.name && cf.size === f.size));
+                const filesToRemove = currentFiles.filter(cf => !newFiles.some(nf => nf.name === cf.name && nf.size === cf.size));
+                
+                filesToAdd.forEach(file => {
+                  engine.fileHandler.addFile(file);
+                });
+                filesToRemove.forEach(file => {
+                  const fileItem = engine.fileHandler.files.find(f => f.file === file);
+                  if (fileItem) {
+                    engine.fileHandler.removeFile(fileItem.id);
+                  }
+                });
+              }}
+              pendingAudioFile={engine.audioRecorder.audioFile}
+              onDiscardAudio={engine.audioRecorder.clearAudio}
             />
           </div>
         )}

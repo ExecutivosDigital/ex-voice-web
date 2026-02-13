@@ -1,7 +1,7 @@
 "use client";
 
-import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { useSession } from "@/context/auth";
 import { useChatEngine } from "@/hooks/useChatEngine";
 import { useChatPrompts, type ChatPrompt } from "@/hooks/useChatPrompts";
 import { cn } from "@/utils/cn";
@@ -42,7 +42,11 @@ export default function ChatPage() {
 
   const handleSendMessage = () => {
     const textToSend = inputMessageRef.current;
-    if (textToSend.trim() || engine.fileHandler.files.length > 0 || engine.audioRecorder.audioFile) {
+    if (
+      textToSend.trim() ||
+      engine.fileHandler.files.length > 0 ||
+      engine.audioRecorder.audioFile
+    ) {
       engine.sendMessage(textToSend);
       setInputMessage("");
     }
@@ -109,7 +113,8 @@ export default function ChatPage() {
     border: "border-gray-200",
   };
 
-  const isChatEmpty = engine.messages.filter((m) => m.role !== "system").length === 0;
+  const isChatEmpty =
+    engine.messages.filter((m) => m.role !== "system").length === 0;
 
   return (
     <div
@@ -227,18 +232,32 @@ export default function ChatPage() {
                     onRecordStart={engine.audioRecorder.startRecording}
                     onRecordStop={engine.audioRecorder.stopRecording}
                     isLoading={engine.loading}
-                    files={engine.fileHandler.files.map(f => f.file)}
+                    files={engine.fileHandler.files.map((f) => f.file)}
                     onFilesChange={(newFiles) => {
                       // Sincroniza com fileHandler
-                      const currentFiles = engine.fileHandler.files.map(f => f.file);
-                      const filesToAdd = newFiles.filter(f => !currentFiles.some(cf => cf.name === f.name && cf.size === f.size));
-                      const filesToRemove = currentFiles.filter(cf => !newFiles.some(nf => nf.name === cf.name && nf.size === cf.size));
-                      
-                      filesToAdd.forEach(file => {
+                      const currentFiles = engine.fileHandler.files.map(
+                        (f) => f.file,
+                      );
+                      const filesToAdd = newFiles.filter(
+                        (f) =>
+                          !currentFiles.some(
+                            (cf) => cf.name === f.name && cf.size === f.size,
+                          ),
+                      );
+                      const filesToRemove = currentFiles.filter(
+                        (cf) =>
+                          !newFiles.some(
+                            (nf) => nf.name === cf.name && nf.size === cf.size,
+                          ),
+                      );
+
+                      filesToAdd.forEach((file) => {
                         engine.fileHandler.addFile(file);
                       });
-                      filesToRemove.forEach(file => {
-                        const fileItem = engine.fileHandler.files.find(f => f.file === file);
+                      filesToRemove.forEach((file) => {
+                        const fileItem = engine.fileHandler.files.find(
+                          (f) => f.file === file,
+                        );
                         if (fileItem) {
                           engine.fileHandler.removeFile(fileItem.id);
                         }
@@ -252,7 +271,9 @@ export default function ChatPage() {
               <div className="mt-auto py-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {isLoadingPrompts ? (
-                    <p className="text-sm text-gray-500">Carregando sugestões...</p>
+                    <p className="text-sm text-gray-500">
+                      Carregando sugestões...
+                    </p>
                   ) : (
                     prompts.map((prompt, index) => (
                       <SuggestionCard
@@ -312,18 +333,32 @@ export default function ChatPage() {
               onRecordStart={engine.audioRecorder.startRecording}
               onRecordStop={engine.audioRecorder.stopRecording}
               isLoading={engine.loading}
-              files={engine.fileHandler.files.map(f => f.file)}
+              files={engine.fileHandler.files.map((f) => f.file)}
               onFilesChange={(newFiles) => {
                 // Sincroniza com fileHandler
-                const currentFiles = engine.fileHandler.files.map(f => f.file);
-                const filesToAdd = newFiles.filter(f => !currentFiles.some(cf => cf.name === f.name && cf.size === f.size));
-                const filesToRemove = currentFiles.filter(cf => !newFiles.some(nf => nf.name === cf.name && nf.size === cf.size));
-                
-                filesToAdd.forEach(file => {
+                const currentFiles = engine.fileHandler.files.map(
+                  (f) => f.file,
+                );
+                const filesToAdd = newFiles.filter(
+                  (f) =>
+                    !currentFiles.some(
+                      (cf) => cf.name === f.name && cf.size === f.size,
+                    ),
+                );
+                const filesToRemove = currentFiles.filter(
+                  (cf) =>
+                    !newFiles.some(
+                      (nf) => nf.name === cf.name && nf.size === cf.size,
+                    ),
+                );
+
+                filesToAdd.forEach((file) => {
                   engine.fileHandler.addFile(file);
                 });
-                filesToRemove.forEach(file => {
-                  const fileItem = engine.fileHandler.files.find(f => f.file === file);
+                filesToRemove.forEach((file) => {
+                  const fileItem = engine.fileHandler.files.find(
+                    (f) => f.file === file,
+                  );
                   if (fileItem) {
                     engine.fileHandler.removeFile(fileItem.id);
                   }

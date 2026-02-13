@@ -89,7 +89,7 @@ export function Messages({ message }: Props) {
                             {...props}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-bold underline transition-opacity hover:opacity-80"
+                            className="font-bold text-white underline transition-opacity hover:opacity-80"
                           />
                         ),
                         p: ({ children }) => (

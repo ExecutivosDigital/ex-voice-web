@@ -4,8 +4,10 @@ import type { NotificationProps } from "@/@types/general-client";
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import { useNotifications } from "@/hooks/useNotifications";
 import { cn } from "@/utils/cn";
+import { convertAppRouteToWeb } from "@/utils/route-mapper";
 import { Bell, Loader2 } from "lucide-react";
 import moment from "moment";
+import { useRouter } from "next/navigation";
 
 function NotificationCard({
   notification,
@@ -14,10 +16,23 @@ function NotificationCard({
   notification: NotificationProps;
   onMarkAsRead: (id: string) => void;
 }) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    if (!notification.opened) onMarkAsRead(notification.id);
+    
+    if (notification.route) {
+      // Converte rota do app para rota do web
+      const webRoute = convertAppRouteToWeb(notification.route, notification.params);
+      router.push(webRoute);
+    }
+  };
+
   return (
     <div
+      onClick={handleClick}
       className={cn(
-        "flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-4 transition-shadow hover:shadow-sm",
+        "flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-4 transition-shadow hover:shadow-sm cursor-pointer",
         !notification.opened && "border-primary/20 bg-primary/5",
       )}
     >

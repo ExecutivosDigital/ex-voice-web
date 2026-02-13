@@ -34,42 +34,44 @@ export function SuggestedExamsCard({
   const displayItems = isGenericFormat ? items : legacyItems;
 
   return (
-    <div className="h-full rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex items-center gap-3">
+    <div className="h-full w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 md:p-6 shadow-sm">
+      <div className="mb-4 md:mb-5 flex items-center gap-3 min-w-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <h3 className="font-semibold text-gray-900">{title}</h3>
+        <h3 className="font-semibold text-gray-900 leading-relaxed">{title}</h3>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-3 md:space-y-4 min-w-0">
         {displayItems && displayItems.length > 0 ? (
           displayItems.map((item, idx) => {
             const priority = item.metadata?.find((m: { label: string; value: string }) => 
-              m.label.toLowerCase().includes('prioridade')
+              m.label && typeof m.label === 'string' && m.label.toLowerCase().includes('prioridade')
             )?.value || ('status' in item ? item.status : '') || '';
+            
+            const priorityStr = typeof priority === 'string' ? priority : String(priority || '');
             
             return (
               <div
                 key={idx}
-                className="flex items-center justify-between border-b border-gray-50 pb-2 last:border-0 last:pb-0"
+                className="flex items-center justify-between gap-2 border-b border-gray-50 pb-2 last:border-0 last:pb-0 min-w-0"
               >
-                <span className="text-sm font-medium text-gray-700">
+                <p className="text-sm font-medium text-gray-700 leading-relaxed flex-1">
                   {item.primary}
-                </span>
-                {priority && (
-                  <div className="flex items-center gap-2">
+                </p>
+                {priorityStr && (
+                  <div className="flex items-center gap-2 shrink-0">
                     <div
-                      className={`h-2 w-2 rounded-full ${
-                        priority.toLowerCase().includes("alta")
+                      className={`h-2 w-2 rounded-full shrink-0 ${
+                        priorityStr.toLowerCase().includes("alta")
                           ? "bg-red-400"
-                          : priority.toLowerCase().includes("média") || priority.toLowerCase().includes("media")
+                          : priorityStr.toLowerCase().includes("média") || priorityStr.toLowerCase().includes("media")
                             ? "bg-yellow-400"
                             : "bg-gray-400"
                       }`}
                     />
-                    <span className="text-xs text-gray-500">{priority}</span>
+                    <span className="text-xs text-gray-500 whitespace-nowrap">{priorityStr}</span>
                   </div>
                 )}
               </div>

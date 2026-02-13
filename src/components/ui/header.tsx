@@ -3,7 +3,13 @@ import { useGeneralContext } from "@/context/GeneralContext";
 import { useSession } from "@/context/auth";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MessageCircle,
+  Smartphone,
+  UserIcon,
+} from "lucide-react";
 import moment from "moment";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
@@ -27,8 +33,9 @@ import {
   LogoutIcon,
   NotesIcon,
   OtherIcon,
+  SmartphoneIcon,
   StudyIcon,
-  TranscriptionIcon
+  TranscriptionIcon,
 } from "./custom-icons";
 import { NotificationDropdown } from "./notification-dropdown";
 
@@ -218,7 +225,7 @@ export function Header() {
         />
 
         <div className="flex h-max items-center gap-2">
-          <div className="items-center gap-2 flex">
+          <div className="flex items-center gap-2">
             <NotificationDropdown />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -256,7 +263,7 @@ export function Header() {
                 {/* Menu Items */}
                 <div className="p-2">
                   <DropdownMenuItem
-                    onSelect={(e) => {
+                    onSelect={(e: Event) => {
                       e.preventDefault();
                       setIsProfileModalOpen(true);
                     }}
@@ -347,9 +354,18 @@ export function Header() {
       </div>
 
       <div className="mx-auto flex w-[90%] flex-col gap-1 md:gap-4">
-        <div className="flex flex-col items-start gap-2 text-xl md:flex-row md:items-center">
-          <span>Bem vindo(a),</span>
-          <span className="font-semibold">{profile?.name}</span>
+        <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col items-start gap-2 text-xl md:flex-row md:items-center">
+            <span>Bem vindo(a),</span>
+            <span className="font-semibold">{profile?.name}</span>
+          </div>
+          <button
+            onClick={() => appUrl && window.open(appUrl, "_blank")}
+            className="group flex h-8 items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-medium text-white transition-all duration-200 hover:bg-white/20"
+          >
+            <SmartphoneIcon className="h-4 w-4" />
+            <span>Baixar o App</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-1 text-xs text-white/50">
@@ -381,7 +397,6 @@ export function Header() {
                         "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
                         !pathname.includes("/chat") &&
                           !pathname.includes("/transcription") &&
-                          !pathname.includes("/medical-record") &&
                           !pathname.includes("/overview")
                           ? "border-b-white"
                           : "border-b-white/10 text-white/50",
@@ -753,94 +768,109 @@ export function Header() {
                 </div>
               </div>
             </div>
+          ) : pathname === "/notifications" ? (
+            <div className="flex w-full min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 flex-1 items-center gap-4">
+                <button
+                  onClick={() => router.push("/")}
+                  className="hidden h-8 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-white/10 px-4 text-white/50 transition hover:border-white/50 hover:text-white md:flex"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="font-semibold">Voltar</span>
+                </button>
+                <div className="flex items-center gap-2 text-white">
+                  <span className="text-lg font-semibold">Notificações</span>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="flex w-full flex-row items-start justify-between md:items-center">
               <div className="header-tabs-scrollbar min-w-0 flex-1 max-[1366px]:overflow-x-auto max-[1366px]:overflow-y-hidden">
                 <div className="flex h-8 flex-shrink-0 flex-nowrap items-center gap-4">
-                <span
-                  className={cn(
-                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                    pathname === "/"
-                      ? "border-b-white"
-                      : "border-b-white/10 text-white/50",
-                  )}
-                  onClick={() => router.push("/")}
-                >
-                  <HomeIcon />
-                  Início
-                </span>
-                <span
-                  className={cn(
-                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                    pathname === "/recordings"
-                      ? "border-b-white"
-                      : "border-b-white/10 text-white/50",
-                  )}
-                  onClick={() => router.push("/recordings")}
-                >
-                  <LastRecordIcon />
-                  Ultimas Gravações
-                </span>
-                <span
-                  className={cn(
-                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                    pathname === "/reminders"
-                      ? "border-b-white"
-                      : "border-b-white/10 text-white/50",
-                  )}
-                  onClick={() => router.push("/reminders")}
-                >
-                  <NotesIcon />
-                  Lembretes
-                </span>
-                <span
-                  className={cn(
-                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                    pathname.startsWith("/clients")
-                      ? "border-b-white"
-                      : "border-b-white/10 text-white/50",
-                  )}
-                  onClick={() => router.push("/clients")}
-                >
-                  <ContactsIcon />
-                  Contatos
-                </span>
-                <span
-                  className={cn(
-                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                    pathname === "/studies"
-                      ? "border-b-white"
-                      : "border-b-white/10 text-white/50",
-                  )}
-                  onClick={() => router.push("/studies")}
-                >
-                  <StudyIcon />
-                  Estudos
-                </span>
-                <span
-                  className={cn(
-                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                    pathname === "/others"
-                      ? "border-b-white"
-                      : "border-b-white/10 text-white/50",
-                  )}
-                  onClick={() => router.push("/others")}
-                >
-                  <OtherIcon />
-                  Outros
-                </span>
-                <span
-                  className={cn(
-                    "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
-                    pathname === "/chat-business"
-                      ? "border-b-white"
-                      : "border-b-white/10 text-white/50",
-                  )}
-                  onClick={() => router.push("/chat-business")}
-                >
-                  <ChatBusinessIcon />
-                  AI Executivos
-                </span>
+                  <span
+                    className={cn(
+                      "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname === "/"
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() => router.push("/")}
+                  >
+                    <HomeIcon />
+                    Início
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname === "/recordings"
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() => router.push("/recordings")}
+                  >
+                    <LastRecordIcon />
+                    Ultimas Gravações
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname === "/reminders"
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() => router.push("/reminders")}
+                  >
+                    <NotesIcon />
+                    Lembretes
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname.startsWith("/clients")
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() => router.push("/clients")}
+                  >
+                    <ContactsIcon />
+                    Contatos
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname === "/studies"
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() => router.push("/studies")}
+                  >
+                    <StudyIcon />
+                    Estudos
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname === "/others"
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() => router.push("/others")}
+                  >
+                    <OtherIcon />
+                    Outros
+                  </span>
+                  <span
+                    className={cn(
+                      "flex h-full shrink-0 cursor-pointer items-center gap-2 border-b px-4 transition duration-150 hover:border-b-white hover:text-white",
+                      pathname === "/chat-business"
+                        ? "border-b-white"
+                        : "border-b-white/10 text-white/50",
+                    )}
+                    onClick={() => router.push("/chat-business")}
+                  >
+                    <ChatBusinessIcon />
+                    AI Executivos
+                  </span>
                 </div>
               </div>
               <div className="hidden shrink-0 items-center gap-2 md:flex">

@@ -1,11 +1,12 @@
 "use client";
 
-import { Copy, Pencil } from "lucide-react";
 import { useState } from "react";
+import { Pencil, Copy } from "lucide-react";
 import toast from "react-hot-toast";
-import { AIComponent, AISection } from "../types/component-types";
-import { CardEditForm } from "./CardEditForm";
+import { AIComponent, AISection } from "../../types/component-types";
+import { CardEditForm } from "../CardEditForm";
 import { ComponentRenderer } from "./ComponentRenderer";
+import { hasValidComponentData } from "../../utils/component-data-checker";
 
 interface SectionRendererProps {
   section: AISection;
@@ -99,13 +100,7 @@ function getComponentItemCount(component: AIComponent): number {
   if ("personal" in data && typeof data.personal === "object") {
     return Object.values(data.personal).filter((v) => v).length;
   }
-  if ('treatment' in data && typeof data.treatment === 'object' && data.treatment !== null) {
-    const treatment = data.treatment as any;
-    const medicationsCount = (treatment.medications && Array.isArray(treatment.medications)) ? treatment.medications.length : 0;
-    const lifestyleCount = (treatment.lifestyle && Array.isArray(treatment.lifestyle)) ? treatment.lifestyle.length : 0;
-    return medicationsCount + lifestyleCount;
-  }
-  
+
   return 0;
 }
 
@@ -458,6 +453,9 @@ function CardWithActions({
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
+  // Se o children for null (componente vazio), não renderizar nada
+  if (!children) return null;
+
   if (!showCardActions) return <>{children}</>;
 
   const handleCopy = async () => {
@@ -498,7 +496,7 @@ function CardWithActions({
   return (
     <div className="flex max-w-full min-w-0 flex-col gap-2">
       <div className="flex min-w-0 items-start gap-2">
-        <div className="max-w-full min-w-0 flex-1 overflow-x-hidden break-words [&>*]:max-w-full [&>*]:min-w-0">
+        <div className="max-w-full min-w-0 flex-1 overflow-x-hidden [&>*]:max-w-full">
           {children}
         </div>
         <button
@@ -540,31 +538,54 @@ export function SectionRenderer({
     !Array.isArray(section.components) ||
     section.components.length === 0
   ) {
-    return (
-      <section className="mb-10 w-full">
-        <div className="mb-6 flex items-start justify-between border-b border-gray-100 pb-4">
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {section.title}
-            </h2>
-            {section.description && (
-              <p className="mt-1 text-sm text-gray-500">
-                {section.description}
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="py-8 text-center text-gray-500">
-          <p>Nenhum componente disponível nesta seção</p>
-        </div>
-      </section>
-    );
+    // Se não houver componentes, não renderizar a seção
+    return null;
   }
 
-  const { fullWidth, gridComponents } = categorizeComponents(
-    section.components,
+  // Filtrar componentes vazios antes de categorizar
+  const validComponents = section.components.filter((component) =>
+    hasValidComponentData(component),
   );
+
+  // Se não houver componentes válidos, não renderizar a seção
+  if (validComponents.length === 0) {
+    return null;
+  }
+
+  const { fullWidth, gridComponents } = categorizeComponents(validComponents);
   const totalGridComponents = gridComponents.length;
+
+  // Função para gerar título padrão quando ausente
+  const getSectionTitle = (): string => {
+    // Se o título existe e não está vazio, usar ele
+    if (section.title && section.title.trim().length > 0) {
+      return section.title;
+    }
+
+    // Tentar gerar título baseado nos componentes
+    if (validComponents.length > 0) {
+      // Se houver apenas um componente, usar o título dele
+      if (validComponents.length === 1) {
+        const componentTitle = validComponents[0]?.title;
+        if (componentTitle && componentTitle.trim().length > 0) {
+          return componentTitle;
+        }
+      }
+
+      // Tentar usar o primeiro título de componente válido
+      const firstValidTitle = validComponents.find(
+        (c) => c.title && c.title.trim().length > 0,
+      )?.title;
+      if (firstValidTitle) {
+        return firstValidTitle;
+      }
+    }
+
+    // Título padrão genérico
+    return `Seção ${sectionIndex + 1}`;
+  };
+
+  const sectionTitle = getSectionTitle();
 
   return (
     <section className="mb-10 w-full max-w-full min-w-0 overflow-x-hidden">
@@ -572,7 +593,7 @@ export function SectionRenderer({
       <div className="mb-6 flex min-w-0 items-start justify-between border-b border-gray-100 pb-4">
         <div className="min-w-0 flex-1">
           <h2 className="text-2xl font-bold break-words text-gray-900">
-            {section.title}
+            {sectionTitle}
           </h2>
           {section.description && (
             <p className="mt-1 text-sm break-words text-gray-500">
@@ -606,16 +627,24 @@ export function SectionRenderer({
         {/* Grid inteligente para componentes restantes */}
         {gridComponents.length > 0 && (
           <div
-            className={`grid w-full max-w-full min-w-0 gap-4 md:gap-6 ${
+            className={`grid w-full max-w-full min-w-0 overflow-hidden ${
               totalGridComponents === 1
-                ? "justify-items-start" // Alinha à esquerda quando há apenas 1 componente
-                : ""
+                ? "justify-items-start gap-4 md:gap-6" // Alinha à esquerda quando há apenas 1 componente
+                : totalGridComponents >= 5
+                  ? "gap-6 md:gap-8 lg:gap-10" // Muito mais espaço quando há muitos componentes
+                  : totalGridComponents >= 3
+                    ? "gap-5 md:gap-6 lg:gap-8"
+                    : "gap-4 md:gap-6"
             }`}
             style={{
               gridTemplateColumns:
                 totalGridComponents === 1
                   ? "minmax(0, max-content)" // minmax(0, ...) permite o item encolher
-                  : "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+                  : totalGridComponents >= 5
+                    ? `repeat(${Math.min(totalGridComponents, 3)}, minmax(min(100%, 320px), 1fr))` // Máximo 3 colunas quando há 5+, cards maiores (320px mínimo)
+                    : totalGridComponents >= 3
+                      ? "repeat(auto-fit, minmax(min(100%, 320px), 1fr))" // Cards médios para 3-4 componentes
+                      : "repeat(auto-fit, minmax(min(100%, 350px), 1fr))", // Cards maiores para 1-2 componentes
             }}
           >
             {gridComponents.map(({ component, span }, idx) => {
@@ -629,7 +658,7 @@ export function SectionRenderer({
               return (
                 <div
                   key={`grid-${idx}`}
-                  className="h-full w-full max-w-full min-w-0"
+                  className="h-full w-full max-w-full min-w-0 overflow-hidden"
                   style={
                     gridColumnSpan ? { gridColumn: gridColumnSpan } : undefined
                   }
