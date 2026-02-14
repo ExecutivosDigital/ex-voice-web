@@ -68,20 +68,25 @@ export function CompleteRegistrationModal() {
         resolver: zodResolver(FormSchema),
         mode: "onChange",
         defaultValues: {
-            name: profile?.name || "",
-            phone: profile?.mobilePhone || "",
-            cpfCnpj: profile?.cpfCnpj || "",
+            name: "",
+            phone: "",
+            cpfCnpj: "",
         },
     });
 
-    // Update form default values when profile loads
+    // Reset and update form values when modal opens
+    // Only pre-fill fields that are actually present and valid
+    // Don't pre-fill fields that are missing (which is why modal is open)
     useEffect(() => {
-        if (profile) {
-            if (!form.getValues("name")) form.setValue("name", profile.name);
-            if (!form.getValues("phone") && profile.mobilePhone) form.setValue("phone", maskPhone(profile.mobilePhone));
-            if (!form.getValues("cpfCnpj") && profile.cpfCnpj) form.setValue("cpfCnpj", maskCpfCnpj(profile.cpfCnpj));
+        if (profile && isOpen) {
+            // Reset form first to clear any previous values
+            form.reset({
+                name: profile.name || "",
+                phone: profile.mobilePhone ? maskPhone(profile.mobilePhone) : "",
+                cpfCnpj: "", // Always start empty - user must enter it
+            });
         }
-    }, [profile, form]);
+    }, [profile, form, isOpen]);
 
     const onSubmit = async (data: FormValues) => {
         setIsLoading(true);

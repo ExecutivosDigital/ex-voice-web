@@ -191,7 +191,7 @@ export const mockAIGeneratedData: AIComponentResponse = {
     // ========== SEÇÃO: ORIENTAÇÕES E NOTAS ==========
     {
       title: "Orientações e Observações",
-      description: "Orientações ao Contato e notas clínicas",
+      description: "Orientações ao Contato e notas",
       variant: "teal",
       components: [
         {
@@ -253,7 +253,7 @@ export const mockAIGeneratedData: AIComponentResponse = {
     },
     // ========== SEÇÃO: INFORMAÇÕES CLÍNICAS BÁSICAS ==========
     {
-      title: "Informações Clínicas",
+      title: "Informações",
       description: "Dados biométricos e condições do Contato",
       variant: "blue",
       components: [
@@ -373,7 +373,7 @@ export const mockAIGeneratedData: AIComponentResponse = {
     // ========== SEÇÃO: DIAGNÓSTICO PRINCIPAL ==========
     {
       title: "Diagnóstico",
-      description: "Hipótese diagnóstica e informações clínicas",
+      description: "Hipótese diagnóstica e informações",
       variant: "blue",
       components: [
         {

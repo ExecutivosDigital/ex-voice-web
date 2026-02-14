@@ -464,7 +464,7 @@ function HistoryTimelineEditor({
   const labels: Record<(typeof keys)[number], string> = {
     date: "Data",
     type: "Tipo",
-    doctor: "Médico",
+    doctor: "Usuário",
     specialty: "Especialidade",
     note: "Observação",
   };
@@ -904,7 +904,7 @@ export function CardEditForm({
             <ContentEditor
               value={(d.content as string) ?? ""}
               onChange={(v) => setEditData({ ...d, content: v })}
-              label="Notas clínicas"
+              label="Notas"
             />
           )}
         </>

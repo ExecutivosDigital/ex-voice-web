@@ -12,7 +12,7 @@ export const example1_Hypertension: AIComponentResponse = {
   sections: [
     {
       title: "Diagnóstico",
-      description: "Hipótese diagnóstica e informações clínicas",
+      description: "Hipótese diagnóstica e informações",
       variant: "blue",
       components: [
         {

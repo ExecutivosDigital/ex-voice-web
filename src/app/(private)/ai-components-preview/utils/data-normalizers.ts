@@ -1,5 +1,5 @@
-import { GenericListItem, FieldConfig } from "../types/component-types";
-import { isGenericListItem, isFieldConfig, isStringArray, isObject } from "./type-guards";
+import { FieldConfig, GenericListItem } from "../types/component-types";
+import { isFieldConfig, isGenericListItem, isObject, isStringArray } from "./type-guards";
 
 /**
  * Normalizadores de dados para garantir compatibilidade entre formatos legado e genérico
@@ -235,7 +235,7 @@ export function normalizeAppointments(data: unknown): GenericListItem[] {
   if (Array.isArray(data.appointments)) {
     return data.appointments.map((apt: any) => ({
       id: apt.id,
-      primary: apt.type || "Consulta",
+      primary: apt.type || "Reunião",
       secondary: apt.doctor || "",
       metadata: [
         { label: "Data", value: apt.date || "" },

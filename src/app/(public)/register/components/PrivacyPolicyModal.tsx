@@ -155,7 +155,7 @@ const PRIVACY_CONTENT = (
       saúde ou responsável pela interação, é o Controlador dos dados contidos
       nos áudios, transcrições e anotações. Ele é EXCLUSIVAMENTE responsável por
       obter o CONSENTIMENTO explícito e informado dos titulares dos dados
-      (pacientes e/ou demais interlocutores) para a gravação, armazenamento e
+      (contatos e/ou demais interlocutores) para a gravação, armazenamento e
       tratamento desses dados de saúde, conforme o Art. 11, I da LGPD. Além
       disso, outras bases legais para tratamento de dados sensíveis, como o Art.
       11, II, alínea &quot;f&quot; (proteção da vida ou incolumidade física do

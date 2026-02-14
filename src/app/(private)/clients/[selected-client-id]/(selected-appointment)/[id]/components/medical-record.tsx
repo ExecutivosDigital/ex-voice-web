@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from "react";
-import { useGeneralContext } from "@/context/GeneralContext";
-import { useApiContext } from "@/context/ApiContext";
-import { trackAction, UserActionType } from "@/services/actionTrackingService";
-import { handleApiError } from "@/utils/error-handler";
 import { DynamicComponentRenderer } from "@/app/(private)/ai-components-preview/components/core/DynamicComponentRenderer";
 import type { AIComponentResponse } from "@/app/(private)/ai-components-preview/types/component-types";
-import { convertToAIComponentResponse } from "../utils/summary-converter";
+import { useApiContext } from "@/context/ApiContext";
+import { useGeneralContext } from "@/context/GeneralContext";
+import { trackAction, UserActionType } from "@/services/actionTrackingService";
+import { handleApiError } from "@/utils/error-handler";
 import { Loader2 } from "lucide-react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { convertToAIComponentResponse } from "../utils/summary-converter";
 
 export interface MedicalRecordHandle {
   getResponse: () => AIComponentResponse | null;

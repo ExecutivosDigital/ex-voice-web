@@ -242,18 +242,18 @@ export const GeneralContextProvider = ({ children }: ProviderProps) => {
         setClients(response.body.clients || []);
         setClientsTotalPages(response.body.pages || 0);
       } else {
-        console.error("Erro ao buscar pacientes:", response.status);
+        console.error("Erro ao buscar contatos:", response.status);
         const errorMessage = handleApiError(
           response,
-          "Não foi possível carregar os pacientes.",
-        );
+          "Não foi possível carregar os contatos.",
+        );    
         toast.error(errorMessage);
         setClients([]);
         setClientsTotalPages(0);
       }
     } catch (error) {
       console.error("Erro no GetClients:", error);
-      toast.error("Erro ao carregar pacientes. Tente novamente.");
+      toast.error("Erro ao carregar contatos. Tente novamente.");
       setClients([]);
       setClientsTotalPages(0);
     } finally {
