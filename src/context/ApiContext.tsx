@@ -1,14 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { fetchAuthSession } from "@aws-amplify/auth";
-import { Amplify } from "aws-amplify";
-import axios from "axios";
-import { createContext, useContext } from "react";
-import config from "../utils/amplify.json";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { createContext, useContext, useRef } from "react";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
+const ACCESS_TOKEN_COOKIE = "hv_access_token";
 
-console.log(baseURL);
 interface ApiContextProps {
   PostAPI: (
     url: string,
@@ -36,43 +33,143 @@ interface ProviderProps {
   children: React.ReactNode;
 }
 
+/**
+ * Lê o accessToken do cookie regular (acessível por JS).
+ */
+function getAccessToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    new RegExp("(?:^|; )" + ACCESS_TOKEN_COOKIE + "=([^;]*)"),
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 export const ApiContextProvider = ({ children }: ProviderProps) => {
-  Amplify.configure(config);
+  const isRefreshing = useRef(false);
+  const refreshPromise = useRef<Promise<string | null> | null>(null);
 
   const api = axios.create({
     baseURL,
   });
 
-  async function header(auth: boolean, isFormData = false) {
-    let token = null;
-
-    if (auth) {
-      try {
-        const session = await fetchAuthSession();
-
-        token = session.tokens?.accessToken.toString();
-      } catch (error) {
-        console.error("Não foi possível obter a sessão do Cognito (v6)", error);
-      }
+  /**
+   * Tenta renovar o access token via Route Handler /api/auth/refresh.
+   * Retorna o novo access token ou null se falhar.
+   */
+  async function refreshAccessToken(): Promise<string | null> {
+    // Se já está fazendo refresh, retorna a promise em andamento
+    if (isRefreshing.current && refreshPromise.current) {
+      return refreshPromise.current;
     }
 
+    isRefreshing.current = true;
+    refreshPromise.current = (async () => {
+      try {
+        const response = await fetch("/api/auth/refresh", {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          // Refresh falhou — limpa sessão
+          await fetch("/api/auth/logout", {
+            method: "POST",
+            credentials: "include",
+          });
+          window.location.href = "/login";
+          return null;
+        }
+
+        // Os novos tokens já foram setados nos cookies pelo Route Handler
+        // Agora lemos o novo accessToken do cookie
+        // Pequeno delay para garantir que o cookie foi atualizado
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return getAccessToken();
+      } catch {
+        window.location.href = "/login";
+        return null;
+      } finally {
+        isRefreshing.current = false;
+        refreshPromise.current = null;
+      }
+    })();
+
+    return refreshPromise.current;
+  }
+
+  // Interceptor de request: injeta token no header
+  api.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+      // Verifica se a request precisa de auth (marcado via metadata)
+      if ((config as any)._requiresAuth) {
+        const token = getAccessToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
+      return config;
+    },
+    (error) => Promise.reject(error),
+  );
+
+  // Interceptor de response: auto-refresh em 401
+  api.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const originalRequest = error.config as InternalAxiosRequestConfig & {
+        _retry?: boolean;
+        _requiresAuth?: boolean;
+      };
+
+      // Se recebeu 401 e é uma request autenticada que ainda não fez retry
+      if (
+        error.response?.status === 401 &&
+        originalRequest._requiresAuth &&
+        !originalRequest._retry
+      ) {
+        originalRequest._retry = true;
+
+        const newToken = await refreshAccessToken();
+
+        if (newToken) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        }
+
+        // Se refresh falhou, o refreshAccessToken já redireciona
+        return Promise.reject(error);
+      }
+
+      return Promise.reject(error);
+    },
+  );
+
+  function buildHeaders(auth: boolean, isFormData = false) {
     const headers: Record<string, string> = {
-      Authorization: token ? `Bearer ${token}` : "",
       "ngrok-skip-browser-warning": "any",
     };
 
-    // Não define Content-Type para FormData, deixa o axios fazer isso automaticamente
     if (!isFormData) {
       headers["Content-Type"] = "application/json";
     }
 
-    return { headers };
+    if (auth) {
+      const token = getAccessToken();
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    return headers;
   }
 
   async function PostAPI(url: string, data: unknown, auth: boolean) {
     const isFormData = data instanceof FormData;
     const connect = await api
-      .post(url, data, await header(auth, isFormData))
+      .post(url, data, {
+        headers: buildHeaders(auth, isFormData),
+        _requiresAuth: auth,
+      } as any)
       .then(({ data }) => ({ status: 200, body: data }))
       .catch((err) => {
         console.error(`❌ API Error [POST] ${url}`, err.response?.data || err);
@@ -86,7 +183,10 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
 
   async function GetAPI(url: string, auth: boolean) {
     const connect = await api
-      .get(url, await header(auth))
+      .get(url, {
+        headers: buildHeaders(auth),
+        _requiresAuth: auth,
+      } as any)
       .then(({ data }) => ({ status: 200, body: data }))
       .catch((err) => {
         console.error(`❌ API Error [GET] ${url}`, err.response?.data || err);
@@ -100,7 +200,10 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
 
   async function PutAPI(url: string, data: unknown, auth: boolean) {
     const connect = await api
-      .put(url, data, await header(auth))
+      .put(url, data, {
+        headers: buildHeaders(auth),
+        _requiresAuth: auth,
+      } as any)
       .then(({ data }) => ({ status: 200, body: data }))
       .catch((err) => {
         console.error(`❌ API Error [PUT] ${url}`, err.response?.data || err);
@@ -114,7 +217,10 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
 
   async function DeleteAPI(url: string, auth: boolean) {
     const connect = await api
-      .delete(url, await header(auth))
+      .delete(url, {
+        headers: buildHeaders(auth),
+        _requiresAuth: auth,
+      } as any)
       .then(({ data }) => ({ status: 200, body: data }))
       .catch((err) => {
         console.error(

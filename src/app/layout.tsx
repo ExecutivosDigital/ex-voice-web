@@ -3,7 +3,6 @@ import { ApiContextProvider } from "@/context/ApiContext";
 import { SessionProvider } from "@/context/auth";
 import moment from "moment";
 import "moment/locale/pt-br";
-import { CookiesProvider } from "next-client-cookies/server";
 import { Poppins } from "next/font/google";
 import Script from "next/script";
 import NextTopLoader from "nextjs-toploader";
@@ -68,11 +67,9 @@ export default function RootLayout({
             duration: 2000,
           }}
         />
-        <CookiesProvider>
-          <ApiContextProvider>
-            <SessionProvider>{children}</SessionProvider>
-          </ApiContextProvider>
-        </CookiesProvider>
+        <ApiContextProvider>
+          <SessionProvider>{children}</SessionProvider>
+        </ApiContextProvider>
       </body>
     </html>
   );

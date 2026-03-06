@@ -3,7 +3,6 @@ import { useSession } from "@/context/auth";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
 import { Bell, User } from "lucide-react";
-import { useCookies } from "next-client-cookies";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -16,7 +15,6 @@ import {
 export function Sidebar() {
   const { mobileMenu, setMobileMenu } = useSidebar();
   const router = useRouter();
-  const cookies = useCookies();
   const { clearSession } = useSession();
 
   return (
@@ -102,11 +100,8 @@ export function Sidebar() {
                   Falar com Suporte
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onSelect={() => {
-                    cookies.remove(
-                      process.env.NEXT_PUBLIC_USER_TOKEN as string,
-                    );
-                    clearSession();
+                  onSelect={async () => {
+                    await clearSession();
                     router.push("/login");
                   }}
                 >
