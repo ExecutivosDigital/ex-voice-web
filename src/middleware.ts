@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { ACCESS_TOKEN_KEY } from "@/lib/auth-cookies";
-
+import { NextRequest, NextResponse } from "next/server";
 // Rotas que não exigem autenticação
 const PUBLIC_PATHS = [
   "/login",
