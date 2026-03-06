@@ -12,11 +12,15 @@ import toast from "react-hot-toast";
 import { z } from "zod";
 
 // Importações de UI (shadcn/ui e lucide)
-import { Eye, EyeOff, Loader2, LockIcon, Mail } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, Loader2, LockIcon, Mail } from "lucide-react";
 import Field from "./field";
 import { Form, FormField, FormItem, FormMessage } from "./form";
 
 import { useSession } from "@/context/auth";
+
+// Constantes para localStorage
+const REMEMBER_ME_KEY = "rememberMe";
+const SAVED_EMAIL_KEY = "savedEmail";
 
 // Props do componente
 type SignInProps = {
@@ -62,7 +66,7 @@ declare global {
   }
 }
 
-const SignIn = ({ onClick }: SignInProps) => {
+const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
   const { handleGetProfile } = useSession();
   const router = useRouter();
 
@@ -437,7 +441,7 @@ const SignIn = ({ onClick }: SignInProps) => {
               height={20}
               className="h-5 w-5"
             />
-          </div>
+          </button>
           <button
             type="button"
             onClick={handleAppleSignIn}
