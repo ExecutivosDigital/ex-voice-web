@@ -148,7 +148,8 @@ const ForgotPassword = ({ onClick }: ForgotPasswordProps) => {
         </div>
         <div className="mt-6 flex w-full items-center justify-center gap-4">
           <button
-            onClick={() => handleNext(form)}
+            onClick={form.handleSubmit(handleSendResetEmail)}
+            disabled={isLoading}
             className="bg-primary flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
