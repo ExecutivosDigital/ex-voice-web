@@ -100,11 +100,17 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
     appleScript.async = true;
     appleScript.onload = () => {
       if (window.AppleID) {
-        // Redirect URI deve ser IDÊNTICA à cadastrada no Apple Developer (Services ID).
-        // NEXT_PUBLIC_* é embutida no build — defina no ambiente de deploy e faça rebuild.
+        // Com usePopup: true, a Apple exige redirect URI = ORIGEM (scheme + domínio), não path.
+        // Ex.: https://voice.executivosdigital.com.br — não https://.../login
         const rawRedirect =
           process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI || window.location.origin;
-        const redirectURI = rawRedirect.replace(/\/$/, ""); // Apple: sem barra final
+        const redirectURI = (() => {
+          try {
+            return new URL(rawRedirect.replace(/\/$/, "")).origin;
+          } catch {
+            return rawRedirect.replace(/\/$/, "");
+          }
+        })();
         if (process.env.NODE_ENV === "development") {
           console.log("[Apple Sign-In] clientId:", process.env.NEXT_PUBLIC_APPLE_CLIENT_ID, "| redirectURI:", redirectURI);
         }

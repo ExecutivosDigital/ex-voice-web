@@ -2,17 +2,22 @@
 
 Se o login com Apple retorna **"Invalid web redirect url"** mesmo com URLs e domínios configurados, confira os itens abaixo.
 
-## 1. Correspondência exata da Redirect URI
+## 1. Redirect URI = **origem** (com popup)
 
-A Apple exige que a `redirect_uri` enviada na requisição seja **idêntica** (caractere a caractere) à cadastrada no Apple Developer.
+Com `usePopup: true`, a Apple exige que a `redirect_uri` seja **apenas a origem** (scheme + domínio), **sem path**.
+
+- **Certo:** `https://voice.executivosdigital.com.br`
+- **Errado:** `https://voice.executivosdigital.com.br/login`
+
+O código do app já envia só a origem (extrai de `NEXT_PUBLIC_APPLE_REDIRECT_URI` ou de `window.location.origin`). No Apple Developer, cadastre essa **origem** nas Return URLs.
 
 - **Sem barra no final:** use `https://seudominio.com` e **não** `https://seudominio.com/`
-- **www vs sem www:** `https://www.seudominio.com` e `https://seudominio.com` são URLs **diferentes**. Cadastre no Apple exatamente a que o usuário usa ao abrir o site.
+- **www vs sem www:** são URLs diferentes; cadastre a que o usuário usa (ou ambas).
 
-**O que fazer:** No [Apple Developer → Identifiers → Services ID](https://developer.apple.com/account/resources/identifiers/list/serviceId) (ex.: `com.executivosvoice.auth`) → **Configure** → em **Website URLs** / **Return URLs**:
+**O que fazer:** No [Apple Developer → Identifiers → Services ID](https://developer.apple.com/account/resources/identifiers/list/serviceId) (ex.: `com.executivosvoice.auth`) → **Configure** → em **Return URLs**:
 
-- Coloque **cada** URL que o usuário pode usar (com e sem www, se aplicável), **sem** barra no final.
-- Exemplo: `https://app.executivosdigital.com.br` e `https://www.app.executivosdigital.com.br` (se ambos forem usados).
+- Inclua a **origem** do site, ex.: `https://voice.executivosdigital.com.br` (sem `/login`, sem barra final).
+- Se usar www e não-www, cadastre as duas origens.
 
 ## 2. Usar sempre a mesma URL no app (recomendado)
 
@@ -48,12 +53,21 @@ Se `redirect_uri` estiver diferente do que está no Apple Developer (por exemplo
 - Ou cadastrando no Apple a URL que está sendo enviada, ou  
 - Definindo `NEXT_PUBLIC_APPLE_REDIRECT_URI` com a URL canônica e fazendo rebuild.
 
-## 5. Resumo rápido
+## 5. Header Cross-Origin-Opener-Policy (COOP)
+
+Para o popup da Apple funcionar, o site precisa enviar o header:
+
+`Cross-Origin-Opener-Policy: same-origin-allow-popups`
+
+Isso já está configurado em `next.config.ts`. Sem esse header, o popup pode abrir mas não consegue devolver o resultado à janela principal (erro ou “Invalid web redirect url”). Se usar outro host, configure o mesmo header no servidor.
+
+## 6. Resumo rápido
 
 | Onde | O que conferir |
 |------|-----------------|
-| **Apple Developer** | Services ID → Return URLs = lista com as URLs exatas (sem barra final). Incluir www e não-www se ambos forem usados. |
-| **Deploy (build)** | `NEXT_PUBLIC_APPLE_REDIRECT_URI` definida com a URL canônica. **Rebuild** após alterar. |
-| **Navegador** | Na requisição para Apple, `redirect_uri` igual a uma das URLs cadastradas. |
+| **Apple Developer** | Services ID → Return URLs = **origem** do site (ex.: `https://voice.executivosdigital.com.br`), sem path, sem barra final. |
+| **Deploy (build)** | `NEXT_PUBLIC_APPLE_REDIRECT_URI` pode ser a URL completa (ex.: `https://.../login`); o app envia só a origem. **Rebuild** após alterar. |
+| **next.config** | Header `Cross-Origin-Opener-Policy: same-origin-allow-popups` presente. |
+| **Navegador** | Na requisição para Apple, `redirect_uri` = origem (ex.: `https://voice.executivosdigital.com.br`). |
 
 Referência: [TN3107 - Resolving Sign in with Apple response errors](https://developer.apple.com/documentation/technotes/tn3107-resolving-sign-in-with-apple-response-errors) (Apple).
