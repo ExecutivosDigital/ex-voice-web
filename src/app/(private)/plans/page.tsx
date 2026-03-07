@@ -3,390 +3,939 @@
 import { useApiContext } from "@/context/ApiContext";
 import { useSession } from "@/context/auth";
 import { cn } from "@/utils/cn";
-import { Input } from "@/components/ui/blocks/input";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  ChevronLeft,
   ArrowRight,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Copy,
   CreditCard,
   Crown,
   Loader2,
+  MapPin,
+  MessageCircle,
+  PartyPopper,
   QrCode,
   Rocket,
   Shield,
   Sparkles,
+  Ticket,
+  User,
   Zap,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface Plan {
   id: string;
   name: string;
   description: string;
-  pixMonthlyPrice: number;
-  pixYearlyPrice: number;
-  creditMonthlyPrice: number;
-  creditYearlyPrice: number;
-  dailyRecordAvailable: number;
-  channels: string[];
+  pixMonthlyPrice?: number;
+  pixYearlyPrice?: number;
+  pixPrice?: number;
+  creditMonthlyPrice?: number;
+  creditYearlyPrice?: number;
+  creditPrice?: number;
+  dailyRecordAvailable?: number;
+  monthlyRecordAvailable?: number;
+  channels?: string[];
 }
 
 type BillingCycle = "MONTHLY" | "YEARLY";
-type PaymentMethod = "pix" | "credit" | null;
-type ViewState = "plans" | "checkout";
+type PaymentMethod = "card" | "pix";
+type ViewState = "plans" | "checkout" | "success";
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
+// ─── Utilities ────────────────────────────────────────────────────────────────
 
-const formatSeconds = (seconds: number) => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  if (hours > 0) return `${hours}h ${minutes}min`;
-  return `${minutes}min`;
-};
+const onlyDigits = (v: string) => v.replace(/\D/g, "");
+
+const fmtBRL = (v: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
 const EASE = [0.32, 0.72, 0, 1] as const;
 
-export default function Plans2Page() {
-  const { GetAPI, PostAPI } = useApiContext();
-  const { profile, isTrial, handleGetAvailableRecording } = useSession();
+function getPlanPixPrice(plan: Plan, cycle: BillingCycle): number {
+  if (cycle === "YEARLY") return plan.pixYearlyPrice ?? (plan.pixPrice ?? 0) * 12;
+  return plan.pixMonthlyPrice ?? plan.pixPrice ?? 0;
+}
+
+function getPlanCreditPrice(plan: Plan, cycle: BillingCycle): number {
+  if (cycle === "YEARLY") return plan.creditYearlyPrice ?? (plan.creditMonthlyPrice ?? 0) * 12;
+  return plan.creditMonthlyPrice ?? plan.creditPrice ?? 0;
+}
+
+function getRecordLabel(plan: Plan): string {
+  if (plan.monthlyRecordAvailable != null) return `${plan.monthlyRecordAvailable} horas/mês`;
+  if (plan.dailyRecordAvailable != null) {
+    const hoursPerMonth = Math.round((plan.dailyRecordAvailable * 30) / 3600);
+    return `${hoursPerMonth} horas/mês`;
+  }
+  return "Gravação incluída";
+}
+
+function maskCpfCnpj(value: string): string {
+  const v = onlyDigits(value);
+  if (v.length <= 11) {
+    return v
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+  return v
+    .substring(0, 14)
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
+
+function maskCep(value: string): string {
+  const v = onlyDigits(value).slice(0, 8);
+  return v.replace(/^(\d{5})(\d)/, "$1-$2");
+}
+
+function maskPhoneBR(v: string): string {
+  let d = onlyDigits(v).slice(0, 13);
+  let prefix = "";
+  if (d.startsWith("55")) { prefix = "+55 "; d = d.slice(2); }
+  if (d.length <= 2) return prefix + d;
+  if (d.length <= 6) return `${prefix}(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `${prefix}(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `${prefix}(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
+}
+
+function maskCardNumber(v: string): string {
+  return onlyDigits(v).slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+}
+
+function maskExpiry(v: string): string {
+  const d = onlyDigits(v).slice(0, 4);
+  if (d.length <= 2) return d;
+  return `${d.slice(0, 2)}/${d.slice(2)}`;
+}
+
+function parseExpiry(value: string): { month: string; year: string } | null {
+  const m = value.match(/^(\d{2})[\/\-]?(\d{2}|\d{4})$/);
+  if (!m) return null;
+  const month = m[1];
+  let year = m[2];
+  if (Number(month) < 1 || Number(month) > 12) return null;
+  if (year.length === 2) year = `20${year}`;
+  return { month, year };
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function SectionCard({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+      <div className="flex items-center gap-2.5 mb-5">
+        {icon && <span className="text-gray-400">{icon}</span>}
+        <h3 className="font-semibold text-gray-800 text-sm">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Field({
+  label,
+  placeholder,
+  value,
+  onChange,
+  type = "text",
+  maxLength,
+  disabled = false,
+  rightElement,
+  className,
+}: {
+  label?: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  maxLength?: number;
+  disabled?: boolean;
+  rightElement?: React.ReactNode;
+  className?: string;
+}) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className={cn("flex flex-col gap-1.5", className)}>
+      {label && (
+        <label className="text-xs font-semibold text-gray-500">{label}</label>
+      )}
+      <div
+        className={cn(
+          "flex items-center gap-2 h-11 rounded-xl border bg-gray-50 px-3.5 transition-all",
+          focused ? "border-gray-400 bg-white ring-2 ring-gray-100" : "border-gray-200",
+          disabled && "opacity-50",
+        )}
+      >
+        <input
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => !disabled && onChange(e.target.value)}
+          maxLength={maxLength}
+          disabled={disabled}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-300 outline-none"
+        />
+        {rightElement}
+      </div>
+    </div>
+  );
+}
+
+function PaymentMethodTabs({
+  selected,
+  onChange,
+}: {
+  selected: PaymentMethod;
+  onChange: (m: PaymentMethod) => void;
+}) {
+  return (
+    <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
+      {(["pix", "card"] as PaymentMethod[]).map((m) => (
+        <button
+          key={m}
+          type="button"
+          onClick={() => onChange(m)}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all",
+            selected === m
+              ? "bg-white text-black shadow-sm"
+              : "text-gray-400 hover:text-gray-600",
+          )}
+        >
+          {m === "pix" ? <QrCode className="h-4 w-4" /> : <CreditCard className="h-4 w-4" />}
+          {m === "pix" ? "PIX" : "Cartão"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function CardPreview({
+  holder,
+  cardNumber,
+  exp,
+}: {
+  holder: string;
+  cardNumber: string;
+  exp: string;
+}) {
+  return (
+    <div
+      className="relative w-full rounded-2xl p-5 mb-6 overflow-hidden"
+      style={{
+        background: "linear-gradient(135deg, #171717 0%, #5b5b5b 100%)",
+        minHeight: 160,
+        boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
+      }}
+    >
+      <div className="flex justify-between items-start mb-4">
+        <Image
+          src="/logos/logo-white.svg"
+          alt="EX Voice"
+          width={70}
+          height={26}
+          className="h-6 w-auto object-contain opacity-80"
+          onError={() => {}} // silent fallback
+        />
+        <CreditCard className="h-5 w-5 text-white/40" />
+      </div>
+      <p className="text-white text-lg font-mono tracking-widest mb-4">
+        {cardNumber ? maskCardNumber(cardNumber) : "**** **** **** ****"}
+      </p>
+      <div className="flex justify-between items-end">
+        <div>
+          <p className="text-white/50 text-[9px] uppercase font-semibold mb-0.5">Titular</p>
+          <p className="text-white text-xs font-medium capitalize">
+            {holder || "Seu Nome"}
+          </p>
+        </div>
+        <div>
+          <p className="text-white/50 text-[9px] uppercase font-semibold mb-0.5 text-right">Validade</p>
+          <p className="text-white text-xs font-medium">{exp || "MM/AA"}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FreePlanBanner() {
+  return (
+    <div
+      className="w-full rounded-2xl p-5 mb-6 flex flex-col items-center justify-center"
+      style={{
+        background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+        minHeight: 120,
+        boxShadow: "0 10px 40px rgba(16,185,129,0.3)",
+      }}
+    >
+      <div className="bg-white/20 p-2.5 rounded-full mb-2">
+        <Ticket className="h-7 w-7 text-white" />
+      </div>
+      <p className="text-white text-xl font-bold">100% OFF</p>
+      <p className="text-emerald-100 text-xs mt-0.5">Assinatura Gratuita Garantida</p>
+    </div>
+  );
+}
+
+function PixGeneratedView({
+  price,
+  pixCode,
+  pixEncodedImage,
+  copied,
+  onCopy,
+  onAlreadyPaid,
+}: {
+  price: string;
+  pixCode: string;
+  pixEncodedImage: string | null;
+  copied: boolean;
+  onCopy: () => void;
+  onAlreadyPaid: () => void;
+}) {
+  const qrUri = pixEncodedImage
+    ? pixEncodedImage.startsWith("data:")
+      ? pixEncodedImage
+      : `data:image/png;base64,${pixEncodedImage}`
+    : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-4"
+    >
+      <div>
+        <h2 className="text-2xl font-bold text-black">PIX gerado!</h2>
+        <p className="mt-1.5 text-sm text-gray-500">
+          Escaneie o QR Code ou copie o código para pagar
+        </p>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-5">
+        {/* QR Code */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-center w-48 h-48">
+          {qrUri ? (
+            <img src={qrUri} alt="QR Code PIX" className="w-full h-full object-contain" />
+          ) : (
+            <QrCode className="w-36 h-36 text-gray-800" strokeWidth={1.2} />
+          )}
+        </div>
+
+        {/* Price */}
+        <div className="bg-gray-50 rounded-xl px-6 py-3 w-full text-center border border-gray-100">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Valor</p>
+          <p className="text-2xl font-bold text-black">{price}</p>
+        </div>
+
+        {/* PIX Code */}
+        <div className="w-full">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+            Código PIX Copia e Cola
+          </p>
+          <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-3 font-mono text-xs text-gray-500 leading-relaxed break-all select-all">
+            {pixCode || "—"}
+          </div>
+        </div>
+
+        {/* Copy button */}
+        <button
+          type="button"
+          onClick={onCopy}
+          disabled={!pixCode}
+          className={cn(
+            "w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl text-sm font-bold transition-all",
+            copied
+              ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+              : "bg-black text-white shadow-lg shadow-black/20 hover:bg-gray-800",
+            !pixCode && "opacity-50 cursor-not-allowed",
+          )}
+        >
+          {copied ? (
+            <><Check className="h-4 w-4" strokeWidth={3} /> Código Copiado!</>
+          ) : (
+            <><Copy className="h-4 w-4" /> Copiar Código PIX</>
+          )}
+        </button>
+
+        {/* Already paid */}
+        <button
+          type="button"
+          onClick={onAlreadyPaid}
+          className="w-full py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all"
+        >
+          Já realizei o pagamento
+        </button>
+      </div>
+
+      {/* Polling indicator */}
+      <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Aguardando confirmação do pagamento...
+      </div>
+    </motion.div>
+  );
+}
+
+function SuccessView({ onGoHome, onCommunity }: { onGoHome: () => void; onCommunity: () => void }) {
+  return (
+    <motion.div
+      key="success"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-1 flex-col items-center justify-center gap-8 py-12 text-center"
+    >
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+        className="flex h-24 w-24 items-center justify-center rounded-full border border-black/10 bg-gray-50 shadow-inner"
+      >
+        <PartyPopper className="h-11 w-11 text-black" strokeWidth={1.5} />
+      </motion.div>
+
+      <div className="space-y-3">
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="text-4xl font-extrabold tracking-tight text-black"
+        >
+          Parabéns!
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="text-xl font-semibold text-gray-700"
+        >
+          Sua assinatura foi confirmada
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65 }}
+          className="text-sm text-gray-400 leading-relaxed max-w-sm mx-auto"
+        >
+          Obrigado por confiar na EX Voice. Agora você tem acesso completo às ferramentas de
+          transcrição e IA para elevar o nível do seu atendimento.
+        </motion.p>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="flex flex-col gap-3 w-full max-w-xs"
+      >
+        <button
+          onClick={onGoHome}
+          className="flex items-center justify-center gap-2 w-full h-14 bg-black rounded-2xl text-white font-bold text-base shadow-xl shadow-black/20 hover:bg-gray-800 transition-all"
+        >
+          Ir para o painel <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
+        </button>
+        <button
+          onClick={onCommunity}
+          className="flex items-center justify-center gap-2.5 w-full h-14 rounded-2xl border border-gray-200 text-gray-500 font-semibold text-sm hover:border-gray-300 hover:text-gray-700 transition-all"
+        >
+          <MessageCircle className="h-5 w-5" />
+          Acessar a Comunidade
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+export default function PlansPage() {
+  const { GetAPI, PostAPI, PutAPI } = useApiContext();
+  const { profile, setProfile, isTrial, handleGetAvailableRecording } = useSession();
   const router = useRouter();
 
+  // ── View / navigation state
   const [viewState, setViewState] = useState<ViewState>("plans");
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingPlans, setLoadingPlans] = useState(true);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("MONTHLY");
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
 
-  const [pixLoading, setPixLoading] = useState(false);
-  const [pixPayload, setPixPayload] = useState<string | null>(null);
-  const pixRequestedRef = useRef(false);
-  const [creditLoading, setCreditLoading] = useState(false);
-  const [cardForm, setCardForm] = useState({
-    number: "",
-    holderName: "",
-    expiry: "",
-    cvv: "",
-  });
+  // ── Payment method (PIX como padrão)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
 
+  // ── PIX state
+  const [pixGenerated, setPixGenerated] = useState(false);
+  const [pixCopied, setPixCopied] = useState(false);
+  const [pixPayload, setPixPayload] = useState<string>("");
+  const [pixEncodedImage, setPixEncodedImage] = useState<string | null>(null);
+  const [pixSignatureId, setPixSignatureId] = useState<string | null>(null);
+
+  // ref para poder parar o interval do polling dentro do callback assíncrono
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ── Form fields
+  const [cpf, setCpf] = useState("");
+  const [cep, setCep] = useState("");
+  const [address, setAddress] = useState("");
+  const [house, setHouse] = useState("");
+  const [holder, setHolder] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [exp, setExp] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [coupon, setCoupon] = useState("");
+
+  // ── Loading / coupon state
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [discountPercent, setDiscountPercent] = useState(0);
+
+  // ── Fetch plans
   const fetchPlans = useCallback(async () => {
-    setLoading(true);
+    setLoadingPlans(true);
     try {
       const res = await GetAPI("/signature-plan/channel/WEB", true);
       if (res.status === 200 && res.body?.plans) {
         const list = res.body.plans as Plan[];
         setPlans(list);
-        if (list.length > 0) {
-          setSelectedPlan(list[Math.min(1, list.length - 1)].id);
-        }
+        if (list.length > 0) setSelectedPlan(list[Math.min(1, list.length - 1)].id);
       }
     } catch {
       console.error("Erro ao buscar planos");
     } finally {
-      setLoading(false);
+      setLoadingPlans(false);
     }
   }, [GetAPI]);
 
-  useEffect(() => {
-    fetchPlans();
-  }, [fetchPlans]);
+  useEffect(() => { fetchPlans(); }, [fetchPlans]);
 
+  // ── Pre-fill form from profile
   useEffect(() => {
-    if (
-      viewState !== "checkout" ||
-      paymentMethod !== "pix" ||
-      !selectedPlan ||
-      !profile
-    ) {
-      if (viewState !== "checkout" || paymentMethod !== "pix")
-        pixRequestedRef.current = false;
+    if (profile) {
+      if (!cpf) setCpf(profile.cpfCnpj ?? "");
+      if (!cep) setCep(profile.postalCode ?? "");
+      if (!address) setAddress(profile.address ?? "");
+      if (!house) setHouse(profile.addressNumber ?? "");
+      if (!holder) setHolder(profile.name ?? "");
+      if (!email) setEmail(profile.email ?? "");
+      if (!phone) setPhone(profile.mobilePhone ?? "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
+
+  // ── CEP auto-fill
+  useEffect(() => {
+    const cleaned = onlyDigits(cep);
+    if (cleaned.length === 8) {
+      fetch(`https://brasilapi.com.br/api/cep/v2/${cleaned}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.cep) {
+            setAddress(
+              [data.street, data.neighborhood, data.city]
+                .filter(Boolean)
+                .join(", ") + (data.state ? ` - ${data.state}` : ""),
+            );
+          }
+        })
+        .catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cep]);
+
+  // ── PIX polling
+  useEffect(() => {
+    if (!pixGenerated || !pixSignatureId || isFree) return;
+
+    let mounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const checkStatus = async () => {
+      try {
+        const res = await GetAPI(`/signature/${pixSignatureId}/status`, true);
+        if (!mounted) return;
+        if ([200, 201].includes(res.status) && res.body?.isPaid) {
+          // Para o interval imediatamente (acessível via ref dentro do callback)
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          await handleGetAvailableRecording();
+          setViewState("success");
+          return;
+        }
+      } catch { /* continua tentando */ }
+    };
+
+    checkStatus();
+    pollingIntervalRef.current = setInterval(checkStatus, 5000);
+
+    // Para o polling após 15 minutos
+    timeoutId = setTimeout(() => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    }, 900000);
+
+    return () => {
+      mounted = false;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pixGenerated, pixSignatureId]);
+
+  // ── Computed
+  const selectedPlanData = plans.find((p) => p.id === selectedPlan);
+
+  const basePrice = selectedPlanData
+    ? paymentMethod === "card"
+      ? getPlanCreditPrice(selectedPlanData, billingCycle)
+      : getPlanPixPrice(selectedPlanData, billingCycle)
+    : 0;
+
+  const discountedPrice = basePrice * (1 - discountPercent / 100);
+  const isFree = discountPercent === 100;
+  const finalPrice = isFree ? 0 : discountPercent > 0 ? discountedPrice : basePrice;
+
+  const canSubmit = useMemo(() => {
+    if (!selectedPlan) return false;
+    const cpfOk = onlyDigits(cpf).length >= 11;
+    const holderOk = holder.trim().length >= 3;
+    const emailOk = email.trim().length > 3 && email.includes("@");
+    const phoneOk = onlyDigits(phone).length >= 10;
+    const cepOk = onlyDigits(cep).length >= 8;
+    const addressOk = address.trim().length > 0;
+    const houseOk = house.trim().length > 0;
+    const addressSectionOk = cepOk && addressOk && houseOk;
+
+    if (isFree) return cpfOk && holderOk && emailOk && phoneOk;
+    if (paymentMethod === "pix") return cpfOk && holderOk && emailOk && phoneOk && addressSectionOk;
+
+    const cardOk = onlyDigits(cardNumber).length >= 12;
+    const cvvOk = onlyDigits(cvv).length >= 3;
+    const expOk = !!parseExpiry(exp);
+    return cpfOk && holderOk && emailOk && phoneOk && addressSectionOk && cardOk && cvvOk && expOk;
+  }, [cpf, holder, email, phone, cep, address, house, cardNumber, cvv, exp, isFree, selectedPlan, paymentMethod]);
+
+  // ── Helpers
+  async function updateProfileFromForm(): Promise<boolean> {
+    const payload: Record<string, string> = {
+      name: holder,
+      email: email.trim(),
+      cpfCnpj: onlyDigits(cpf),
+      mobilePhone: onlyDigits(phone),
+    };
+    if (!isFree) {
+      payload.postalCode = onlyDigits(cep);
+      payload.address = address.trim();
+      payload.addressNumber = house.trim();
+    }
+    const result = await PutAPI("/user", payload, true);
+    if (result.status === 200 && profile) {
+      setProfile({
+        ...profile,
+        name: payload.name,
+        email: payload.email,
+        cpfCnpj: payload.cpfCnpj ?? null,
+        mobilePhone: payload.mobilePhone ?? null,
+        postalCode: payload.postalCode ?? null,
+        address: payload.address ?? null,
+        addressNumber: payload.addressNumber ?? null,
+      });
+      return true;
+    }
+    return false;
+  }
+
+  async function handleCard() {
+    if (!selectedPlan) throw new Error("Plano não selecionado.");
+    const finalCoupon = coupon.trim();
+
+    if (isFree) {
+      const body: Record<string, unknown> = { billingCycle };
+      if (finalCoupon) body.code = finalCoupon;
+      const resp = await PostAPI(`/signature/pix/${selectedPlan}`, body, true);
+      if ([200, 201].includes(resp.status)) {
+        await handleGetAvailableRecording();
+        setViewState("success");
+      }
+      return resp;
+    }
+
+    const expParsed = parseExpiry(exp);
+    if (!expParsed) throw new Error("Data de expiração inválida.");
+
+    const body = {
+      planId: selectedPlan,
+      billingCycle,
+      code: finalCoupon || undefined,
+      creditCard: {
+        holderName: holder.toUpperCase(),
+        number: onlyDigits(cardNumber),
+        expiryMonth: expParsed.month,
+        expiryYear: expParsed.year,
+        ccv: onlyDigits(cvv),
+      },
+      creditCardHolderInfo: {
+        name: holder,
+        email: email.trim(),
+        cpfCnpj: onlyDigits(cpf),
+        postalCode: onlyDigits(cep),
+        addressNumber: house.trim(),
+        phone: onlyDigits(phone),
+      },
+      billingInfo: {
+        name: holder,
+        email: email.trim(),
+        cpfCnpj: onlyDigits(cpf),
+        mobilePhone: onlyDigits(phone),
+        postalCode: onlyDigits(cep),
+        address: address.trim(),
+        addressNumber: house.trim(),
+      },
+    };
+
+    const resp = await PostAPI("/signature/credit/new", body, true);
+    if ([200, 201].includes(resp.status)) {
+      await handleGetAvailableRecording();
+      setViewState("success");
+    }
+    return resp;
+  }
+
+  async function handleGeneratePix(): Promise<{ status: number; body?: any }> {
+    if (!selectedPlan) return { status: 400 };
+    const finalCoupon = coupon.trim();
+    const body = {
+      billingCycle,
+      code: finalCoupon || undefined,
+      billingInfo: {
+        name: holder,
+        email: email.trim(),
+        cpfCnpj: onlyDigits(cpf),
+        mobilePhone: onlyDigits(phone),
+        postalCode: onlyDigits(cep),
+        address: address.trim(),
+        addressNumber: house.trim(),
+      },
+    };
+    const resp = await PostAPI(`/signature/pix/${selectedPlan}`, body, true);
+    if ([200, 201].includes(resp.status) && resp.body?.payment) {
+      setPixPayload(resp.body.payment.payload || "");
+      setPixEncodedImage(resp.body.payment.encodedImage || null);
+      setPixSignatureId(resp.body.signatureId || null);
+      setPixGenerated(true);
+    }
+    return resp;
+  }
+
+  async function onSubmit() {
+    if (!canSubmit) {
+      toast.error(
+        paymentMethod === "pix" || isFree
+          ? "Verifique seus dados pessoais."
+          : "Verifique os dados do cartão e endereço.",
+      );
       return;
     }
-    if (pixRequestedRef.current) return;
-    pixRequestedRef.current = true;
-    const billingInfo =
-      profile.cpfCnpj && profile.mobilePhone
-        ? {
-            name: profile.name,
-            email: profile.email,
-            cpfCnpj: profile.cpfCnpj,
-            mobilePhone: profile.mobilePhone,
-          }
-        : undefined;
-    setPixLoading(true);
-    setPixPayload(null);
-    PostAPI(
-      `/signature/pix/${selectedPlan}`,
-      { billingCycle, billingInfo },
-      true,
-    )
-      .then((r) => {
-        if (r.status === 200 && r.body?.payment) {
-          setPixPayload(r.body.payment.payload ?? null);
-          handleGetAvailableRecording();
-        } else toast.error(r.body?.message || "Não foi possível gerar o PIX.");
-      })
-      .catch(() => toast.error("Erro ao gerar PIX."))
-      .finally(() => setPixLoading(false));
-  }, [
-    viewState,
-    paymentMethod,
-    selectedPlan,
-    billingCycle,
-    profile,
-    PostAPI,
-    handleGetAvailableRecording,
-  ]);
 
-  const selectedPlanData = plans.find((p) => p.id === selectedPlan);
-  const getPrice = (p: Plan) =>
-    billingCycle === "YEARLY" ? p.creditYearlyPrice : p.creditMonthlyPrice;
-  const getPixPrice = (p: Plan) =>
-    billingCycle === "YEARLY" ? p.pixYearlyPrice : p.pixMonthlyPrice;
+    setSubmitLoading(true);
+    try {
+      await updateProfileFromForm();
 
-  const copyPix = async () => {
+      if (paymentMethod === "pix" && !isFree) {
+        const resp = await handleGeneratePix();
+        if (![200, 201].includes(resp.status)) {
+          const msg =
+            resp.body?.message ||
+            resp.body?.errors?.[0]?.description ||
+            "Não foi possível gerar o PIX. Tente novamente.";
+          toast.error(msg);
+        }
+        return;
+      }
+
+      const resp = await handleCard();
+      if (resp && ![200, 201].includes(resp.status)) {
+        const msg =
+          resp.body?.message ||
+          resp.body?.errors?.[0]?.description ||
+          "Não foi possível processar o pagamento.";
+        toast.error(msg);
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro desconhecido.");
+    } finally {
+      setSubmitLoading(false);
+    }
+  }
+
+  async function handleCopyPixCode() {
     if (!pixPayload) return;
     try {
       await navigator.clipboard.writeText(pixPayload);
+      setPixCopied(true);
       toast.success("Código PIX copiado!");
+      setTimeout(() => setPixCopied(false), 3000);
     } catch {
       toast.error("Não foi possível copiar.");
     }
-  };
+  }
 
-  const handleCreditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPlan) return;
-    const [exM, exYP] = cardForm.expiry.split("/");
-    const exY = exYP?.length === 2 ? `20${exYP}` : (exYP ?? "");
-    const num = cardForm.number.replace(/\D/g, "");
-    if (!num || !cardForm.holderName.trim() || !exM || !exY || !cardForm.cvv) {
-      toast.error("Preencha todos os campos.");
-      return;
-    }
-    setCreditLoading(true);
+  async function handleCheckCoupon() {
+    const code = coupon.trim().toUpperCase();
+    if (!code) return;
+    setIsValidatingCoupon(true);
     try {
-      const r = await PostAPI(
-        `/signature/credit/${selectedPlan}`,
-        {
-          billingCycle,
-          card: {
-            number: num,
-            holderName: cardForm.holderName.trim(),
-            expiryMonth: exM.padStart(2, "0"),
-            expiryYear: exY,
-            cvv: cardForm.cvv.replace(/\D/g, ""),
-          },
-        },
-        true,
-      );
-      if (r.status === 200) {
-        await handleGetAvailableRecording();
-        toast.success("Pagamento realizado!");
-        router.push("/");
-      } else toast.error(r.body?.message ?? "Erro ao processar.");
+      const resp = await GetAPI(`/coupon/${code}`, false);
+      if (resp.status === 200 && resp.body?.discount !== undefined) {
+        const discount = Number(resp.body.discount);
+        setDiscountPercent(discount);
+        toast.success(
+          discount === 100 ? "100% de desconto concedido!" : `${discount}% de desconto concedido!`,
+        );
+      } else {
+        setDiscountPercent(0);
+        toast.error(String(resp.body?.message || resp.body || "Cupom não encontrado."));
+      }
     } catch {
-      toast.error("Erro ao processar.");
+      setDiscountPercent(0);
+      toast.error("Erro ao validar cupom. Tente novamente.");
     } finally {
-      setCreditLoading(false);
+      setIsValidatingCoupon(false);
     }
-  };
+  }
 
-  const fmtCard = (v: string) =>
-    v
-      .replace(/\D/g, "")
-      .slice(0, 16)
-      .replace(/(\d{4})(?=\d)/g, "$1 ")
-      .trim();
-  const fmtExp = (v: string) => {
-    const n = v.replace(/\D/g, "").slice(0, 4);
-    return n.length >= 2 ? `${n.slice(0, 2)}/${n.slice(2)}` : n;
-  };
+  function handleChangePaymentMethod(m: PaymentMethod) {
+    setPaymentMethod(m);
+    setPixGenerated(false);
+    setPixCopied(false);
+    setPixPayload("");
+    setPixEncodedImage(null);
+    setPixSignatureId(null);
+  }
 
-  const handleBack = () => {
-    if (viewState === "checkout" && paymentMethod) {
-      setPaymentMethod(null);
-      pixRequestedRef.current = false;
-    } else if (viewState === "checkout") setViewState("plans");
-    else router.push("/");
-  };
+  function handleBack() {
+    if (viewState === "success") return;
+    if (pixGenerated) {
+      setPixGenerated(false);
+    } else if (viewState === "checkout") {
+      setViewState("plans");
+    } else {
+      router.push("/");
+    }
+  }
 
   const isCheckout = viewState === "checkout";
+  const isSuccess = viewState === "success";
+
+  // ── Price label helpers
+  const priceLabel = () => {
+    if (isFree) return "";
+    if (paymentMethod === "card" && billingCycle === "YEARLY") return "Cobrança em 12x (anual)";
+    if (paymentMethod === "card") return "Cobrança mensal";
+    return billingCycle === "YEARLY" ? "Valor total anual via PIX" : "Pagamento via PIX";
+  };
+
+  const submitLabel = () => {
+    if (submitLoading) return "Processando...";
+    if (isFree) return "Confirmar Inscrição Gratuita";
+    if (paymentMethod === "pix") return "Gerar PIX";
+    return "Finalizar Pagamento";
+  };
 
   return (
     <div className="flex h-screen w-full items-center justify-center overflow-hidden bg-[#111]">
       <motion.div
         layout
         animate={{
-          width: isCheckout ? "85%" : "100%",
-          height: isCheckout ? "88%" : "100%",
-          borderRadius: isCheckout ? 28 : 0,
+          width: isCheckout || isSuccess ? "90%" : "100%",
+          height: isCheckout || isSuccess ? "92%" : "100%",
+          borderRadius: isCheckout || isSuccess ? 28 : 0,
         }}
         transition={{ duration: 0.65, ease: EASE }}
         className="relative flex overflow-hidden bg-white"
         style={{
-          boxShadow: isCheckout
-            ? "0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06)"
-            : "none",
+          boxShadow:
+            isCheckout || isSuccess
+              ? "0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06)"
+              : "none",
         }}
       >
-        {/* ═══ Crossing patterns — span both panels ═══ */}
+        {/* ═══ Crossing patterns ═══ */}
         <div className="pointer-events-none absolute inset-0 z-[5]">
           <motion.div
             animate={{ y: [0, -30, 0], x: [0, 15, 0] }}
             transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
             className="absolute top-[15%] left-[45%] h-[500px] w-[500px] rounded-full opacity-[0.06]"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(100,100,100,0.5) 0%, transparent 70%)",
-            }}
+            style={{ background: "radial-gradient(circle, rgba(100,100,100,0.5) 0%, transparent 70%)" }}
           />
           <motion.div
             animate={{ y: [0, 20, 0], x: [0, -20, 0] }}
             transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
             className="absolute bottom-[10%] left-[42%] h-[600px] w-[600px] rounded-full opacity-[0.05]"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(82,82,91,0.4) 0%, transparent 70%)",
-            }}
+            style={{ background: "radial-gradient(circle, rgba(82,82,91,0.4) 0%, transparent 70%)" }}
           />
           <motion.div
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
             className="absolute top-[30%] left-[47%] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-400/[0.06]"
           />
-          <motion.div
-            animate={{ rotate: [360, 0] }}
-            transition={{ duration: 90, repeat: Infinity, ease: "linear" }}
-            className="absolute top-[60%] left-[48%] h-[200px] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-gray-400/[0.06]"
-          />
         </div>
 
         {/* ═══ LEFT — Video panel ═══ */}
-        <div className="relative hidden w-1/2 shrink-0 flex-col overflow-hidden bg-black lg:flex">
-          {/* Background video */}
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 z-0 h-full w-full object-cover opacity-[0.4]"
-          >
+        <div className="relative hidden w-[45%] shrink-0 flex-col overflow-hidden bg-black lg:flex">
+          <video autoPlay muted loop playsInline className="absolute inset-0 z-0 h-full w-full object-cover opacity-[0.4]">
             <source src="/B-Rolls.mp4" type="video/mp4" />
           </video>
-
-          {/* Dark overlay */}
           <div className="absolute inset-0 z-[1] bg-black/70" />
-
-          {/* Gradient overlays */}
           <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/70 via-transparent to-black/30" />
-          <div className="from-primary/10 absolute inset-0 z-[2] bg-gradient-to-br to-transparent" />
 
           {/* Left panel patterns */}
           <div className="pointer-events-none absolute inset-0 z-[3]">
-            {/* Dot grid */}
-            <div
-              className="absolute inset-0 opacity-[0.06]"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0)",
-                backgroundSize: "32px 32px",
-              }}
-            />
-
-            {/* Diagonal lines */}
-            <div
-              className="absolute inset-0 opacity-[0.03]"
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.3) 40px, rgba(255,255,255,0.3) 41px)",
-              }}
-            />
-
-            {/* Floating orbs */}
-            <motion.div
-              animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.2, 1] }}
-              transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-20 -left-20 h-[28rem] w-[28rem] rounded-full bg-neutral-400/[0.12] blur-[100px]"
-            />
-            <motion.div
-              animate={{ x: [0, -30, 0], y: [0, 40, 0], scale: [1, 1.3, 1] }}
-              transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -right-16 bottom-[20%] h-[24rem] w-[24rem] rounded-full bg-zinc-400/[0.10] blur-[100px]"
-            />
-            <motion.div
-              animate={{ x: [0, 20, 0], y: [0, -20, 0] }}
-              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[40%] left-[20%] h-[16rem] w-[16rem] rounded-full bg-emerald-500/[0.06] blur-[80px]"
-            />
-
-            {/* Geometric rings */}
-            <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-              className="absolute top-[10%] right-[10%] h-48 w-48"
-            >
+            <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0)", backgroundSize: "32px 32px" }} />
+            <motion.div animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.2, 1] }} transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-20 -left-20 h-[28rem] w-[28rem] rounded-full bg-neutral-400/[0.12] blur-[100px]" />
+            <motion.div animate={{ x: [0, -30, 0], y: [0, 40, 0], scale: [1, 1.3, 1] }} transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} className="absolute -right-16 bottom-[20%] h-[24rem] w-[24rem] rounded-full bg-zinc-400/[0.10] blur-[100px]" />
+            <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }} className="absolute top-[10%] right-[10%] h-48 w-48">
               <div className="h-full w-full rounded-full border border-white/[0.08]" />
               <div className="absolute inset-4 rounded-full border border-dashed border-white/[0.06]" />
             </motion.div>
-            <motion.div
-              animate={{ rotate: [360, 0] }}
-              transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-              className="absolute bottom-[15%] left-[5%] h-32 w-32"
-            >
-              <div className="h-full w-full rounded-full border border-white/[0.06]" />
-            </motion.div>
-
-            {/* Horizontal scan line */}
-            <motion.div
-              animate={{ y: ["-100%", "200%"] }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "linear",
-                repeatDelay: 4,
-              }}
-              className="absolute left-0 h-px w-full bg-gradient-to-r from-transparent via-white/[0.10] to-transparent"
-            />
-
-            {/* Corner accents */}
-            <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-bl from-white/[0.04] to-transparent" />
-            <div className="absolute bottom-0 left-0 h-40 w-40 bg-gradient-to-tr from-white/[0.04] to-transparent" />
-
-            {/* Small floating particles */}
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={`particle-left-${i}`}
-                animate={{
-                  y: [0, -20 - i * 5, 0],
-                  x: [0, 10 + i * 3, 0],
-                  opacity: [0.04, 0.12, 0.04],
-                }}
-                transition={{
-                  duration: 6 + i * 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: i * 1.5,
-                }}
-                className="absolute h-1 w-1 rounded-full bg-white"
-                style={{ top: `${15 + i * 14}%`, left: `${10 + i * 12}%` }}
-              />
-            ))}
+            <motion.div animate={{ y: ["-100%", "200%"] }} transition={{ duration: 8, repeat: Infinity, ease: "linear", repeatDelay: 4 }} className="absolute left-0 h-px w-full bg-gradient-to-r from-transparent via-white/[0.10] to-transparent" />
           </div>
 
-          {/* Content over the video */}
+          {/* Left content */}
           <div className="relative z-10 flex h-full flex-col justify-center gap-6 p-10">
-            {/* Banner */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -399,25 +948,14 @@ export default function Plans2Page() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">
-                    {isTrial
-                      ? "Desbloqueie o potencial completo"
-                      : "Escolha o plano ideal"}
+                    {isTrial ? "Desbloqueie o potencial completo" : "Escolha o plano ideal"}
                   </h2>
-                  <p className="text-sm text-white/95">
-                    Gravações inteligentes com IA
-                  </p>
+                  <p className="text-sm text-white/95">Gravações inteligentes com IA</p>
                 </div>
               </div>
-
               <div className="space-y-2.5">
-                {[
-                  "Relatórios inteligentes com IA",
-                  "Suporte prioritário dedicado",
-                ].map((feat) => (
-                  <div
-                    key={feat}
-                    className="flex items-center gap-2.5 text-sm text-white"
-                  >
+                {["Relatórios inteligentes com IA", "Suporte prioritário dedicado"].map((feat) => (
+                  <div key={feat} className="flex items-center gap-2.5 text-sm text-white">
                     <Check className="h-4 w-4 shrink-0 text-emerald-400" />
                     {feat}
                   </div>
@@ -436,68 +974,57 @@ export default function Plans2Page() {
                   transition={{ duration: 0.35 }}
                   className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-xl"
                 >
-                  {/* Header com nome do plano */}
                   <div className="flex items-center gap-4 border-b border-white/10 px-7 py-5">
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
                       <Crown className="h-5 w-5 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-semibold tracking-widest text-white/70 uppercase">
-                        Plano selecionado
-                      </p>
-                      <h3 className="text-xl font-bold text-white">
-                        {selectedPlanData.name}
-                      </h3>
+                      <p className="text-xs font-semibold tracking-widest text-white/70 uppercase">Plano selecionado</p>
+                      <h3 className="text-xl font-bold text-white">{selectedPlanData.name}</h3>
                     </div>
                   </div>
-
-                  {/* Preço destaque */}
                   <div className="px-7 pt-6 pb-5">
                     {billingCycle === "YEARLY" ? (
                       <>
-                        <span className="text-sm font-semibold text-white/60">
-                          12x de
-                        </span>
+                        <span className="text-sm font-semibold text-white/60">12x de</span>
                         <div className="flex items-baseline gap-1">
                           <span className="text-4xl font-extrabold tracking-tight text-white">
-                            {paymentMethod === "pix"
-                              ? formatCurrency(
-                                  getPixPrice(selectedPlanData) / 12,
-                                )
-                              : formatCurrency(getPrice(selectedPlanData) / 12)}
+                            {fmtBRL(
+                              (paymentMethod === "pix"
+                                ? getPlanPixPrice(selectedPlanData, billingCycle)
+                                : getPlanCreditPrice(selectedPlanData, billingCycle)) / 12,
+                            )}
                           </span>
-                          <span className="text-base font-medium text-white/60">
-                            /mês
-                          </span>
+                          <span className="text-base font-medium text-white/60">/mês</span>
                         </div>
                       </>
                     ) : (
                       <div className="flex items-baseline gap-1">
                         <span className="text-4xl font-extrabold tracking-tight text-white">
-                          {paymentMethod === "pix"
-                            ? formatCurrency(getPixPrice(selectedPlanData))
-                            : formatCurrency(getPrice(selectedPlanData))}
+                          {isFree
+                            ? "GRÁTIS"
+                            : discountPercent > 0
+                              ? fmtBRL(
+                                  (paymentMethod === "pix"
+                                    ? getPlanPixPrice(selectedPlanData, billingCycle)
+                                    : getPlanCreditPrice(selectedPlanData, billingCycle)) *
+                                    (1 - discountPercent / 100),
+                                )
+                              : fmtBRL(
+                                  paymentMethod === "pix"
+                                    ? getPlanPixPrice(selectedPlanData, billingCycle)
+                                    : getPlanCreditPrice(selectedPlanData, billingCycle),
+                                )}
                         </span>
-                        <span className="text-base font-medium text-white/60">
-                          /mês
-                        </span>
+                        {!isFree && <span className="text-base font-medium text-white/60">/mês</span>}
                       </div>
                     )}
-                    {paymentMethod === "pix" &&
-                      getPixPrice(selectedPlanData) <
-                        getPrice(selectedPlanData) && (
-                        <p className="mt-1.5 text-sm font-medium text-emerald-400">
-                          Economia de{" "}
-                          {formatCurrency(
-                            getPrice(selectedPlanData) -
-                              getPixPrice(selectedPlanData),
-                          )}{" "}
-                          com PIX
-                        </p>
-                      )}
+                    {discountPercent > 0 && !isFree && (
+                      <p className="mt-1.5 text-sm font-medium text-emerald-400">
+                        {discountPercent}% de desconto aplicado
+                      </p>
+                    )}
                   </div>
-
-                  {/* Detalhes */}
                   <div className="mx-7 space-y-0 divide-y divide-white/[0.06]">
                     <div className="flex items-center justify-between py-3.5">
                       <div className="flex items-center gap-3">
@@ -511,21 +1038,17 @@ export default function Plans2Page() {
                     <div className="flex items-center justify-between py-3.5">
                       <div className="flex items-center gap-3">
                         <Sparkles className="h-4 w-4 text-white/50" />
-                        <span className="text-[15px] text-white/80">
-                          Gravação/dia
-                        </span>
+                        <span className="text-[15px] text-white/80">Gravação</span>
                       </div>
                       <span className="text-[15px] font-semibold text-white">
-                        {formatSeconds(selectedPlanData.dailyRecordAvailable)}
+                        {getRecordLabel(selectedPlanData)}
                       </span>
                     </div>
-                    {paymentMethod && (
+                    {isCheckout && (
                       <div className="flex items-center justify-between py-3.5">
                         <div className="flex items-center gap-3">
                           <CreditCard className="h-4 w-4 text-white/50" />
-                          <span className="text-[15px] text-white/80">
-                            Pagamento
-                          </span>
+                          <span className="text-[15px] text-white/80">Pagamento</span>
                         </div>
                         <span className="text-[15px] font-semibold text-white">
                           {paymentMethod === "pix" ? "PIX" : "Cartão"}
@@ -533,8 +1056,6 @@ export default function Plans2Page() {
                       </div>
                     )}
                   </div>
-
-                  {/* Trust badges */}
                   <div className="mt-4 flex items-center gap-5 border-t border-white/10 px-7 py-4">
                     <span className="flex items-center gap-2 text-xs font-medium text-white/70">
                       <Shield className="h-3.5 w-3.5" /> Seguro
@@ -559,16 +1080,12 @@ export default function Plans2Page() {
             >
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-sm text-[#F7CE46]">
-                    ★
-                  </span>
+                  <span key={i} className="text-sm text-[#F7CE46]">★</span>
                 ))}
               </div>
               <span className="text-sm font-bold text-white">4.9</span>
               <div className="h-4 w-px bg-white/20" />
-              <span className="text-sm text-white/90">
-                +10.000 profissionais confiam
-              </span>
+              <span className="text-sm text-white/90">+10.000 profissionais confiam</span>
             </motion.div>
           </div>
         </div>
@@ -577,286 +1094,22 @@ export default function Plans2Page() {
         <div className="relative flex flex-1 flex-col overflow-hidden bg-[#fafafa]">
           {/* Right panel patterns */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            {/* Mesh gradient background */}
             <div className="absolute inset-0">
               <div
                 className="absolute inset-0"
                 style={{
                   background: `
                     radial-gradient(ellipse 80% 50% at 20% 20%, rgba(212,212,216,0.12) 0%, transparent 60%),
-                    radial-gradient(ellipse 60% 60% at 80% 80%, rgba(228,228,231,0.1) 0%, transparent 50%),
-                    radial-gradient(ellipse 50% 40% at 60% 40%, rgba(212,212,216,0.08) 0%, transparent 50%),
-                    radial-gradient(ellipse 70% 50% at 10% 90%, rgba(228,228,231,0.08) 0%, transparent 50%)
+                    radial-gradient(ellipse 60% 60% at 80% 80%, rgba(228,228,231,0.1) 0%, transparent 50%)
                   `,
                 }}
               />
             </div>
-
-            {/* Animated aurora ribbons */}
-            <motion.div
-              animate={{ x: ["-5%", "5%", "-5%"], y: ["-3%", "3%", "-3%"] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-[10%] -left-[5%] h-[60%] w-[120%]"
-              style={{
-                background:
-                  "linear-gradient(135deg, transparent 25%, rgba(161,161,170,0.08) 38%, rgba(161,161,170,0.02) 50%, transparent 60%)",
-                filter: "blur(35px)",
-              }}
-            />
-            <motion.div
-              animate={{ x: ["3%", "-3%", "3%"], y: ["2%", "-4%", "2%"] }}
-              transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -right-[5%] -bottom-[5%] h-[50%] w-[110%]"
-              style={{
-                background:
-                  "linear-gradient(-45deg, transparent 30%, rgba(113,113,122,0.05) 42%, rgba(113,113,122,0.015) 55%, transparent 65%)",
-                filter: "blur(35px)",
-              }}
-            />
-            <motion.div
-              animate={{ x: ["-2%", "4%", "-2%"], y: ["3%", "-2%", "3%"] }}
-              transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[30%] -left-[10%] h-[40%] w-[100%]"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent 15%, rgba(161,161,170,0.04) 35%, rgba(161,161,170,0.01) 55%, transparent 75%)",
-                filter: "blur(40px)",
-              }}
-            />
-
-            {/* Noise texture overlay for depth */}
-            <div
-              className="absolute inset-0 opacity-[0.025]"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-                backgroundSize: "128px 128px",
-              }}
-            />
-
-            {/* Concentric arcs — top right */}
-            <svg
-              className="absolute -top-16 -right-16 h-[400px] w-[400px] opacity-[0.04]"
-              viewBox="0 0 400 400"
-            >
-              <motion.circle
-                cx="200"
-                cy="200"
-                r="80"
-                fill="none"
-                stroke="#71717a"
-                strokeWidth="1"
-                animate={{ r: [80, 90, 80] }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-              <motion.circle
-                cx="200"
-                cy="200"
-                r="120"
-                fill="none"
-                stroke="#71717a"
-                strokeWidth="0.8"
-                strokeDasharray="8 12"
-                animate={{ r: [120, 130, 120] }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-              <motion.circle
-                cx="200"
-                cy="200"
-                r="160"
-                fill="none"
-                stroke="#71717a"
-                strokeWidth="0.8"
-                animate={{ r: [160, 175, 160] }}
-                transition={{
-                  duration: 10,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-              <motion.circle
-                cx="200"
-                cy="200"
-                r="195"
-                fill="none"
-                stroke="#71717a"
-                strokeWidth="0.6"
-                strokeDasharray="4 16"
-                animate={{ r: [195, 185, 195] }}
-                transition={{
-                  duration: 7,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            </svg>
-
-            {/* Concentric arcs — bottom left */}
-            <svg
-              className="absolute -bottom-20 -left-20 h-[350px] w-[350px] opacity-[0.03]"
-              viewBox="0 0 350 350"
-            >
-              <motion.circle
-                cx="175"
-                cy="175"
-                r="60"
-                fill="none"
-                stroke="#71717a"
-                strokeWidth="1"
-                animate={{ r: [60, 70, 60] }}
-                transition={{
-                  duration: 7,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-              <motion.circle
-                cx="175"
-                cy="175"
-                r="100"
-                fill="none"
-                stroke="#71717a"
-                strokeWidth="0.8"
-                strokeDasharray="6 10"
-                animate={{ r: [100, 110, 100] }}
-                transition={{
-                  duration: 9,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-              <motion.circle
-                cx="175"
-                cy="175"
-                r="140"
-                fill="none"
-                stroke="#71717a"
-                strokeWidth="0.8"
-                animate={{ r: [140, 150, 140] }}
-                transition={{
-                  duration: 11,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            </svg>
-
-            {/* Flowing bezier curves */}
-            <svg
-              className="absolute inset-0 h-full w-full opacity-[0.025]"
-              preserveAspectRatio="none"
-              viewBox="0 0 100 100"
-            >
-              <motion.path
-                d="M-10,30 Q25,10 50,30 T110,30"
-                fill="none"
-                stroke="#52525b"
-                strokeWidth="0.2"
-                animate={{
-                  d: [
-                    "M-10,30 Q25,10 50,30 T110,30",
-                    "M-10,35 Q25,50 50,25 T110,35",
-                    "M-10,30 Q25,10 50,30 T110,30",
-                  ],
-                }}
-                transition={{
-                  duration: 12,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-              <motion.path
-                d="M-10,55 Q30,40 55,55 T110,55"
-                fill="none"
-                stroke="#52525b"
-                strokeWidth="0.2"
-                animate={{
-                  d: [
-                    "M-10,55 Q30,40 55,55 T110,55",
-                    "M-10,50 Q30,70 55,45 T110,50",
-                    "M-10,55 Q30,40 55,55 T110,55",
-                  ],
-                }}
-                transition={{
-                  duration: 15,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-              <motion.path
-                d="M-10,78 Q35,65 60,78 T110,78"
-                fill="none"
-                stroke="#52525b"
-                strokeWidth="0.18"
-                animate={{
-                  d: [
-                    "M-10,78 Q35,65 60,78 T110,78",
-                    "M-10,82 Q35,90 60,72 T110,82",
-                    "M-10,78 Q35,65 60,78 T110,78",
-                  ],
-                }}
-                transition={{
-                  duration: 18,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            </svg>
-
-            {/* Floating glass orbs */}
-            <motion.div
-              animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[12%] right-[15%] h-24 w-24 rounded-full"
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(161,161,170,0.04) 50%, rgba(161,161,170,0.01) 75%, transparent 100%)",
-                boxShadow:
-                  "inset 0 -2px 6px rgba(0,0,0,0.01), 0 3px 14px rgba(113,113,122,0.02)",
-              }}
-            />
-            <motion.div
-              animate={{ y: [0, 15, 0], x: [0, -8, 0] }}
-              transition={{ duration: 13, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-[18%] left-[10%] h-16 w-16 rounded-full"
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(161,161,170,0.03) 50%, rgba(161,161,170,0.008) 75%, transparent 100%)",
-                boxShadow:
-                  "inset 0 -2px 6px rgba(0,0,0,0.008), 0 3px 14px rgba(113,113,122,0.02)",
-              }}
-            />
-            <motion.div
-              animate={{ y: [0, -12, 0], x: [0, -6, 0] }}
-              transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[55%] right-[8%] h-12 w-12 rounded-full"
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), rgba(161,161,170,0.02) 50%, rgba(161,161,170,0.005) 75%, transparent 100%)",
-                boxShadow:
-                  "inset 0 -1px 4px rgba(0,0,0,0.008), 0 2px 10px rgba(113,113,122,0.015)",
-              }}
-            />
-
-            {/* Soft vignette */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(ellipse 80% 70% at 50% 50%, transparent 60%, rgba(250,250,250,0.5) 100%)",
-              }}
-            />
+            <motion.div animate={{ x: ["-5%", "5%", "-5%"], y: ["-3%", "3%", "-3%"] }} transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-[10%] -left-[5%] h-[60%] w-[120%]" style={{ background: "linear-gradient(135deg, transparent 25%, rgba(161,161,170,0.08) 38%, rgba(161,161,170,0.02) 50%, transparent 60%)", filter: "blur(35px)" }} />
           </div>
 
           {/* Top bar */}
-          <div className="absolute z-90 flex w-full shrink-0 items-center justify-between px-6 py-4 sm:px-8">
+          <div className={cn("absolute z-90 flex w-full shrink-0 items-center justify-between px-6 py-4 sm:px-8", isSuccess && "hidden")}>
             <button
               onClick={handleBack}
               className="flex items-center gap-2 rounded-md border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:text-black hover:shadow-md"
@@ -881,10 +1134,16 @@ export default function Plans2Page() {
             )}
           </div>
 
-          {/* Scrollable */}
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto">
-            <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 sm:px-8">
+          {/* Scrollable — absolute inset-0 dá dimensões explícitas ao container; flex-col permite que
+               filhos com flex-1 ocupem a altura total (plans/success) enquanto filhos sem flex-1
+               crescem além da altura e ativam o scroll (checkout) */}
+          <div className={cn(
+            "absolute inset-0 z-10 flex flex-col overflow-y-auto overscroll-contain",
+            isCheckout && !(pixGenerated && paymentMethod === "pix") && "pb-36"
+          )}>
+            <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 sm:px-8">
               <AnimatePresence mode="wait">
+
                 {/* ═══ PLANS ═══ */}
                 {viewState === "plans" && (
                   <motion.div
@@ -900,8 +1159,7 @@ export default function Plans2Page() {
                         Escolha seu plano
                       </h1>
                       <p className="mt-2 text-base text-gray-500">
-                        Selecione o plano ideal e desbloqueie todo o potencial
-                        do EX Voice.
+                        Selecione o plano ideal e desbloqueie todo o potencial do EX Voice.
                       </p>
                     </div>
 
@@ -911,9 +1169,7 @@ export default function Plans2Page() {
                         onClick={() => setBillingCycle("MONTHLY")}
                         className={cn(
                           "rounded-full px-6 py-2.5 text-sm font-semibold transition-all",
-                          billingCycle === "MONTHLY"
-                            ? "bg-black text-white shadow-md"
-                            : "text-gray-500 hover:text-gray-700",
+                          billingCycle === "MONTHLY" ? "bg-black text-white shadow-md" : "text-gray-500 hover:text-gray-700",
                         )}
                       >
                         Mensal
@@ -922,36 +1178,27 @@ export default function Plans2Page() {
                         onClick={() => setBillingCycle("YEARLY")}
                         className={cn(
                           "flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition-all",
-                          billingCycle === "YEARLY"
-                            ? "bg-black text-white shadow-md"
-                            : "text-gray-500 hover:text-gray-700",
+                          billingCycle === "YEARLY" ? "bg-black text-white shadow-md" : "text-gray-500 hover:text-gray-700",
                         )}
                       >
                         Anual
-                        <span
-                          className={cn(
-                            "rounded-full px-2 py-0.5 text-[10px] font-bold text-black",
-                            billingCycle === "YEARLY"
-                              ? "bg-gradient-to-r from-[#F7CE46] to-[#FFCC00]"
-                              : "bg-gradient-to-r from-[#F7CE46] to-[#FFCC00]",
-                          )}
-                        >
+                        <span className="rounded-full bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-2 py-0.5 text-[10px] font-bold text-black">
                           -20%
                         </span>
                       </button>
                     </div>
 
-                    {/* Plan cards — always 2 columns */}
-                    {loading ? (
+                    {/* Plan cards */}
+                    {loadingPlans ? (
                       <div className="flex items-center justify-center py-16">
-                        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+                        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                       </div>
                     ) : (
                       <div className="grid w-full grid-cols-2 gap-5">
                         {plans.map((plan, i) => {
                           const isSelected = selectedPlan === plan.id;
-                          const price = getPrice(plan);
-                          const pixPrice = getPixPrice(plan);
+                          const price = getPlanCreditPrice(plan, billingCycle);
+                          const pixPrice = getPlanPixPrice(plan, billingCycle);
                           const isPopular = plans.length >= 2 && i === 1;
 
                           return (
@@ -961,10 +1208,7 @@ export default function Plans2Page() {
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.08 }}
-                              whileHover={{
-                                y: -4,
-                                transition: { duration: 0.2 },
-                              }}
+                              whileHover={{ y: -4, transition: { duration: 0.2 } }}
                               whileTap={{ scale: 0.98 }}
                               onClick={() => setSelectedPlan(plan.id)}
                               className={cn(
@@ -972,9 +1216,7 @@ export default function Plans2Page() {
                                 isSelected
                                   ? "bg-black shadow-2xl ring-2 shadow-black/20 ring-black"
                                   : "bg-white shadow-lg ring-1 shadow-gray-200/50 ring-gray-100 hover:shadow-xl hover:ring-gray-200",
-                                isPopular &&
-                                  !isSelected &&
-                                  "ring-2 ring-[#F7CE46]/40",
+                                isPopular && !isSelected && "ring-2 ring-[#F7CE46]/40",
                               )}
                             >
                               {isPopular && (
@@ -995,116 +1237,45 @@ export default function Plans2Page() {
                                 </motion.div>
                               )}
 
-                              {isSelected && (
-                                <div className="pointer-events-none absolute inset-0 rounded-3xl">
-                                  <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full bg-white/5 blur-2xl" />
-                                  <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-white/5 blur-2xl" />
-                                </div>
-                              )}
-
-                              <div
-                                className={cn(
-                                  "relative mb-5 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300",
-                                  isSelected
-                                    ? "bg-white/15 text-white"
-                                    : "bg-gray-50 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-600",
-                                )}
-                              >
+                              <div className={cn(
+                                "relative mb-5 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300",
+                                isSelected ? "bg-white/15 text-white" : "bg-gray-50 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-600",
+                              )}>
                                 {i === 0 && <Zap className="h-6 w-6" />}
                                 {i === 1 && <Sparkles className="h-6 w-6" />}
                                 {i === 2 && <Crown className="h-6 w-6" />}
                                 {i >= 3 && <Zap className="h-6 w-6" />}
                               </div>
 
-                              <h3
-                                className={cn(
-                                  "text-xl font-bold transition-colors",
-                                  isSelected ? "text-white" : "text-black",
-                                )}
-                              >
+                              <h3 className={cn("text-xl font-bold transition-colors", isSelected ? "text-white" : "text-black")}>
                                 {plan.name}
                               </h3>
 
                               <div className="mt-4">
                                 {billingCycle === "YEARLY" ? (
                                   <>
-                                    <span
-                                      className={cn(
-                                        "text-sm font-semibold",
-                                        isSelected
-                                          ? "text-white/60"
-                                          : "text-gray-400",
-                                      )}
-                                    >
-                                      12x de
-                                    </span>
+                                    <span className={cn("text-sm font-semibold", isSelected ? "text-white/60" : "text-gray-400")}>12x de</span>
                                     <div className="flex items-baseline gap-1">
-                                      <span
-                                        className={cn(
-                                          "text-4xl font-extrabold tracking-tight",
-                                          isSelected
-                                            ? "text-white"
-                                            : "text-black",
-                                        )}
-                                      >
-                                        {formatCurrency(
-                                          (pixPrice > 0 ? pixPrice : price) /
-                                            12,
-                                        )}
+                                      <span className={cn("text-4xl font-extrabold tracking-tight", isSelected ? "text-white" : "text-black")}>
+                                        {fmtBRL((pixPrice > 0 ? pixPrice : price) / 12)}
                                       </span>
-
                                       {pixPrice > 0 && pixPrice < price && (
-                                        <span
-                                          className={cn(
-                                            "ml-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
-                                            isSelected
-                                              ? "bg-gradient-to-r from-[#F7CE46] to-[#FFCC00]"
-                                              : "bg-gradient-to-r from-[#F7CE46] to-[#FFCC00]",
-                                          )}
-                                        >
-                                          <QrCode className="h-2.5 w-2.5" />
-                                          PIX
+                                        <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-2 py-0.5 text-[10px] font-bold text-black">
+                                          <QrCode className="h-2.5 w-2.5" /> PIX
                                         </span>
                                       )}
                                     </div>
                                   </>
                                 ) : (
                                   <>
-                                    <span
-                                      className={cn(
-                                        "invisible text-sm font-semibold",
-                                        isSelected
-                                          ? "text-white/60"
-                                          : "text-gray-400",
-                                      )}
-                                    >
-                                      1x de
-                                    </span>
+                                    <span className={cn("invisible text-sm font-semibold", isSelected ? "text-white/60" : "text-gray-400")}>1x de</span>
                                     <div className="flex items-baseline gap-1">
-                                      <span
-                                        className={cn(
-                                          "text-4xl font-extrabold tracking-tight",
-                                          isSelected
-                                            ? "text-white"
-                                            : "text-black",
-                                        )}
-                                      >
-                                        {formatCurrency(
-                                          pixPrice > 0 ? pixPrice : price,
-                                        )}
+                                      <span className={cn("text-4xl font-extrabold tracking-tight", isSelected ? "text-white" : "text-black")}>
+                                        {fmtBRL(pixPrice > 0 ? pixPrice : price)}
                                       </span>
-
                                       {pixPrice > 0 && pixPrice < price && (
-                                        <span
-                                          className={cn(
-                                            "ml-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
-                                            isSelected
-                                              ? "bg-gradient-to-r from-[#F7CE46] to-[#FFCC00]"
-                                              : "bg-gradient-to-r from-[#F7CE46] to-[#FFCC00]",
-                                          )}
-                                        >
-                                          <QrCode className="h-2.5 w-2.5" />
-                                          PIX
+                                        <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-2 py-0.5 text-[10px] font-bold text-black">
+                                          <QrCode className="h-2.5 w-2.5" /> PIX
                                         </span>
                                       )}
                                     </div>
@@ -1113,19 +1284,12 @@ export default function Plans2Page() {
                               </div>
 
                               {pixPrice > 0 && pixPrice < price && (
-                                <div
-                                  className={cn(
-                                    "mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
-                                    isSelected
-                                      ? "bg-white/10 text-white/60"
-                                      : "bg-gray-100 text-gray-500",
-                                  )}
-                                >
+                                <div className={cn(
+                                  "mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
+                                  isSelected ? "bg-white/10 text-white/60" : "bg-gray-100 text-gray-500",
+                                )}>
                                   <CreditCard className="h-3 w-3" />
-                                  {billingCycle === "YEARLY"
-                                    ? `12x de ${formatCurrency(price / 12)}`
-                                    : `${formatCurrency(price)}`}{" "}
-                                  no Cartão
+                                  {billingCycle === "YEARLY" ? `12x de ${fmtBRL(price / 12)}` : fmtBRL(price)} no Cartão
                                 </div>
                               )}
                             </motion.button>
@@ -1139,7 +1303,7 @@ export default function Plans2Page() {
                       whileHover={{ scale: 1.01, y: -1 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => selectedPlan && setViewState("checkout")}
-                      disabled={!selectedPlan || loading}
+                      disabled={!selectedPlan || loadingPlans}
                       className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-black py-4 text-base font-bold text-white shadow-xl shadow-black/20 transition-all hover:shadow-2xl disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -1178,628 +1342,275 @@ export default function Plans2Page() {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, x: 40 }}
                     transition={{ duration: 0.45, ease: EASE }}
-                    className="flex flex-1 flex-col justify-center space-y-6 py-8"
+                    className="flex flex-col justify-start space-y-0 pt-20 pb-32"
                   >
-                    {/* Mobile summary */}
-                    <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 lg:hidden">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-[11px] text-gray-400">Plano</p>
-                          <p className="font-bold text-black">
-                            {selectedPlanData.name}
-                          </p>
-                        </div>
-                        <p className="text-xl font-bold text-black">
-                          {formatCurrency(getPrice(selectedPlanData))}
-                          <span className="text-xs font-normal text-gray-400">
-                            /{billingCycle === "YEARLY" ? "ano" : "mês"}
-                          </span>
-                        </p>
-                      </div>
+                    {/* Header */}
+                    <div className="mb-5">
+                      <h2 className="text-2xl font-bold text-black">Finalizar assinatura</h2>
+                      <p className="mt-1.5 text-sm text-gray-500">
+                        Plano <span className="font-semibold text-gray-700">{selectedPlanData.name}</span> —{" "}
+                        {billingCycle === "YEARLY" ? "Anual" : "Mensal"}
+                      </p>
                     </div>
 
-                    {/* Steps */}
-                    <div className="mt-8 flex items-center gap-0">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className={cn(
-                            "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all",
-                            paymentMethod
-                              ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/25"
-                              : "bg-black text-white shadow-md shadow-black/20",
-                          )}
-                        >
-                          {paymentMethod ? <Check className="h-4 w-4" /> : "1"}
-                        </div>
-                        <span
-                          className={cn(
-                            "text-sm font-semibold transition-colors",
-                            paymentMethod ? "text-black" : "text-black",
-                          )}
-                        >
-                          Método de Pagamento
-                        </span>
-                      </div>
+                    {/* Payment method tabs */}
+                    {!isFree && (
+                      <PaymentMethodTabs selected={paymentMethod} onChange={handleChangePaymentMethod} />
+                    )}
 
-                      <div className="mx-4 h-px flex-1 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
+                    {/* PIX Generated view */}
+                    {pixGenerated && paymentMethod === "pix" ? (
+                      <PixGeneratedView
+                        price={fmtBRL(finalPrice)}
+                        pixCode={pixPayload}
+                        pixEncodedImage={pixEncodedImage}
+                        copied={pixCopied}
+                        onCopy={handleCopyPixCode}
+                        onAlreadyPaid={() => setViewState("success")}
+                      />
+                    ) : (
+                      <>
+                        {/* Card preview */}
+                        {paymentMethod === "card" && !isFree && (
+                          <CardPreview holder={holder} cardNumber={cardNumber} exp={exp} />
+                        )}
 
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className={cn(
-                            "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all",
-                            paymentMethod
-                              ? "bg-black text-white shadow-md shadow-black/20"
-                              : "bg-gray-100 text-gray-400",
-                          )}
-                        >
-                          2
-                        </div>
-                        <span
-                          className={cn(
-                            "text-sm font-semibold transition-colors",
-                            paymentMethod ? "text-black" : "text-gray-400",
-                          )}
-                        >
-                          Confirmação
-                        </span>
-                      </div>
-                    </div>
+                        {/* Free plan banner */}
+                        {isFree && <FreePlanBanner />}
 
-                    <AnimatePresence mode="wait">
-                      {!paymentMethod && (
-                        <motion.div
-                          key="pm-select"
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -12 }}
-                          transition={{ duration: 0.25 }}
-                          className="space-y-5"
-                        >
-                          <div>
-                            <h2 className="text-2xl font-bold text-black">
-                              Como deseja pagar?
-                            </h2>
-                            <p className="mt-1.5 text-sm text-gray-500">
-                              Escolha a forma de pagamento para o plano{" "}
-                              <span className="font-semibold text-gray-700">
-                                {selectedPlanData.name}
-                              </span>
-                            </p>
+                        {/* Personal info */}
+                        <SectionCard title="Informações Pessoais" icon={<User className="h-4 w-4" />}>
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <Field
+                              label="CPF / CNPJ"
+                              placeholder="000.000.000-00"
+                              value={maskCpfCnpj(cpf)}
+                              onChange={(t) => setCpf(onlyDigits(t))}
+                              maxLength={18}
+                            />
+                            <Field
+                              label="Nome Completo"
+                              placeholder="Nome do titular"
+                              value={holder}
+                              onChange={setHolder}
+                            />
+                            <Field
+                              label="E-mail"
+                              placeholder="seu@email.com"
+                              value={email}
+                              onChange={setEmail}
+                              type="email"
+                            />
+                            <Field
+                              label="Telefone"
+                              placeholder="(00) 00000-0000"
+                              value={maskPhoneBR(phone)}
+                              onChange={(t) => setPhone(onlyDigits(t))}
+                              maxLength={16}
+                            />
                           </div>
-                          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                            {/* PIX Card */}
-                            <motion.button
-                              type="button"
-                              whileHover={{ scale: 1.015, y: -2 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => setPaymentMethod("pix")}
-                              className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all hover:border-black/20 hover:shadow-lg"
-                            >
-                              {getPixPrice(selectedPlanData) <
-                                getPrice(selectedPlanData) && (
-                                <span className="absolute top-4 right-4 z-10 flex flex-row gap-2 rounded-full bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-2.5 py-1 text-[11px] font-bold tracking-wide text-black">
-                                  <Crown className="h-3 w-3" /> MELHOR PREÇO
-                                </span>
-                              )}
-                              {/* PIX Banner — fixed h-[130px] to match credit card visual */}
-                              <div className="relative mx-6 mt-6 flex h-[130px] items-center justify-between overflow-hidden rounded-xl bg-gradient-to-r from-[#4DB6AC] to-[#26A69A] px-5 shadow-lg">
-                                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,255,255,0.12),transparent_60%)]" />
-                                {/* PIX Logo SVG */}
-                                <div className="relative z-10 flex items-center gap-3">
-                                  <svg
-                                    viewBox="0 0 120 40"
-                                    className="h-8 w-auto"
-                                  >
-                                    <g fill="white">
-                                      <path d="M29.2 11.2L22.5 17.9c-.8.8-.8 2.1 0 2.9l6.7 6.7c.4.4.4 1 0 1.4l-2.8 2.8c-.4.4-1 .4-1.4 0l-6.7-6.7c-1.6-1.6-4.1-1.6-5.7 0L5.9 31.7c-.4.4-1 .4-1.4 0L1.7 28.9c-.4-.4-.4-1 0-1.4l6.7-6.7c.8-.8.8-2.1 0-2.9L1.7 11.2c-.4-.4-.4-1 0-1.4L4.5 7c.4-.4 1-.4 1.4 0l6.7 6.7c1.6 1.6 4.1 1.6 5.7 0L25 7c.4-.4 1-.4 1.4 0l2.8 2.8c.4.4.4 1 0 1.4z" />
-                                    </g>
-                                    <text
-                                      x="38"
-                                      y="28"
-                                      fill="white"
-                                      fontFamily="system-ui, sans-serif"
-                                      fontSize="22"
-                                      fontWeight="700"
-                                      letterSpacing="1"
-                                    >
-                                      pix
-                                    </text>
-                                  </svg>
-                                </div>
-                                {/* Mini QR Code */}
-                                <div className="relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-white p-1.5">
-                                  <svg
-                                    viewBox="0 0 64 64"
-                                    className="h-full w-full"
-                                  >
-                                    <rect
-                                      x="4"
-                                      y="4"
-                                      width="18"
-                                      height="18"
-                                      rx="2"
-                                      fill="none"
-                                      stroke="#1a1a1a"
-                                      strokeWidth="2.5"
-                                    />
-                                    <rect
-                                      x="8"
-                                      y="8"
-                                      width="10"
-                                      height="10"
-                                      rx="1"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="42"
-                                      y="4"
-                                      width="18"
-                                      height="18"
-                                      rx="2"
-                                      fill="none"
-                                      stroke="#1a1a1a"
-                                      strokeWidth="2.5"
-                                    />
-                                    <rect
-                                      x="46"
-                                      y="8"
-                                      width="10"
-                                      height="10"
-                                      rx="1"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="4"
-                                      y="42"
-                                      width="18"
-                                      height="18"
-                                      rx="2"
-                                      fill="none"
-                                      stroke="#1a1a1a"
-                                      strokeWidth="2.5"
-                                    />
-                                    <rect
-                                      x="8"
-                                      y="46"
-                                      width="10"
-                                      height="10"
-                                      rx="1"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="26"
-                                      y="4"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="34"
-                                      y="4"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="26"
-                                      y="12"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="26"
-                                      y="26"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="34"
-                                      y="26"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="26"
-                                      y="34"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="34"
-                                      y="34"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="42"
-                                      y="26"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="50"
-                                      y="26"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="42"
-                                      y="34"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="56"
-                                      y="34"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="26"
-                                      y="42"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="34"
-                                      y="46"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="42"
-                                      y="42"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="50"
-                                      y="50"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="56"
-                                      y="42"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="42"
-                                      y="56"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                    <rect
-                                      x="56"
-                                      y="56"
-                                      width="4"
-                                      height="4"
-                                      rx="0.5"
-                                      fill="#1a1a1a"
-                                    />
-                                  </svg>
-                                </div>
-                              </div>
-                              {/* Info */}
-                              <div className="flex flex-1 flex-col px-6 pt-4 pb-6">
-                                <h3 className="text-lg font-bold text-black">
-                                  PIX
-                                </h3>
-                                <p className="mt-0.5 text-xs text-gray-400">
-                                  Aprovação instantânea
-                                </p>
-                                <div className="mt-auto pt-4">
-                                  <p className="text-2xl font-extrabold text-black">
-                                    {billingCycle === "YEARLY"
-                                      ? `12x ${formatCurrency(getPixPrice(selectedPlanData) / 12)}`
-                                      : formatCurrency(
-                                          getPixPrice(selectedPlanData),
-                                        )}
-                                    <span className="text-sm font-medium text-gray-400">
-                                      /mês
-                                    </span>
-                                  </p>
-                                </div>
-                              </div>
-                            </motion.button>
+                        </SectionCard>
 
-                            {/* Credit Card */}
-                            <motion.button
-                              type="button"
-                              whileHover={{ scale: 1.015, y: -2 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => setPaymentMethod("credit")}
-                              className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all hover:border-black/20 hover:shadow-lg"
-                            >
-                              {/* Card visual — fixed h-[130px] to match PIX banner */}
-                              <div className="relative mx-6 mt-6 flex h-[130px] flex-col justify-between overflow-hidden rounded-xl bg-gradient-to-br from-zinc-800 via-zinc-900 to-black p-5 shadow-lg">
-                                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.08),transparent_60%)]" />
-                                <div className="flex items-start justify-between">
-                                  <div className="flex h-8 w-10 items-center justify-center rounded bg-gradient-to-br from-amber-300 to-amber-500">
-                                    <div className="h-5 w-7 rounded-sm border border-amber-600/30 bg-gradient-to-br from-amber-200 to-amber-400" />
-                                  </div>
-                                  <svg
-                                    viewBox="0 0 48 32"
-                                    className="h-6 w-9 opacity-70"
-                                  >
-                                    <circle
-                                      cx="16"
-                                      cy="16"
-                                      r="14"
-                                      fill="#eb001b"
-                                      fillOpacity="0.8"
-                                    />
-                                    <circle
-                                      cx="32"
-                                      cy="16"
-                                      r="14"
-                                      fill="#f79e1b"
-                                      fillOpacity="0.8"
-                                    />
-                                    <path
-                                      d="M24 5.4a14 14 0 010 21.2 14 14 0 000-21.2z"
-                                      fill="#ff5f00"
-                                      fillOpacity="0.9"
-                                    />
-                                  </svg>
-                                </div>
-                                <div>
-                                  <p className="font-mono text-[13px] tracking-[0.2em] text-white/60">
-                                    •••• •••• •••• ••••
-                                  </p>
-                                  <div className="mt-1.5 flex items-end justify-between">
-                                    <p className="font-mono text-[10px] tracking-wider text-white/40 uppercase">
-                                      Seu nome
-                                    </p>
-                                    <p className="font-mono text-[10px] text-white/40">
-                                      MM/AA
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                              {/* Info */}
-                              <div className="flex flex-1 flex-col px-6 pt-4 pb-6">
-                                <h3 className="text-lg font-bold text-black">
-                                  Cartão de crédito
-                                </h3>
-                                <p className="mt-0.5 text-xs text-gray-400">
-                                  Recorrência automática
-                                </p>
-                                <div className="mt-auto pt-4">
-                                  <p className="text-2xl font-extrabold text-black">
-                                    {billingCycle === "YEARLY"
-                                      ? `12x ${formatCurrency(getPrice(selectedPlanData) / 12)}`
-                                      : formatCurrency(
-                                          getPrice(selectedPlanData),
-                                        )}
-                                    <span className="text-sm font-medium text-gray-400">
-                                      /mês
-                                    </span>
-                                  </p>
-                                </div>
-                              </div>
-                            </motion.button>
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {paymentMethod === "pix" && (
-                        <motion.div
-                          key="pix"
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -12 }}
-                          transition={{ duration: 0.25 }}
-                          className="space-y-5"
-                        >
-                          <div>
-                            <h2 className="text-2xl font-bold text-black">
-                              Pagamento PIX
-                            </h2>
-                            <p className="mt-1.5 text-sm text-gray-500">
-                              Copie o código e cole no app do seu banco
-                            </p>
-                          </div>
-                          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            {pixLoading ? (
-                              <div className="flex flex-col items-center py-12">
-                                <Loader2 className="text-primary h-10 w-10 animate-spin" />
-                                <p className="mt-3 text-sm text-gray-500">
-                                  Gerando código PIX...
-                                </p>
-                              </div>
-                            ) : pixPayload ? (
-                              <div>
-                                <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
-                                  <p className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
-                                    Código PIX
-                                  </p>
-                                </div>
-                                <div className="p-6">
-                                  <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 font-mono text-sm leading-relaxed break-all text-gray-600">
-                                    {pixPayload}
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={copyPix}
-                                    className="mt-4 flex w-full items-center justify-center gap-2.5 rounded-xl bg-black py-3.5 text-sm font-bold text-white shadow-lg shadow-black/20 transition-all hover:bg-gray-800 hover:shadow-xl"
-                                  >
-                                    <Copy className="h-4 w-4" /> Copiar código
-                                    PIX
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <p className="py-8 text-center text-gray-500">
-                                Não foi possível gerar o PIX.
-                              </p>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {paymentMethod === "credit" && (
-                        <motion.div
-                          key="credit"
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -12 }}
-                          transition={{ duration: 0.25 }}
-                          className="space-y-5"
-                        >
-                          <div>
-                            <h2 className="text-2xl font-bold text-black">
-                              Dados do cartão
-                            </h2>
-                            <p className="mt-1.5 text-sm text-gray-500">
-                              Insira os dados do seu cartão de crédito abaixo
-                            </p>
-                          </div>
-                          <form
-                            onSubmit={handleCreditSubmit}
-                            className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
-                          >
-                            <div className="border-b border-gray-100 bg-gray-50 px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <Shield className="h-4 w-4 text-emerald-500" />
-                                <p className="text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                                  Dados protegidos
-                                </p>
-                              </div>
+                        {/* Billing address */}
+                        {!isFree && (
+                          <SectionCard title="Endereço de Cobrança" icon={<MapPin className="h-4 w-4" />}>
+                            <div className="grid grid-cols-3 gap-3 mb-3">
+                              <Field
+                                label="CEP"
+                                placeholder="00000-000"
+                                value={maskCep(cep)}
+                                onChange={(t) => setCep(onlyDigits(t))}
+                                maxLength={9}
+                                className="col-span-2"
+                              />
+                              <Field
+                                label="Número"
+                                placeholder="123"
+                                value={house}
+                                onChange={setHouse}
+                              />
                             </div>
-                            <div className="space-y-5 p-6">
-                              <div>
-                                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                                  Número do cartão
-                                </label>
-                                <div className="relative">
-                                  <CreditCard className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                                  <Input
-                                    placeholder="0000 0000 0000 0000"
-                                    value={cardForm.number}
-                                    onChange={(e) =>
-                                      setCardForm((p) => ({
-                                        ...p,
-                                        number: fmtCard(e.target.value),
-                                      }))
-                                    }
-                                    maxLength={19}
-                                    className="h-12 rounded-xl border-gray-200 bg-gray-50 pl-10 text-base transition-colors focus:border-gray-400 focus:bg-white"
-                                  />
-                                </div>
-                              </div>
-                              <div>
-                                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                                  Nome no cartão
-                                </label>
-                                <Input
-                                  placeholder="Como está impresso no cartão"
-                                  value={cardForm.holderName}
-                                  onChange={(e) =>
-                                    setCardForm((p) => ({
-                                      ...p,
-                                      holderName: e.target.value,
-                                    }))
-                                  }
-                                  className="h-12 rounded-xl border-gray-200 bg-gray-50 text-base transition-colors focus:border-gray-400 focus:bg-white"
+                            <Field
+                              label="Endereço"
+                              placeholder="Rua, bairro, cidade"
+                              value={address}
+                              onChange={setAddress}
+                            />
+                          </SectionCard>
+                        )}
+
+                        {/* Card data */}
+                        {paymentMethod === "card" && !isFree && (
+                          <SectionCard title="Dados do Cartão" icon={<CreditCard className="h-4 w-4" />}>
+                            <div className="flex flex-col gap-3">
+                              <Field
+                                label="Número do Cartão"
+                                placeholder="0000 0000 0000 0000"
+                                value={maskCardNumber(cardNumber)}
+                                onChange={setCardNumber}
+                                maxLength={19}
+                              />
+                              <div className="grid grid-cols-2 gap-3">
+                                <Field
+                                  label="Validade"
+                                  placeholder="MM/AA"
+                                  value={maskExpiry(exp)}
+                                  onChange={setExp}
+                                  maxLength={5}
+                                />
+                                <Field
+                                  label="CVV"
+                                  placeholder="123"
+                                  value={onlyDigits(cvv).slice(0, 4)}
+                                  onChange={setCvv}
+                                  type="tel"
+                                  maxLength={4}
                                 />
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                                    Validade
-                                  </label>
-                                  <Input
-                                    placeholder="MM/AA"
-                                    value={cardForm.expiry}
-                                    onChange={(e) =>
-                                      setCardForm((p) => ({
-                                        ...p,
-                                        expiry: fmtExp(e.target.value),
-                                      }))
-                                    }
-                                    maxLength={5}
-                                    className="h-12 rounded-xl border-gray-200 bg-gray-50 text-base transition-colors focus:border-gray-400 focus:bg-white"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                                    CVV
-                                  </label>
-                                  <Input
-                                    type="password"
-                                    placeholder="•••"
-                                    value={cardForm.cvv}
-                                    onChange={(e) =>
-                                      setCardForm((p) => ({
-                                        ...p,
-                                        cvv: e.target.value
-                                          .replace(/\D/g, "")
-                                          .slice(0, 4),
-                                      }))
-                                    }
-                                    maxLength={4}
-                                    className="h-12 rounded-xl border-gray-200 bg-gray-50 text-base transition-colors focus:border-gray-400 focus:bg-white"
-                                  />
-                                </div>
-                              </div>
+                            </div>
+                          </SectionCard>
+                        )}
+
+                        {/* Coupon */}
+                        <SectionCard title="Cupom de Desconto" icon={<Ticket className="h-4 w-4" />}>
+                          <Field
+                            placeholder="CÓDIGO DO CUPOM"
+                            value={coupon}
+                            onChange={(t) => !discountPercent && setCoupon(t.toUpperCase())}
+                            disabled={!!discountPercent}
+                            rightElement={
                               <button
-                                type="submit"
-                                disabled={creditLoading}
-                                className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-black py-4 text-sm font-bold text-white shadow-lg shadow-black/20 transition-all hover:bg-gray-800 hover:shadow-xl disabled:opacity-60"
+                                type="button"
+                                onClick={handleCheckCoupon}
+                                disabled={isValidatingCoupon || !!discountPercent || !coupon.trim()}
+                                className={cn(
+                                  "ml-1 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase transition-all",
+                                  discountPercent
+                                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                                  (isValidatingCoupon || !!discountPercent || !coupon.trim()) && "opacity-60 cursor-not-allowed",
+                                )}
                               >
-                                {creditLoading ? (
-                                  <Loader2 className="h-5 w-5 animate-spin" />
+                                {isValidatingCoupon ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : discountPercent ? (
+                                  <><Check className="h-3 w-3" /> Aplicado</>
                                 ) : (
-                                  <>
-                                    <CreditCard className="h-4 w-4" /> Confirmar
-                                    pagamento
-                                  </>
+                                  "Aplicar"
                                 )}
                               </button>
-                            </div>
-                          </form>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                            }
+                          />
+                          {discountPercent > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-2.5"
+                            >
+                              <Ticket className="h-4 w-4 text-emerald-500 shrink-0" />
+                              <span className="text-sm font-medium text-emerald-700">
+                                {isFree ? "100% de desconto — Assinatura Gratuita!" : `${discountPercent}% de desconto aplicado`}
+                              </span>
+                            </motion.div>
+                          )}
+                        </SectionCard>
+
+                        {/* Espaço para o botão flutuante não cobrir o último campo */}
+                        <div className="h-28" />
+                      </>
+                    )}
                   </motion.div>
                 )}
+
+                {/* ═══ SUCCESS ═══ */}
+                {viewState === "success" && (
+                  <SuccessView
+                    onGoHome={() => router.push("/")}
+                    onCommunity={() => window.open("https://chat.whatsapp.com/Bo0Wgc0Wzc4CvwT5hrhT2Q", "_blank")}
+                  />
+                )}
+
               </AnimatePresence>
             </div>
           </div>
+
+          {/* ═══ Barra de ação flutuante (checkout) ═══ */}
+          <AnimatePresence>
+            {isCheckout && !(pixGenerated && paymentMethod === "pix") && (
+              <motion.div
+                key="floating-bar"
+                initial={{ y: 80, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 80, opacity: 0 }}
+                transition={{ duration: 0.3, ease: EASE }}
+                className="absolute bottom-0 left-0 right-0 z-30 border-t border-gray-100 bg-white/90 backdrop-blur-md px-6 py-4 sm:px-8"
+              >
+                <div className="mx-auto flex max-w-2xl items-center gap-4">
+                  {/* Resumo de preço */}
+                  <div className="flex-1 min-w-0">
+                    {priceLabel() && (
+                      <p className="text-[11px] text-gray-400 mb-0.5 truncate">{priceLabel()}</p>
+                    )}
+                    {discountPercent > 0 ? (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-gray-300 text-sm line-through">{fmtBRL(basePrice)}</span>
+                        <span className="text-black font-bold text-lg">
+                          {isFree ? "GRÁTIS" : fmtBRL(finalPrice)}
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-black font-bold text-lg">
+                        {billingCycle === "YEARLY" && paymentMethod === "card"
+                          ? `12x de ${fmtBRL(basePrice / 12)}`
+                          : fmtBRL(basePrice)}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Botão de ação */}
+                  <button
+                    type="button"
+                    onClick={onSubmit}
+                    disabled={submitLoading || !canSubmit}
+                    className={cn(
+                      "flex shrink-0 items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold shadow-lg transition-all whitespace-nowrap",
+                      canSubmit && !submitLoading
+                        ? "bg-black text-white shadow-black/20 hover:bg-gray-800 hover:shadow-xl"
+                        : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none",
+                    )}
+                  >
+                    {submitLoading ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Processando...</>
+                    ) : (
+                      <>{submitLabel()} {!isFree && <ArrowRight className="h-4 w-4" />}</>
+                    )}
+                  </button>
+                </div>
+
+                <p className="mt-2 text-center text-[11px] text-gray-400">
+                  Deseja planos corporativos?{" "}
+                  <a
+                    href="https://wa.me/5511999999999?text=Olá,%20tenho%20interesse%20em%20planos%20corporativos."
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-gray-600 underline hover:text-black transition-colors"
+                  >
+                    Fale conosco
+                  </a>
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Loading overlay */}
+          {submitLoading && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-8 shadow-2xl">
+                <Loader2 className="h-8 w-8 animate-spin text-black" />
+                <p className="text-sm font-semibold text-gray-700">Processando pagamento...</p>
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>
