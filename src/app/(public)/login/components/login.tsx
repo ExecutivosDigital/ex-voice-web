@@ -100,10 +100,24 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
     appleScript.async = true;
     appleScript.onload = () => {
       if (window.AppleID) {
+        // Com usePopup: true, a Apple exige redirect URI = ORIGEM (scheme + domínio), não path.
+        // Ex.: https://voice.executivosdigital.com.br — não https://.../login
+        const rawRedirect =
+          process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI || window.location.origin;
+        const redirectURI = (() => {
+          try {
+            return new URL(rawRedirect.replace(/\/$/, "")).origin;
+          } catch {
+            return rawRedirect.replace(/\/$/, "");
+          }
+        })();
+        if (process.env.NODE_ENV === "development") {
+          console.log("[Apple Sign-In] clientId:", process.env.NEXT_PUBLIC_APPLE_CLIENT_ID, "| redirectURI:", redirectURI);
+        }
         window.AppleID.auth.init({
           clientId: process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || "",
           scope: "name email",
-          redirectURI: window.location.origin,
+          redirectURI,
           usePopup: true,
         });
       }
@@ -428,6 +442,8 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
+          {/* Div oculta onde o Google renderiza o botão oficial; o clique é disparado pelo botão customizado abaixo */}
+          <div ref={googleButtonRef} className="absolute left-[-9999px] w-48 h-11 overflow-hidden opacity-0 pointer-events-none" aria-hidden />
           <button
             type="button"
             onClick={handleGoogleSignIn}
