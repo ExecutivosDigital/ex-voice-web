@@ -15,6 +15,7 @@ import { RecordingsChart } from "./components/recordings-chart";
 import { TrialAppModal } from "./components/trial-app-modal";
 import { UpcomingMeetings } from "./components/upcoming-meetings";
 import { UpcomingReminders } from "./components/upcoming-reminders";
+import { UpgradePlanBanner } from "./components/upgrade-plan-banner";
 
 // Helper para formatar data para API (YYYY-MM-DD)
 const formatDateForAPI = (date: Date): string => {
@@ -224,6 +225,9 @@ export default function HomePage() {
           onDateRangeChange={setDateRange}
         />
       </div>
+
+      {/* Upgrade Plan Banner */}
+      <UpgradePlanBanner />
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

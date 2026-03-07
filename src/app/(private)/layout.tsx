@@ -38,6 +38,30 @@ export default function RootLayout({
     };
   }, [pathname]);
 
+  const isFullscreen =
+    pathname === "/checkout" ||
+    pathname.startsWith("/checkout/") ||
+    pathname === "/plans" ||
+    pathname.startsWith("/plans/") ||
+    pathname === "/plans2" ||
+    pathname.startsWith("/plans2/") ||
+    pathname === "/plans3" ||
+    pathname.startsWith("/plans3/");
+
+  if (isFullscreen) {
+    return (
+      <AuthGuard>
+        <GeneralContextProvider>
+          <ChatPageProvider>
+            <div className="min-h-screen w-full bg-[#0d0d0d]">
+              {children}
+            </div>
+          </ChatPageProvider>
+        </GeneralContextProvider>
+      </AuthGuard>
+    );
+  }
+
   return (
     <AuthGuard>
       <GeneralContextProvider>

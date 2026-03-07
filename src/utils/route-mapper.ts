@@ -41,10 +41,11 @@ const ROUTE_MAP: Record<string, (params?: Record<string, any>) => string> = {
   
   // Checkout
   '/(checkout)/checkout': () => {
-    // Assumindo que existe uma rota de checkout no web
-    // Se não existir, pode redirecionar para home ou criar a rota
-    return '/(home)'; // Fallback para home se não houver checkout no web
+    return '/checkout';
   },
+  
+  // Plans
+  '/plans': () => '/plans',
   
   // Chat
   '/chat': () => '/chat-business',
@@ -154,6 +155,8 @@ export function isValidWebRoute(route: WebRoute): boolean {
     '/chat-business',
     '/notifications',
     '/recordings',
+    '/checkout',
+    '/plans',
   ];
   
   // Verifica se começa com alguma rota válida
