@@ -28,6 +28,7 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -56,22 +57,27 @@ type ViewState = "plans" | "checkout" | "success";
 const onlyDigits = (v: string) => v.replace(/\D/g, "");
 
 const fmtBRL = (v: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+    v,
+  );
 
 const EASE = [0.32, 0.72, 0, 1] as const;
 
 function getPlanPixPrice(plan: Plan, cycle: BillingCycle): number {
-  if (cycle === "YEARLY") return plan.pixYearlyPrice ?? (plan.pixPrice ?? 0) * 12;
+  if (cycle === "YEARLY")
+    return plan.pixYearlyPrice ?? (plan.pixPrice ?? 0) * 12;
   return plan.pixMonthlyPrice ?? plan.pixPrice ?? 0;
 }
 
 function getPlanCreditPrice(plan: Plan, cycle: BillingCycle): number {
-  if (cycle === "YEARLY") return plan.creditYearlyPrice ?? (plan.creditMonthlyPrice ?? 0) * 12;
+  if (cycle === "YEARLY")
+    return plan.creditYearlyPrice ?? (plan.creditMonthlyPrice ?? 0) * 12;
   return plan.creditMonthlyPrice ?? plan.creditPrice ?? 0;
 }
 
 function getRecordLabel(plan: Plan): string {
-  if (plan.monthlyRecordAvailable != null) return `${plan.monthlyRecordAvailable} horas/mês`;
+  if (plan.monthlyRecordAvailable != null)
+    return `${plan.monthlyRecordAvailable} horas/mês`;
   if (plan.dailyRecordAvailable != null) {
     const hoursPerMonth = Math.round((plan.dailyRecordAvailable * 30) / 3600);
     return `${hoursPerMonth} horas/mês`;
@@ -103,15 +109,22 @@ function maskCep(value: string): string {
 function maskPhoneBR(v: string): string {
   let d = onlyDigits(v).slice(0, 13);
   let prefix = "";
-  if (d.startsWith("55")) { prefix = "+55 "; d = d.slice(2); }
+  if (d.startsWith("55")) {
+    prefix = "+55 ";
+    d = d.slice(2);
+  }
   if (d.length <= 2) return prefix + d;
   if (d.length <= 6) return `${prefix}(${d.slice(0, 2)}) ${d.slice(2)}`;
-  if (d.length <= 10) return `${prefix}(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  if (d.length <= 10)
+    return `${prefix}(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
   return `${prefix}(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
 }
 
 function maskCardNumber(v: string): string {
-  return onlyDigits(v).slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+  return onlyDigits(v)
+    .slice(0, 16)
+    .replace(/(\d{4})(?=\d)/g, "$1 ")
+    .trim();
 }
 
 function maskExpiry(v: string): string {
@@ -142,10 +155,10 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
-      <div className="flex items-center gap-2.5 mb-5">
+    <div className="mb-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="mb-5 flex items-center gap-2.5">
         {icon && <span className="text-gray-400">{icon}</span>}
-        <h3 className="font-semibold text-gray-800 text-sm">{title}</h3>
+        <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
       </div>
       {children}
     </div>
@@ -181,8 +194,10 @@ function Field({
       )}
       <div
         className={cn(
-          "flex items-center gap-2 h-11 rounded-xl border bg-gray-50 px-3.5 transition-all",
-          focused ? "border-gray-400 bg-white ring-2 ring-gray-100" : "border-gray-200",
+          "flex h-11 items-center gap-2 rounded-xl border bg-gray-50 px-3.5 transition-all",
+          focused
+            ? "border-gray-400 bg-white ring-2 ring-gray-100"
+            : "border-gray-200",
           disabled && "opacity-50",
         )}
       >
@@ -211,20 +226,24 @@ function PaymentMethodTabs({
   onChange: (m: PaymentMethod) => void;
 }) {
   return (
-    <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
+    <div className="mb-6 flex gap-1 rounded-xl bg-gray-100 p-1">
       {(["pix", "card"] as PaymentMethod[]).map((m) => (
         <button
           key={m}
           type="button"
           onClick={() => onChange(m)}
           className={cn(
-            "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all",
+            "flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all",
             selected === m
               ? "bg-white text-black shadow-sm"
               : "text-gray-400 hover:text-gray-600",
           )}
         >
-          {m === "pix" ? <QrCode className="h-4 w-4" /> : <CreditCard className="h-4 w-4" />}
+          {m === "pix" ? (
+            <QrCode className="h-4 w-4" />
+          ) : (
+            <CreditCard className="h-4 w-4" />
+          )}
           {m === "pix" ? "PIX" : "Cartão"}
         </button>
       ))}
@@ -243,16 +262,16 @@ function CardPreview({
 }) {
   return (
     <div
-      className="relative w-full rounded-2xl p-5 mb-6 overflow-hidden"
+      className="relative mb-6 w-full overflow-hidden rounded-2xl p-5"
       style={{
         background: "linear-gradient(135deg, #171717 0%, #5b5b5b 100%)",
         minHeight: 160,
         boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
       }}
     >
-      <div className="flex justify-between items-start mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <Image
-          src="/logos/logo-white.svg"
+          src="/logos/iconWhite.png"
           alt="EX Voice"
           width={70}
           height={26}
@@ -261,19 +280,23 @@ function CardPreview({
         />
         <CreditCard className="h-5 w-5 text-white/40" />
       </div>
-      <p className="text-white text-lg font-mono tracking-widest mb-4">
+      <p className="mb-4 font-mono text-lg tracking-widest text-white">
         {cardNumber ? maskCardNumber(cardNumber) : "**** **** **** ****"}
       </p>
-      <div className="flex justify-between items-end">
+      <div className="flex items-end justify-between">
         <div>
-          <p className="text-white/50 text-[9px] uppercase font-semibold mb-0.5">Titular</p>
-          <p className="text-white text-xs font-medium capitalize">
+          <p className="mb-0.5 text-[9px] font-semibold text-white/50 uppercase">
+            Titular
+          </p>
+          <p className="text-xs font-medium text-white capitalize">
             {holder || "Seu Nome"}
           </p>
         </div>
         <div>
-          <p className="text-white/50 text-[9px] uppercase font-semibold mb-0.5 text-right">Validade</p>
-          <p className="text-white text-xs font-medium">{exp || "MM/AA"}</p>
+          <p className="mb-0.5 text-right text-[9px] font-semibold text-white/50 uppercase">
+            Validade
+          </p>
+          <p className="text-xs font-medium text-white">{exp || "MM/AA"}</p>
         </div>
       </div>
     </div>
@@ -283,18 +306,20 @@ function CardPreview({
 function FreePlanBanner() {
   return (
     <div
-      className="w-full rounded-2xl p-5 mb-6 flex flex-col items-center justify-center"
+      className="mb-6 flex w-full flex-col items-center justify-center rounded-2xl p-5"
       style={{
         background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
         minHeight: 120,
         boxShadow: "0 10px 40px rgba(16,185,129,0.3)",
       }}
     >
-      <div className="bg-white/20 p-2.5 rounded-full mb-2">
+      <div className="mb-2 rounded-full bg-white/20 p-2.5">
         <Ticket className="h-7 w-7 text-white" />
       </div>
-      <p className="text-white text-xl font-bold">100% OFF</p>
-      <p className="text-emerald-100 text-xs mt-0.5">Assinatura Gratuita Garantida</p>
+      <p className="text-xl font-bold text-white">100% OFF</p>
+      <p className="mt-0.5 text-xs text-emerald-100">
+        Assinatura Gratuita Garantida
+      </p>
     </div>
   );
 }
@@ -335,28 +360,34 @@ function PixGeneratedView({
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-5">
+      <div className="flex flex-col items-center gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
         {/* QR Code */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-center w-48 h-48">
+        <div className="flex h-48 w-48 items-center justify-center rounded-2xl border border-gray-200 bg-white p-4">
           {qrUri ? (
-            <img src={qrUri} alt="QR Code PIX" className="w-full h-full object-contain" />
+            <img
+              src={qrUri}
+              alt="QR Code PIX"
+              className="h-full w-full object-contain"
+            />
           ) : (
-            <QrCode className="w-36 h-36 text-gray-800" strokeWidth={1.2} />
+            <QrCode className="h-36 w-36 text-gray-800" strokeWidth={1.2} />
           )}
         </div>
 
         {/* Price */}
-        <div className="bg-gray-50 rounded-xl px-6 py-3 w-full text-center border border-gray-100">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Valor</p>
+        <div className="w-full rounded-xl border border-gray-100 bg-gray-50 px-6 py-3 text-center">
+          <p className="mb-1 text-xs font-semibold tracking-wider text-gray-400 uppercase">
+            Valor
+          </p>
           <p className="text-2xl font-bold text-black">{price}</p>
         </div>
 
         {/* PIX Code */}
         <div className="w-full">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+          <p className="mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase">
             Código PIX Copia e Cola
           </p>
-          <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-3 font-mono text-xs text-gray-500 leading-relaxed break-all select-all">
+          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 font-mono text-xs leading-relaxed break-all text-gray-500 select-all">
             {pixCode || "—"}
           </div>
         </div>
@@ -367,17 +398,21 @@ function PixGeneratedView({
           onClick={onCopy}
           disabled={!pixCode}
           className={cn(
-            "w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl text-sm font-bold transition-all",
+            "flex w-full items-center justify-center gap-2.5 rounded-xl py-3.5 text-sm font-bold transition-all",
             copied
-              ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+              ? "border border-emerald-200 bg-emerald-50 text-emerald-600"
               : "bg-black text-white shadow-lg shadow-black/20 hover:bg-gray-800",
-            !pixCode && "opacity-50 cursor-not-allowed",
+            !pixCode && "cursor-not-allowed opacity-50",
           )}
         >
           {copied ? (
-            <><Check className="h-4 w-4" strokeWidth={3} /> Código Copiado!</>
+            <>
+              <Check className="h-4 w-4" strokeWidth={3} /> Código Copiado!
+            </>
           ) : (
-            <><Copy className="h-4 w-4" /> Copiar Código PIX</>
+            <>
+              <Copy className="h-4 w-4" /> Copiar Código PIX
+            </>
           )}
         </button>
 
@@ -385,7 +420,7 @@ function PixGeneratedView({
         <button
           type="button"
           onClick={onAlreadyPaid}
-          className="w-full py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all"
+          className="w-full rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-500 transition-all hover:border-gray-300 hover:text-gray-700"
         >
           Já realizei o pagamento
         </button>
@@ -400,7 +435,13 @@ function PixGeneratedView({
   );
 }
 
-function SuccessView({ onGoHome, onCommunity }: { onGoHome: () => void; onCommunity: () => void }) {
+function SuccessView({
+  onGoHome,
+  onCommunity,
+}: {
+  onGoHome: () => void;
+  onCommunity: () => void;
+}) {
   return (
     <motion.div
       key="success"
@@ -440,10 +481,11 @@ function SuccessView({ onGoHome, onCommunity }: { onGoHome: () => void; onCommun
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65 }}
-          className="text-sm text-gray-400 leading-relaxed max-w-sm mx-auto"
+          className="mx-auto max-w-sm text-sm leading-relaxed text-gray-400"
         >
-          Obrigado por confiar na EX Voice. Agora você tem acesso completo às ferramentas de
-          transcrição e IA para elevar o nível do seu atendimento.
+          Obrigado por confiar na EX Voice. Agora você tem acesso completo às
+          ferramentas de transcrição e IA para elevar o nível do seu
+          atendimento.
         </motion.p>
       </div>
 
@@ -451,17 +493,18 @@ function SuccessView({ onGoHome, onCommunity }: { onGoHome: () => void; onCommun
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
-        className="flex flex-col gap-3 w-full max-w-xs"
+        className="flex w-full max-w-xs flex-col gap-3"
       >
         <button
           onClick={onGoHome}
-          className="flex items-center justify-center gap-2 w-full h-14 bg-black rounded-2xl text-white font-bold text-base shadow-xl shadow-black/20 hover:bg-gray-800 transition-all"
+          className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-black text-base font-bold text-white shadow-xl shadow-black/20 transition-all hover:bg-gray-800"
         >
-          Ir para o painel <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
+          Ir para o painel{" "}
+          <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
         </button>
         <button
           onClick={onCommunity}
-          className="flex items-center justify-center gap-2.5 w-full h-14 rounded-2xl border border-gray-200 text-gray-500 font-semibold text-sm hover:border-gray-300 hover:text-gray-700 transition-all"
+          className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-500 transition-all hover:border-gray-300 hover:text-gray-700"
         >
           <MessageCircle className="h-5 w-5" />
           Acessar a Comunidade
@@ -475,7 +518,8 @@ function SuccessView({ onGoHome, onCommunity }: { onGoHome: () => void; onCommun
 
 export default function PlansPage() {
   const { GetAPI, PostAPI, PutAPI } = useApiContext();
-  const { profile, setProfile, isTrial, handleGetAvailableRecording } = useSession();
+  const { profile, setProfile, isTrial, handleGetAvailableRecording } =
+    useSession();
   const router = useRouter();
 
   // ── View / navigation state
@@ -496,7 +540,9 @@ export default function PlansPage() {
   const [pixSignatureId, setPixSignatureId] = useState<string | null>(null);
 
   // ref para poder parar o interval do polling dentro do callback assíncrono
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
 
   // ── Form fields
   const [cpf, setCpf] = useState("");
@@ -524,7 +570,8 @@ export default function PlansPage() {
       if (res.status === 200 && res.body?.plans) {
         const list = res.body.plans as Plan[];
         setPlans(list);
-        if (list.length > 0) setSelectedPlan(list[Math.min(1, list.length - 1)].id);
+        if (list.length > 0)
+          setSelectedPlan(list[Math.min(1, list.length - 1)].id);
       }
     } catch {
       console.error("Erro ao buscar planos");
@@ -533,7 +580,9 @@ export default function PlansPage() {
     }
   }, [GetAPI]);
 
-  useEffect(() => { fetchPlans(); }, [fetchPlans]);
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
 
   // ── Pre-fill form from profile
   useEffect(() => {
@@ -590,7 +639,9 @@ export default function PlansPage() {
           setViewState("success");
           return;
         }
-      } catch { /* continua tentando */ }
+      } catch {
+        /* continua tentando */
+      }
     };
 
     checkStatus();
@@ -626,7 +677,11 @@ export default function PlansPage() {
 
   const discountedPrice = basePrice * (1 - discountPercent / 100);
   const isFree = discountPercent === 100;
-  const finalPrice = isFree ? 0 : discountPercent > 0 ? discountedPrice : basePrice;
+  const finalPrice = isFree
+    ? 0
+    : discountPercent > 0
+      ? discountedPrice
+      : basePrice;
 
   const canSubmit = useMemo(() => {
     if (!selectedPlan) return false;
@@ -640,13 +695,37 @@ export default function PlansPage() {
     const addressSectionOk = cepOk && addressOk && houseOk;
 
     if (isFree) return cpfOk && holderOk && emailOk && phoneOk;
-    if (paymentMethod === "pix") return cpfOk && holderOk && emailOk && phoneOk && addressSectionOk;
+    if (paymentMethod === "pix")
+      return cpfOk && holderOk && emailOk && phoneOk && addressSectionOk;
 
     const cardOk = onlyDigits(cardNumber).length >= 12;
     const cvvOk = onlyDigits(cvv).length >= 3;
     const expOk = !!parseExpiry(exp);
-    return cpfOk && holderOk && emailOk && phoneOk && addressSectionOk && cardOk && cvvOk && expOk;
-  }, [cpf, holder, email, phone, cep, address, house, cardNumber, cvv, exp, isFree, selectedPlan, paymentMethod]);
+    return (
+      cpfOk &&
+      holderOk &&
+      emailOk &&
+      phoneOk &&
+      addressSectionOk &&
+      cardOk &&
+      cvvOk &&
+      expOk
+    );
+  }, [
+    cpf,
+    holder,
+    email,
+    phone,
+    cep,
+    address,
+    house,
+    cardNumber,
+    cvv,
+    exp,
+    isFree,
+    selectedPlan,
+    paymentMethod,
+  ]);
 
   // ── Helpers
   async function updateProfileFromForm(): Promise<boolean> {
@@ -823,11 +902,15 @@ export default function PlansPage() {
         const discount = Number(resp.body.discount);
         setDiscountPercent(discount);
         toast.success(
-          discount === 100 ? "100% de desconto concedido!" : `${discount}% de desconto concedido!`,
+          discount === 100
+            ? "100% de desconto concedido!"
+            : `${discount}% de desconto concedido!`,
         );
       } else {
         setDiscountPercent(0);
-        toast.error(String(resp.body?.message || resp.body || "Cupom não encontrado."));
+        toast.error(
+          String(resp.body?.message || resp.body || "Cupom não encontrado."),
+        );
       }
     } catch {
       setDiscountPercent(0);
@@ -863,9 +946,12 @@ export default function PlansPage() {
   // ── Price label helpers
   const priceLabel = () => {
     if (isFree) return "";
-    if (paymentMethod === "card" && billingCycle === "YEARLY") return "Cobrança em 12x (anual)";
+    if (paymentMethod === "card" && billingCycle === "YEARLY")
+      return "Cobrança em 12x (anual)";
     if (paymentMethod === "card") return "Cobrança mensal";
-    return billingCycle === "YEARLY" ? "Valor total anual via PIX" : "Pagamento via PIX";
+    return billingCycle === "YEARLY"
+      ? "Valor total anual via PIX"
+      : "Pagamento via PIX";
   };
 
   const submitLabel = () => {
@@ -876,36 +962,27 @@ export default function PlansPage() {
   };
 
   return (
-    <div className="flex h-screen w-full items-center justify-center overflow-hidden bg-[#111]">
-      <motion.div
-        layout
-        animate={{
-          width: isCheckout || isSuccess ? "90%" : "100%",
-          height: isCheckout || isSuccess ? "92%" : "100%",
-          borderRadius: isCheckout || isSuccess ? 28 : 0,
-        }}
-        transition={{ duration: 0.65, ease: EASE }}
-        className="relative flex overflow-hidden bg-white"
-        style={{
-          boxShadow:
-            isCheckout || isSuccess
-              ? "0 25px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06)"
-              : "none",
-        }}
-      >
+    <div className="min-h-screen w-full bg-[#111]">
+      <div className="relative flex min-h-screen w-full flex-col bg-white lg:flex-row">
         {/* ═══ Crossing patterns ═══ */}
         <div className="pointer-events-none absolute inset-0 z-[5]">
           <motion.div
             animate={{ y: [0, -30, 0], x: [0, 15, 0] }}
             transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
             className="absolute top-[15%] left-[45%] h-[500px] w-[500px] rounded-full opacity-[0.06]"
-            style={{ background: "radial-gradient(circle, rgba(100,100,100,0.5) 0%, transparent 70%)" }}
+            style={{
+              background:
+                "radial-gradient(circle, rgba(100,100,100,0.5) 0%, transparent 70%)",
+            }}
           />
           <motion.div
             animate={{ y: [0, 20, 0], x: [0, -20, 0] }}
             transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
             className="absolute bottom-[10%] left-[42%] h-[600px] w-[600px] rounded-full opacity-[0.05]"
-            style={{ background: "radial-gradient(circle, rgba(82,82,91,0.4) 0%, transparent 70%)" }}
+            style={{
+              background:
+                "radial-gradient(circle, rgba(82,82,91,0.4) 0%, transparent 70%)",
+            }}
           />
           <motion.div
             animate={{ rotate: [0, 360] }}
@@ -914,160 +991,300 @@ export default function PlansPage() {
           />
         </div>
 
-        {/* ═══ LEFT — Video panel ═══ */}
-        <div className="relative hidden w-[45%] shrink-0 flex-col overflow-hidden bg-black lg:flex">
-          <video autoPlay muted loop playsInline className="absolute inset-0 z-0 h-full w-full object-cover opacity-[0.4]">
+        {/* ═══ LEFT — Video panel (encolhe ao exibir Parabéns até tela inteira) ═══ */}
+        <div
+          className={cn(
+            "relative hidden h-screen shrink-0 flex-col overflow-hidden bg-black transition-[width] duration-500 ease-out lg:sticky lg:top-0 lg:flex",
+            isSuccess ? "lg:w-0 lg:min-w-0" : "lg:w-[45%]",
+          )}
+        >
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 z-0 h-full w-full object-cover opacity-[0.4]"
+          >
             <source src="/B-Rolls.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 z-[1] bg-black/70" />
           <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/70 via-transparent to-black/30" />
-
+          <div
+            className={cn(
+              "absolute z-90 flex w-full shrink-0 items-center justify-between px-6 py-4 sm:px-8",
+              isSuccess && "hidden",
+            )}
+          >
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.07] p-6 px-4 py-2 text-sm font-medium text-white shadow-sm backdrop-blur-xl transition hover:bg-white/20 hover:shadow-md"
+            >
+              <ChevronLeft className="h-4 w-4" /> Voltar
+            </button>
+            <div className="flex items-center justify-center">
+              <Image
+                src="/logos/logo.png"
+                alt="EX Voice"
+                width={200}
+                height={60}
+                className="h-12 w-auto object-contain"
+              />
+            </div>
+          </div>
           {/* Left panel patterns */}
           <div className="pointer-events-none absolute inset-0 z-[3]">
-            <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0)", backgroundSize: "32px 32px" }} />
-            <motion.div animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.2, 1] }} transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-20 -left-20 h-[28rem] w-[28rem] rounded-full bg-neutral-400/[0.12] blur-[100px]" />
-            <motion.div animate={{ x: [0, -30, 0], y: [0, 40, 0], scale: [1, 1.3, 1] }} transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} className="absolute -right-16 bottom-[20%] h-[24rem] w-[24rem] rounded-full bg-zinc-400/[0.10] blur-[100px]" />
-            <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }} className="absolute top-[10%] right-[10%] h-48 w-48">
+            <div
+              className="absolute inset-0 opacity-[0.06]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0)",
+                backgroundSize: "32px 32px",
+              }}
+            />
+            <motion.div
+              animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.2, 1] }}
+              transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -top-20 -left-20 h-[28rem] w-[28rem] rounded-full bg-neutral-400/[0.12] blur-[100px]"
+            />
+            <motion.div
+              animate={{ x: [0, -30, 0], y: [0, 40, 0], scale: [1, 1.3, 1] }}
+              transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -right-16 bottom-[20%] h-[24rem] w-[24rem] rounded-full bg-zinc-400/[0.10] blur-[100px]"
+            />
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+              className="absolute top-[10%] right-[10%] h-48 w-48"
+            >
               <div className="h-full w-full rounded-full border border-white/[0.08]" />
               <div className="absolute inset-4 rounded-full border border-dashed border-white/[0.06]" />
             </motion.div>
-            <motion.div animate={{ y: ["-100%", "200%"] }} transition={{ duration: 8, repeat: Infinity, ease: "linear", repeatDelay: 4 }} className="absolute left-0 h-px w-full bg-gradient-to-r from-transparent via-white/[0.10] to-transparent" />
+            <motion.div
+              animate={{ y: ["-100%", "200%"] }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "linear",
+                repeatDelay: 4,
+              }}
+              className="absolute left-0 h-px w-full bg-gradient-to-r from-transparent via-white/[0.10] to-transparent"
+            />
           </div>
 
           {/* Left content */}
           <div className="relative z-10 flex h-full flex-col justify-center gap-6 p-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="rounded-2xl border border-white/10 bg-white/[0.07] p-6 backdrop-blur-xl"
-            >
-              <div className="mb-5 flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
-                  <Rocket className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white">
-                    {isTrial ? "Desbloqueie o potencial completo" : "Escolha o plano ideal"}
-                  </h2>
-                  <p className="text-sm text-white/95">Gravações inteligentes com IA</p>
-                </div>
-              </div>
-              <div className="space-y-2.5">
-                {["Relatórios inteligentes com IA", "Suporte prioritário dedicado"].map((feat) => (
-                  <div key={feat} className="flex items-center gap-2.5 text-sm text-white">
-                    <Check className="h-4 w-4 shrink-0 text-emerald-400" />
-                    {feat}
+            {!isCheckout && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-2xl border border-white/10 bg-white/[0.07] p-6 backdrop-blur-xl"
+              >
+                <div className="mb-5 flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
+                    <Rocket className="h-6 w-6 text-white" />
                   </div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Selected plan info */}
+                  <div>
+                    <h2 className="text-lg font-bold text-white">
+                      {isTrial
+                        ? "Desbloqueie o potencial completo"
+                        : "Escolha o plano ideal"}
+                    </h2>
+                    <p className="text-sm text-white/95">
+                      Gravações inteligentes com IA
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    "Relatórios inteligentes com IA",
+                    "Suporte prioritário dedicado",
+                  ].map((feat) => (
+                    <div
+                      key={feat}
+                      className="flex items-center gap-2.5 text-sm text-white"
+                    >
+                      <Check className="h-4 w-4 shrink-0 text-emerald-400" />
+                      {feat}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+            {/* Selected plan info — em listagem: card; em checkout: imagem */}
             <AnimatePresence mode="wait">
               {selectedPlanData && (
-                <motion.div
-                  key={selectedPlanData.id + billingCycle + paymentMethod}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.35 }}
-                  className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-xl"
-                >
-                  <div className="flex items-center gap-4 border-b border-white/10 px-7 py-5">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
-                      <Crown className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold tracking-widest text-white/70 uppercase">Plano selecionado</p>
-                      <h3 className="text-xl font-bold text-white">{selectedPlanData.name}</h3>
-                    </div>
-                  </div>
-                  <div className="px-7 pt-6 pb-5">
-                    {billingCycle === "YEARLY" ? (
-                      <>
-                        <span className="text-sm font-semibold text-white/60">12x de</span>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-4xl font-extrabold tracking-tight text-white">
-                            {fmtBRL(
-                              (paymentMethod === "pix"
-                                ? getPlanPixPrice(selectedPlanData, billingCycle)
-                                : getPlanCreditPrice(selectedPlanData, billingCycle)) / 12,
-                            )}
-                          </span>
-                          <span className="text-base font-medium text-white/60">/mês</span>
+                <>
+                  {isCheckout ? (
+                    <motion.div
+                      key="plan-image"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-xl"
+                    >
+                      <div className="relative aspect-[4/3] w-full">
+                        <Image
+                          src="/ex-team.png"
+                          alt={selectedPlanData.name}
+                          fill
+                          className="object-cover object-top"
+                          sizes="(max-width: 1024px) 100vw, 45vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute right-4 bottom-4 left-4">
+                          <p className="text-xs font-semibold tracking-widest text-white/80 uppercase">
+                            Plano selecionado
+                          </p>
+                          <h3 className="text-xl font-bold text-white">
+                            {selectedPlanData.name}
+                          </h3>
                         </div>
-                      </>
-                    ) : (
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-extrabold tracking-tight text-white">
-                          {isFree
-                            ? "GRÁTIS"
-                            : discountPercent > 0
-                              ? fmtBRL(
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key={selectedPlanData.id + billingCycle + paymentMethod}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.35 }}
+                      className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-xl"
+                    >
+                      <div className="flex items-center gap-4 border-b border-white/10 px-7 py-5">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+                          <Crown className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold tracking-widest text-white/70 uppercase">
+                            Plano selecionado
+                          </p>
+                          <h3 className="text-xl font-bold text-white">
+                            {selectedPlanData.name}
+                          </h3>
+                        </div>
+                      </div>
+                      <div className="px-7 pt-6 pb-5">
+                        {billingCycle === "YEARLY" ? (
+                          <>
+                            <span className="text-sm font-semibold text-white/60">
+                              12x de
+                            </span>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-4xl font-extrabold tracking-tight text-white">
+                                {fmtBRL(
                                   (paymentMethod === "pix"
-                                    ? getPlanPixPrice(selectedPlanData, billingCycle)
-                                    : getPlanCreditPrice(selectedPlanData, billingCycle)) *
-                                    (1 - discountPercent / 100),
-                                )
-                              : fmtBRL(
-                                  paymentMethod === "pix"
-                                    ? getPlanPixPrice(selectedPlanData, billingCycle)
-                                    : getPlanCreditPrice(selectedPlanData, billingCycle),
+                                    ? getPlanPixPrice(
+                                        selectedPlanData,
+                                        billingCycle,
+                                      )
+                                    : getPlanCreditPrice(
+                                        selectedPlanData,
+                                        billingCycle,
+                                      )) / 12,
                                 )}
-                        </span>
-                        {!isFree && <span className="text-base font-medium text-white/60">/mês</span>}
+                              </span>
+                              <span className="text-base font-medium text-white/60">
+                                /mês
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-4xl font-extrabold tracking-tight text-white">
+                              {isFree
+                                ? "GRÁTIS"
+                                : discountPercent > 0
+                                  ? fmtBRL(
+                                      (paymentMethod === "pix"
+                                        ? getPlanPixPrice(
+                                            selectedPlanData,
+                                            billingCycle,
+                                          )
+                                        : getPlanCreditPrice(
+                                            selectedPlanData,
+                                            billingCycle,
+                                          )) *
+                                        (1 - discountPercent / 100),
+                                    )
+                                  : fmtBRL(
+                                      paymentMethod === "pix"
+                                        ? getPlanPixPrice(
+                                            selectedPlanData,
+                                            billingCycle,
+                                          )
+                                        : getPlanCreditPrice(
+                                            selectedPlanData,
+                                            billingCycle,
+                                          ),
+                                    )}
+                            </span>
+                            {!isFree && (
+                              <span className="text-base font-medium text-white/60">
+                                /mês
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {discountPercent > 0 && !isFree && (
+                          <p className="mt-1.5 text-sm font-medium text-emerald-400">
+                            {discountPercent}% de desconto aplicado
+                          </p>
+                        )}
                       </div>
-                    )}
-                    {discountPercent > 0 && !isFree && (
-                      <p className="mt-1.5 text-sm font-medium text-emerald-400">
-                        {discountPercent}% de desconto aplicado
-                      </p>
-                    )}
-                  </div>
-                  <div className="mx-7 space-y-0 divide-y divide-white/[0.06]">
-                    <div className="flex items-center justify-between py-3.5">
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-4 w-4 text-white/50" />
-                        <span className="text-[15px] text-white/80">Ciclo</span>
-                      </div>
-                      <span className="text-[15px] font-semibold text-white">
-                        {billingCycle === "YEARLY" ? "Anual" : "Mensal"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-3.5">
-                      <div className="flex items-center gap-3">
-                        <Sparkles className="h-4 w-4 text-white/50" />
-                        <span className="text-[15px] text-white/80">Gravação</span>
-                      </div>
-                      <span className="text-[15px] font-semibold text-white">
-                        {getRecordLabel(selectedPlanData)}
-                      </span>
-                    </div>
-                    {isCheckout && (
-                      <div className="flex items-center justify-between py-3.5">
-                        <div className="flex items-center gap-3">
-                          <CreditCard className="h-4 w-4 text-white/50" />
-                          <span className="text-[15px] text-white/80">Pagamento</span>
+                      <div className="mx-7 space-y-0 divide-y divide-white/[0.06]">
+                        <div className="flex items-center justify-between py-3.5">
+                          <div className="flex items-center gap-3">
+                            <Clock className="h-4 w-4 text-white/50" />
+                            <span className="text-[15px] text-white/80">
+                              Ciclo
+                            </span>
+                          </div>
+                          <span className="text-[15px] font-semibold text-white">
+                            {billingCycle === "YEARLY" ? "Anual" : "Mensal"}
+                          </span>
                         </div>
-                        <span className="text-[15px] font-semibold text-white">
-                          {paymentMethod === "pix" ? "PIX" : "Cartão"}
+                        <div className="flex items-center justify-between py-3.5">
+                          <div className="flex items-center gap-3">
+                            <Sparkles className="h-4 w-4 text-white/50" />
+                            <span className="text-[15px] text-white/80">
+                              Gravação
+                            </span>
+                          </div>
+                          <span className="text-[15px] font-semibold text-white">
+                            {getRecordLabel(selectedPlanData)}
+                          </span>
+                        </div>
+                        {isCheckout && (
+                          <div className="flex items-center justify-between py-3.5">
+                            <div className="flex items-center gap-3">
+                              <CreditCard className="h-4 w-4 text-white/50" />
+                              <span className="text-[15px] text-white/80">
+                                Pagamento
+                              </span>
+                            </div>
+                            <span className="text-[15px] font-semibold text-white">
+                              {paymentMethod === "pix" ? "PIX" : "Cartão"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-4 flex items-center gap-5 border-t border-white/10 px-7 py-4">
+                        <span className="flex items-center gap-2 text-xs font-medium text-white/70">
+                          <Shield className="h-3.5 w-3.5" /> Seguro
+                        </span>
+                        <span className="flex items-center gap-2 text-xs font-medium text-white/70">
+                          <Zap className="h-3.5 w-3.5" /> Imediato
+                        </span>
+                        <span className="flex items-center gap-2 text-xs font-medium text-white/70">
+                          <Clock className="h-3.5 w-3.5" /> Cancele quando
+                          quiser
                         </span>
                       </div>
-                    )}
-                  </div>
-                  <div className="mt-4 flex items-center gap-5 border-t border-white/10 px-7 py-4">
-                    <span className="flex items-center gap-2 text-xs font-medium text-white/70">
-                      <Shield className="h-3.5 w-3.5" /> Seguro
-                    </span>
-                    <span className="flex items-center gap-2 text-xs font-medium text-white/70">
-                      <Zap className="h-3.5 w-3.5" /> Imediato
-                    </span>
-                    <span className="flex items-center gap-2 text-xs font-medium text-white/70">
-                      <Clock className="h-3.5 w-3.5" /> Cancele quando quiser
-                    </span>
-                  </div>
-                </motion.div>
+                    </motion.div>
+                  )}
+                </>
               )}
             </AnimatePresence>
 
@@ -1080,18 +1297,22 @@ export default function PlansPage() {
             >
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-sm text-[#F7CE46]">★</span>
+                  <span key={i} className="text-sm text-[#F7CE46]">
+                    ★
+                  </span>
                 ))}
               </div>
               <span className="text-sm font-bold text-white">4.9</span>
               <div className="h-4 w-px bg-white/20" />
-              <span className="text-sm text-white/90">+10.000 profissionais confiam</span>
+              <span className="text-sm text-white/90">
+                +10.000 profissionais confiam
+              </span>
             </motion.div>
           </div>
         </div>
 
-        {/* ═══ RIGHT — Content panel ═══ */}
-        <div className="relative flex flex-1 flex-col overflow-hidden bg-[#fafafa]">
+        {/* ═══ RIGHT — Content panel (scroll do site) ═══ */}
+        <div className="relative flex min-h-screen flex-1 flex-col bg-[#fafafa]">
           {/* Right panel patterns */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute inset-0">
@@ -1105,45 +1326,30 @@ export default function PlansPage() {
                 }}
               />
             </div>
-            <motion.div animate={{ x: ["-5%", "5%", "-5%"], y: ["-3%", "3%", "-3%"] }} transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }} className="absolute -top-[10%] -left-[5%] h-[60%] w-[120%]" style={{ background: "linear-gradient(135deg, transparent 25%, rgba(161,161,170,0.08) 38%, rgba(161,161,170,0.02) 50%, transparent 60%)", filter: "blur(35px)" }} />
-          </div>
-
-          {/* Top bar */}
-          <div className={cn("absolute z-90 flex w-full shrink-0 items-center justify-between px-6 py-4 sm:px-8", isSuccess && "hidden")}>
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-2 rounded-md border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:text-black hover:shadow-md"
-            >
-              <ChevronLeft className="h-4 w-4" /> Voltar
-            </button>
-            <Image
-              src="/logos/logo-dark.svg"
-              alt="EX Voice"
-              width={200}
-              height={60}
-              className="h-5 w-auto object-contain lg:hidden"
+            <motion.div
+              animate={{ x: ["-5%", "5%", "-5%"], y: ["-3%", "3%", "-3%"] }}
+              transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -top-[10%] -left-[5%] h-[60%] w-[120%]"
+              style={{
+                background:
+                  "linear-gradient(135deg, transparent 25%, rgba(161,161,170,0.08) 38%, rgba(161,161,170,0.02) 50%, transparent 60%)",
+                filter: "blur(35px)",
+              }}
             />
-            {isCheckout && (
-              <motion.div
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="hidden items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] font-semibold tracking-wider text-gray-500 uppercase shadow-sm sm:flex"
-              >
-                <Shield className="h-3 w-3" /> Checkout seguro
-              </motion.div>
-            )}
           </div>
 
-          {/* Scrollable — absolute inset-0 dá dimensões explícitas ao container; flex-col permite que
-               filhos com flex-1 ocupem a altura total (plans/success) enquanto filhos sem flex-1
-               crescem além da altura e ativam o scroll (checkout) */}
-          <div className={cn(
-            "absolute inset-0 z-10 flex flex-col overflow-y-auto overscroll-contain",
-            isCheckout && !(pixGenerated && paymentMethod === "pix") && "pb-36"
-          )}>
-            <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 sm:px-8">
+          {/* Conteúdo rolável com o scroll do site */}
+          <div className="relative z-10 flex flex-col">
+            <div
+              className={cn(
+                "mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 sm:px-8",
+                isCheckout &&
+                  !(pixGenerated && paymentMethod === "pix") &&
+                  "pb-40",
+                !isCheckout && "min-h-screen",
+              )}
+            >
               <AnimatePresence mode="wait">
-
                 {/* ═══ PLANS ═══ */}
                 {viewState === "plans" && (
                   <motion.div
@@ -1159,7 +1365,8 @@ export default function PlansPage() {
                         Escolha seu plano
                       </h1>
                       <p className="mt-2 text-base text-gray-500">
-                        Selecione o plano ideal e desbloqueie todo o potencial do EX Voice.
+                        Selecione o plano ideal e desbloqueie todo o potencial
+                        do EX Voice.
                       </p>
                     </div>
 
@@ -1169,7 +1376,9 @@ export default function PlansPage() {
                         onClick={() => setBillingCycle("MONTHLY")}
                         className={cn(
                           "rounded-full px-6 py-2.5 text-sm font-semibold transition-all",
-                          billingCycle === "MONTHLY" ? "bg-black text-white shadow-md" : "text-gray-500 hover:text-gray-700",
+                          billingCycle === "MONTHLY"
+                            ? "bg-black text-white shadow-md"
+                            : "text-gray-500 hover:text-gray-700",
                         )}
                       >
                         Mensal
@@ -1178,7 +1387,9 @@ export default function PlansPage() {
                         onClick={() => setBillingCycle("YEARLY")}
                         className={cn(
                           "flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition-all",
-                          billingCycle === "YEARLY" ? "bg-black text-white shadow-md" : "text-gray-500 hover:text-gray-700",
+                          billingCycle === "YEARLY"
+                            ? "bg-black text-white shadow-md"
+                            : "text-gray-500 hover:text-gray-700",
                         )}
                       >
                         Anual
@@ -1208,7 +1419,10 @@ export default function PlansPage() {
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.08 }}
-                              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                              whileHover={{
+                                y: -4,
+                                transition: { duration: 0.2 },
+                              }}
                               whileTap={{ scale: 0.98 }}
                               onClick={() => setSelectedPlan(plan.id)}
                               className={cn(
@@ -1216,7 +1430,9 @@ export default function PlansPage() {
                                 isSelected
                                   ? "bg-black shadow-2xl ring-2 shadow-black/20 ring-black"
                                   : "bg-white shadow-lg ring-1 shadow-gray-200/50 ring-gray-100 hover:shadow-xl hover:ring-gray-200",
-                                isPopular && !isSelected && "ring-2 ring-[#F7CE46]/40",
+                                isPopular &&
+                                  !isSelected &&
+                                  "ring-2 ring-[#F7CE46]/40",
                               )}
                             >
                               {isPopular && (
@@ -1237,27 +1453,55 @@ export default function PlansPage() {
                                 </motion.div>
                               )}
 
-                              <div className={cn(
-                                "relative mb-5 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300",
-                                isSelected ? "bg-white/15 text-white" : "bg-gray-50 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-600",
-                              )}>
+                              <div
+                                className={cn(
+                                  "relative mb-5 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300",
+                                  isSelected
+                                    ? "bg-white/15 text-white"
+                                    : "bg-gray-50 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-600",
+                                )}
+                              >
                                 {i === 0 && <Zap className="h-6 w-6" />}
                                 {i === 1 && <Sparkles className="h-6 w-6" />}
                                 {i === 2 && <Crown className="h-6 w-6" />}
                                 {i >= 3 && <Zap className="h-6 w-6" />}
                               </div>
 
-                              <h3 className={cn("text-xl font-bold transition-colors", isSelected ? "text-white" : "text-black")}>
+                              <h3
+                                className={cn(
+                                  "text-xl font-bold transition-colors",
+                                  isSelected ? "text-white" : "text-black",
+                                )}
+                              >
                                 {plan.name}
                               </h3>
 
                               <div className="mt-4">
                                 {billingCycle === "YEARLY" ? (
                                   <>
-                                    <span className={cn("text-sm font-semibold", isSelected ? "text-white/60" : "text-gray-400")}>12x de</span>
+                                    <span
+                                      className={cn(
+                                        "text-sm font-semibold",
+                                        isSelected
+                                          ? "text-white/60"
+                                          : "text-gray-400",
+                                      )}
+                                    >
+                                      12x de
+                                    </span>
                                     <div className="flex items-baseline gap-1">
-                                      <span className={cn("text-4xl font-extrabold tracking-tight", isSelected ? "text-white" : "text-black")}>
-                                        {fmtBRL((pixPrice > 0 ? pixPrice : price) / 12)}
+                                      <span
+                                        className={cn(
+                                          "text-4xl font-extrabold tracking-tight",
+                                          isSelected
+                                            ? "text-white"
+                                            : "text-black",
+                                        )}
+                                      >
+                                        {fmtBRL(
+                                          (pixPrice > 0 ? pixPrice : price) /
+                                            12,
+                                        )}
                                       </span>
                                       {pixPrice > 0 && pixPrice < price && (
                                         <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-2 py-0.5 text-[10px] font-bold text-black">
@@ -1268,10 +1512,28 @@ export default function PlansPage() {
                                   </>
                                 ) : (
                                   <>
-                                    <span className={cn("invisible text-sm font-semibold", isSelected ? "text-white/60" : "text-gray-400")}>1x de</span>
+                                    <span
+                                      className={cn(
+                                        "invisible text-sm font-semibold",
+                                        isSelected
+                                          ? "text-white/60"
+                                          : "text-gray-400",
+                                      )}
+                                    >
+                                      1x de
+                                    </span>
                                     <div className="flex items-baseline gap-1">
-                                      <span className={cn("text-4xl font-extrabold tracking-tight", isSelected ? "text-white" : "text-black")}>
-                                        {fmtBRL(pixPrice > 0 ? pixPrice : price)}
+                                      <span
+                                        className={cn(
+                                          "text-4xl font-extrabold tracking-tight",
+                                          isSelected
+                                            ? "text-white"
+                                            : "text-black",
+                                        )}
+                                      >
+                                        {fmtBRL(
+                                          pixPrice > 0 ? pixPrice : price,
+                                        )}
                                       </span>
                                       {pixPrice > 0 && pixPrice < price && (
                                         <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-2 py-0.5 text-[10px] font-bold text-black">
@@ -1284,12 +1546,19 @@ export default function PlansPage() {
                               </div>
 
                               {pixPrice > 0 && pixPrice < price && (
-                                <div className={cn(
-                                  "mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
-                                  isSelected ? "bg-white/10 text-white/60" : "bg-gray-100 text-gray-500",
-                                )}>
+                                <div
+                                  className={cn(
+                                    "mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
+                                    isSelected
+                                      ? "bg-white/10 text-white/60"
+                                      : "bg-gray-100 text-gray-500",
+                                  )}
+                                >
                                   <CreditCard className="h-3 w-3" />
-                                  {billingCycle === "YEARLY" ? `12x de ${fmtBRL(price / 12)}` : fmtBRL(price)} no Cartão
+                                  {billingCycle === "YEARLY"
+                                    ? `12x de ${fmtBRL(price / 12)}`
+                                    : fmtBRL(price)}{" "}
+                                  no Cartão
                                 </div>
                               )}
                             </motion.button>
@@ -1342,20 +1611,39 @@ export default function PlansPage() {
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, x: 40 }}
                     transition={{ duration: 0.45, ease: EASE }}
-                    className="flex flex-col justify-start space-y-0 pt-20 pb-32"
+                    className="flex flex-col justify-start space-y-0 pt-4"
                   >
                     {/* Header */}
                     <div className="mb-5">
-                      <h2 className="text-2xl font-bold text-black">Finalizar assinatura</h2>
+                      <div className="flex flex-row justify-between gap-2">
+                        <h2 className="text-2xl font-bold text-black">
+                          Finalizar assinatura
+                        </h2>
+                        {isCheckout && (
+                          <motion.div
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="hidden items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] font-semibold tracking-wider text-gray-500 uppercase shadow-sm sm:flex"
+                          >
+                            <Shield className="h-3 w-3" /> Checkout seguro
+                          </motion.div>
+                        )}
+                      </div>
                       <p className="mt-1.5 text-sm text-gray-500">
-                        Plano <span className="font-semibold text-gray-700">{selectedPlanData.name}</span> —{" "}
-                        {billingCycle === "YEARLY" ? "Anual" : "Mensal"}
+                        Plano{" "}
+                        <span className="font-semibold text-gray-700">
+                          {selectedPlanData.name}
+                        </span>{" "}
+                        — {billingCycle === "YEARLY" ? "Anual" : "Mensal"}
                       </p>
                     </div>
 
                     {/* Payment method tabs */}
                     {!isFree && (
-                      <PaymentMethodTabs selected={paymentMethod} onChange={handleChangePaymentMethod} />
+                      <PaymentMethodTabs
+                        selected={paymentMethod}
+                        onChange={handleChangePaymentMethod}
+                      />
                     )}
 
                     {/* PIX Generated view */}
@@ -1372,14 +1660,21 @@ export default function PlansPage() {
                       <>
                         {/* Card preview */}
                         {paymentMethod === "card" && !isFree && (
-                          <CardPreview holder={holder} cardNumber={cardNumber} exp={exp} />
+                          <CardPreview
+                            holder={holder}
+                            cardNumber={cardNumber}
+                            exp={exp}
+                          />
                         )}
 
                         {/* Free plan banner */}
                         {isFree && <FreePlanBanner />}
 
                         {/* Personal info */}
-                        <SectionCard title="Informações Pessoais" icon={<User className="h-4 w-4" />}>
+                        <SectionCard
+                          title="Informações Pessoais"
+                          icon={<User className="h-4 w-4" />}
+                        >
                           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <Field
                               label="CPF / CNPJ"
@@ -1413,8 +1708,11 @@ export default function PlansPage() {
 
                         {/* Billing address */}
                         {!isFree && (
-                          <SectionCard title="Endereço de Cobrança" icon={<MapPin className="h-4 w-4" />}>
-                            <div className="grid grid-cols-3 gap-3 mb-3">
+                          <SectionCard
+                            title="Endereço de Cobrança"
+                            icon={<MapPin className="h-4 w-4" />}
+                          >
+                            <div className="mb-3 grid grid-cols-3 gap-3">
                               <Field
                                 label="CEP"
                                 placeholder="00000-000"
@@ -1441,7 +1739,10 @@ export default function PlansPage() {
 
                         {/* Card data */}
                         {paymentMethod === "card" && !isFree && (
-                          <SectionCard title="Dados do Cartão" icon={<CreditCard className="h-4 w-4" />}>
+                          <SectionCard
+                            title="Dados do Cartão"
+                            icon={<CreditCard className="h-4 w-4" />}
+                          >
                             <div className="flex flex-col gap-3">
                               <Field
                                 label="Número do Cartão"
@@ -1472,29 +1773,43 @@ export default function PlansPage() {
                         )}
 
                         {/* Coupon */}
-                        <SectionCard title="Cupom de Desconto" icon={<Ticket className="h-4 w-4" />}>
+                        <SectionCard
+                          title="Cupom de Desconto"
+                          icon={<Ticket className="h-4 w-4" />}
+                        >
                           <Field
                             placeholder="CÓDIGO DO CUPOM"
                             value={coupon}
-                            onChange={(t) => !discountPercent && setCoupon(t.toUpperCase())}
+                            onChange={(t) =>
+                              !discountPercent && setCoupon(t.toUpperCase())
+                            }
                             disabled={!!discountPercent}
                             rightElement={
                               <button
                                 type="button"
                                 onClick={handleCheckCoupon}
-                                disabled={isValidatingCoupon || !!discountPercent || !coupon.trim()}
+                                disabled={
+                                  isValidatingCoupon ||
+                                  !!discountPercent ||
+                                  !coupon.trim()
+                                }
                                 className={cn(
                                   "ml-1 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase transition-all",
                                   discountPercent
-                                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                                    ? "border border-emerald-200 bg-emerald-50 text-emerald-600"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                                  (isValidatingCoupon || !!discountPercent || !coupon.trim()) && "opacity-60 cursor-not-allowed",
+                                  (isValidatingCoupon ||
+                                    !!discountPercent ||
+                                    !coupon.trim()) &&
+                                    "cursor-not-allowed opacity-60",
                                 )}
                               >
                                 {isValidatingCoupon ? (
                                   <Loader2 className="h-3 w-3 animate-spin" />
                                 ) : discountPercent ? (
-                                  <><Check className="h-3 w-3" /> Aplicado</>
+                                  <>
+                                    <Check className="h-3 w-3" /> Aplicado
+                                  </>
                                 ) : (
                                   "Aplicar"
                                 )}
@@ -1505,18 +1820,19 @@ export default function PlansPage() {
                             <motion.div
                               initial={{ opacity: 0, y: -8 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-2.5"
+                              className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5"
                             >
-                              <Ticket className="h-4 w-4 text-emerald-500 shrink-0" />
+                              <Ticket className="h-4 w-4 shrink-0 text-emerald-500" />
                               <span className="text-sm font-medium text-emerald-700">
-                                {isFree ? "100% de desconto — Assinatura Gratuita!" : `${discountPercent}% de desconto aplicado`}
+                                {isFree
+                                  ? "100% de desconto — Assinatura Gratuita!"
+                                  : `${discountPercent}% de desconto aplicado`}
                               </span>
                             </motion.div>
                           )}
                         </SectionCard>
 
                         {/* Espaço para o botão flutuante não cobrir o último campo */}
-                        <div className="h-28" />
                       </>
                     )}
                   </motion.div>
@@ -1526,93 +1842,114 @@ export default function PlansPage() {
                 {viewState === "success" && (
                   <SuccessView
                     onGoHome={() => router.push("/")}
-                    onCommunity={() => window.open("https://chat.whatsapp.com/Bo0Wgc0Wzc4CvwT5hrhT2Q", "_blank")}
+                    onCommunity={() =>
+                      window.open(
+                        "https://chat.whatsapp.com/Bo0Wgc0Wzc4CvwT5hrhT2Q",
+                        "_blank",
+                      )
+                    }
                   />
                 )}
-
               </AnimatePresence>
             </div>
           </div>
 
-          {/* ═══ Barra de ação flutuante (checkout) ═══ */}
-          <AnimatePresence>
-            {isCheckout && !(pixGenerated && paymentMethod === "pix") && (
-              <motion.div
-                key="floating-bar"
-                initial={{ y: 80, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 80, opacity: 0 }}
-                transition={{ duration: 0.3, ease: EASE }}
-                className="absolute bottom-0 left-0 right-0 z-30 border-t border-gray-100 bg-white/90 backdrop-blur-md px-6 py-4 sm:px-8"
-              >
-                <div className="mx-auto flex max-w-2xl items-center gap-4">
-                  {/* Resumo de preço */}
-                  <div className="flex-1 min-w-0">
-                    {priceLabel() && (
-                      <p className="text-[11px] text-gray-400 mb-0.5 truncate">{priceLabel()}</p>
-                    )}
-                    {discountPercent > 0 ? (
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-gray-300 text-sm line-through">{fmtBRL(basePrice)}</span>
-                        <span className="text-black font-bold text-lg">
-                          {isFree ? "GRÁTIS" : fmtBRL(finalPrice)}
-                        </span>
+          {/* ═══ Footer fixo (checkout) — portal no body para sempre fixo na tela ═══ */}
+          {typeof document !== "undefined" &&
+            createPortal(
+              <AnimatePresence>
+                {isCheckout && !(pixGenerated && paymentMethod === "pix") && (
+                  <motion.div
+                    key="floating-bar"
+                    initial={{ y: 80, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 80, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: EASE }}
+                    className="fixed inset-x-0 bottom-0 z-[9999] border-t border-gray-100 bg-white/95 px-6 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md sm:px-8 lg:left-[45%]"
+                  >
+                    <div className="mx-auto flex max-w-2xl items-center gap-4">
+                      {/* Resumo de preço */}
+                      <div className="min-w-0 flex-1">
+                        {priceLabel() && (
+                          <p className="mb-0.5 truncate text-[11px] text-gray-400">
+                            {priceLabel()}
+                          </p>
+                        )}
+                        {discountPercent > 0 ? (
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-sm text-gray-300 line-through">
+                              {fmtBRL(basePrice)}
+                            </span>
+                            <span className="text-lg font-bold text-black">
+                              {isFree ? "GRÁTIS" : fmtBRL(finalPrice)}
+                            </span>
+                          </div>
+                        ) : (
+                          <p className="text-lg font-bold text-black">
+                            {billingCycle === "YEARLY" &&
+                            paymentMethod === "card"
+                              ? `12x de ${fmtBRL(basePrice / 12)}`
+                              : fmtBRL(basePrice)}
+                          </p>
+                        )}
                       </div>
-                    ) : (
-                      <p className="text-black font-bold text-lg">
-                        {billingCycle === "YEARLY" && paymentMethod === "card"
-                          ? `12x de ${fmtBRL(basePrice / 12)}`
-                          : fmtBRL(basePrice)}
-                      </p>
-                    )}
-                  </div>
 
-                  {/* Botão de ação */}
-                  <button
-                    type="button"
-                    onClick={onSubmit}
-                    disabled={submitLoading || !canSubmit}
-                    className={cn(
-                      "flex shrink-0 items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold shadow-lg transition-all whitespace-nowrap",
-                      canSubmit && !submitLoading
-                        ? "bg-black text-white shadow-black/20 hover:bg-gray-800 hover:shadow-xl"
-                        : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none",
-                    )}
-                  >
-                    {submitLoading ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Processando...</>
-                    ) : (
-                      <>{submitLabel()} {!isFree && <ArrowRight className="h-4 w-4" />}</>
-                    )}
-                  </button>
-                </div>
+                      {/* Botão de ação */}
+                      <button
+                        type="button"
+                        onClick={onSubmit}
+                        disabled={submitLoading || !canSubmit}
+                        className={cn(
+                          "flex shrink-0 items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold whitespace-nowrap shadow-lg transition-all",
+                          canSubmit && !submitLoading
+                            ? "bg-black text-white shadow-black/20 hover:bg-gray-800 hover:shadow-xl"
+                            : "cursor-not-allowed bg-gray-100 text-gray-400 shadow-none",
+                        )}
+                      >
+                        {submitLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                            Processando...
+                          </>
+                        ) : (
+                          <>
+                            {submitLabel()}{" "}
+                            {!isFree && <ArrowRight className="h-4 w-4" />}
+                          </>
+                        )}
+                      </button>
+                    </div>
 
-                <p className="mt-2 text-center text-[11px] text-gray-400">
-                  Deseja planos corporativos?{" "}
-                  <a
-                    href="https://wa.me/5511999999999?text=Olá,%20tenho%20interesse%20em%20planos%20corporativos."
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-gray-600 underline hover:text-black transition-colors"
-                  >
-                    Fale conosco
-                  </a>
-                </p>
-              </motion.div>
+                    <p className="mt-2 text-center text-[11px] text-gray-400">
+                      Deseja planos corporativos?{" "}
+                      <a
+                        href="https://wa.me/5511999999999?text=Olá,%20tenho%20interesse%20em%20planos%20corporativos."
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-gray-600 underline transition-colors hover:text-black"
+                      >
+                        Fale conosco
+                      </a>
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>,
+              document.body,
             )}
-          </AnimatePresence>
 
           {/* Loading overlay */}
           {submitLoading && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
               <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-8 shadow-2xl">
                 <Loader2 className="h-8 w-8 animate-spin text-black" />
-                <p className="text-sm font-semibold text-gray-700">Processando pagamento...</p>
+                <p className="text-sm font-semibold text-gray-700">
+                  Processando pagamento...
+                </p>
               </div>
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
