@@ -1,5 +1,6 @@
 "use client";
 import { AuthGuard } from "@/components/auth-guard";
+import MobileAppBlocker from "@/components/mobile";
 import { Header } from "@/components/ui/header";
 import { Sidebar } from "@/components/ui/sidebar";
 import { GeneralContextProvider } from "@/context/GeneralContext";
@@ -20,6 +21,11 @@ export default function RootLayout({
   useEffect(() => {
     // Não inicializa Lenis nas páginas de chat
     if (pathname.includes("/chat")) {
+      return;
+    }
+
+    // Não inicializa Lenis em mobile (menor que 768px)
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
       return;
     }
 
@@ -53,6 +59,8 @@ export default function RootLayout({
       <AuthGuard>
         <GeneralContextProvider>
           <ChatPageProvider>
+        <MobileAppBlocker />
+
             <div className="min-h-screen w-full bg-[#0d0d0d]">
               {children}
             </div>
@@ -74,6 +82,8 @@ export default function RootLayout({
         >
           <Header />
           <Sidebar />
+        <MobileAppBlocker />
+
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}

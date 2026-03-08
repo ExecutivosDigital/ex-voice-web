@@ -135,13 +135,14 @@ export function TrialAppModal() {
   const currentStepData = steps[currentStep];
   const isLastStep = currentStep === steps.length - 1;
 
-  return (
+  const modalContent = (
     <div 
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-2 sm:p-4 animate-in fade-in duration-300"
+      className="fixed top-0 left-0 right-0 bottom-0 z-[99999] flex items-start justify-center bg-black/70 backdrop-blur-[6px] p-2 sm:p-4 pt-4 sm:pt-8 animate-in fade-in duration-300"
       onWheel={handleWheel}
+      style={{ position: 'fixed' }}
     >
       <div 
-        className="relative w-full max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl animate-in zoom-in-95 slide-in-from-bottom-5 duration-500 flex flex-col"
+        className="relative w-full max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl animate-in zoom-in-95 slide-in-from-bottom-5 duration-500 flex flex-col mt-4 sm:mt-8"
         onWheel={handleWheel}
       >
         {/* Gradiente de fundo azul */}
@@ -302,5 +303,5 @@ export function TrialAppModal() {
   );
 
   if (typeof window === "undefined") return null;
-  return createPortal(<TrialAppModal />, document.body);
+  return createPortal(modalContent, document.body);
 }

@@ -1,4 +1,6 @@
+"use client";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 
 /**
  * Componente MobileAppBlocker
@@ -7,10 +9,150 @@ import Image from "next/image";
  * o download do aplicativo.
  */
 const MobileAppBlocker = () => {
+  const scrollYRef = useRef(0);
+
+  useEffect(() => {
+    // Verifica se está em mobile
+    const isMobileView = () => window.innerWidth < 768; // breakpoint md do Tailwind
+
+    // Função para prevenir scroll
+    const preventScroll = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    // Função para desabilitar/habilitar scroll
+    const handleScroll = () => {
+      if (isMobileView()) {
+        // Salva a posição atual do scroll apenas na primeira vez
+        if (scrollYRef.current === 0) {
+          scrollYRef.current = window.scrollY;
+        }
+
+        // Garante que o scroll está no topo
+        window.scrollTo(0, 0);
+
+        // Bloqueia scroll usando position: fixed (mais efetivo)
+        // Limita a altura à viewport para evitar scroll
+        document.documentElement.style.overflow = "hidden";
+        document.documentElement.style.position = "fixed";
+        document.documentElement.style.top = "0";
+        document.documentElement.style.left = "0";
+        document.documentElement.style.right = "0";
+        document.documentElement.style.width = "100%";
+        document.documentElement.style.height = "100vh";
+        document.documentElement.style.maxHeight = "100vh";
+
+        document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.top = "0";
+        document.body.style.left = "0";
+        document.body.style.right = "0";
+        document.body.style.width = "100%";
+        document.body.style.height = "100vh";
+        document.body.style.maxHeight = "100vh";
+        document.body.style.touchAction = "none";
+
+        // Previne eventos de scroll
+        window.addEventListener("scroll", preventScroll, { passive: false });
+        window.addEventListener("wheel", preventScroll, { passive: false });
+        window.addEventListener("touchmove", preventScroll, { passive: false });
+      } else {
+        // Remove listeners de scroll
+        window.removeEventListener("scroll", preventScroll);
+        window.removeEventListener("wheel", preventScroll);
+        window.removeEventListener("touchmove", preventScroll);
+
+        // Reabilita scroll quando não estiver em mobile
+        document.documentElement.style.overflow = "";
+        document.documentElement.style.position = "";
+        document.documentElement.style.top = "";
+        document.documentElement.style.left = "";
+        document.documentElement.style.right = "";
+        document.documentElement.style.width = "";
+        document.documentElement.style.height = "";
+        document.documentElement.style.maxHeight = "";
+
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.width = "";
+        document.body.style.height = "";
+        document.body.style.maxHeight = "";
+        document.body.style.touchAction = "";
+
+        // Restaura a posição do scroll
+        window.scrollTo(0, scrollYRef.current);
+        scrollYRef.current = 0;
+      }
+    };
+
+    // Verifica na montagem e aplica imediatamente se estiver em mobile
+    if (isMobileView()) {
+      // Força o scroll para o topo imediatamente
+      window.scrollTo(0, 0);
+      // Aplica o bloqueio imediatamente
+      handleScroll();
+    }
+
+    // Força o scroll para o topo periodicamente quando em mobile
+    const keepScrollTop = setInterval(() => {
+      if (isMobileView()) {
+        window.scrollTo(0, 0);
+      }
+    }, 100);
+
+    // Adiciona listener para mudanças de tamanho
+    window.addEventListener("resize", handleScroll);
+
+    // Cleanup - sempre reabilita o scroll ao desmontar
+    return () => {
+      clearInterval(keepScrollTop);
+      window.removeEventListener("resize", handleScroll);
+      window.removeEventListener("scroll", preventScroll);
+      window.removeEventListener("wheel", preventScroll);
+      window.removeEventListener("touchmove", preventScroll);
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.position = "";
+      document.documentElement.style.top = "";
+      document.documentElement.style.left = "";
+      document.documentElement.style.right = "";
+      document.documentElement.style.width = "";
+      document.documentElement.style.height = "";
+      document.documentElement.style.maxHeight = "";
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.height = "";
+      document.body.style.maxHeight = "";
+      document.body.style.touchAction = "";
+      window.scrollTo(0, scrollYRef.current);
+    };
+  }, []);
+
   return (
     // A classe 'md:hidden' garante que isso só apareça em telas menores que o breakpoint 'md' do Tailwind (tablets/celulares)
     // 'fixed inset-0 z-[9999]' garante que fique por cima de tudo e o usuário não consiga sair.
-    <div className="fixed inset-0 z-[9999] flex touch-none flex-col items-center justify-center overscroll-none bg-[#4c4d4e] p-6 text-center select-none md:hidden">
+    <div 
+      className="fixed flex touch-none flex-col items-center justify-center overscroll-none bg-[#4c4d4e] p-6 text-center select-none md:hidden overflow-hidden"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 99999999,
+        width: '100vw',
+        height: '100vh',
+        maxWidth: '100vw',
+        maxHeight: '100vh',
+      }}
+    >
       {/* Background Decorativo (Círculos sutis para dar textura similar ao header) */}
       <div className="pointer-events-none absolute top-0 left-0 h-full w-full overflow-hidden opacity-10">
         <div className="absolute top-[-10%] left-[-10%] h-64 w-64 rounded-full bg-white mix-blend-overlay blur-3xl"></div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { FileText, History } from "lucide-react";
 import { MedicalHistoryTimelineCardData } from "../../types/component-types";
+import { TruncatedTooltip } from "../core/TruncatedTooltip";
 import { getIcon, getVariantStyles } from "../../utils/icon-mapper";
 
 interface MedicalHistoryTimelineCardProps {
@@ -19,68 +19,84 @@ export function MedicalHistoryTimelineCard({
   const HistoryIcon = getIcon("history");
   const FileIcon = getIcon("file-text");
 
+  const records = data.history && Array.isArray(data.history) ? data.history : [];
+
   return (
-    <div className="w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <div className="mb-8 flex items-center justify-between gap-2 min-w-0">
-        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 min-w-0">
+    <div
+      className={`w-full overflow-hidden rounded-2xl border ${styles.border} bg-white shadow-sm`}
+    >
+      {/* Header */}
+      <div className={`flex items-center justify-between gap-3 px-5 py-4 border-b ${styles.border}`}>
+        <div className="flex items-center gap-3 min-w-0">
           <HistoryIcon className="h-5 w-5 shrink-0 text-gray-400" />
-          <span className="leading-relaxed">{title}</span>
-        </h3>
-        <button className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline shrink-0 whitespace-nowrap">
-          Ver histórico completo
+          <TruncatedTooltip content={title}>
+            <h3 className="font-semibold text-gray-900 leading-snug truncate">{title}</h3>
+          </TruncatedTooltip>
+        </div>
+        <button
+          type="button"
+          className="shrink-0 text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+        >
+          Ver completo
         </button>
       </div>
 
-      <div className="relative ml-3 space-y-10 border-l-2 border-gray-100 pb-4 min-w-0">
-        {data.history && Array.isArray(data.history) && data.history.length > 0 ? (
-          data.history.map((record, index) => (
-            <div key={index} className="group relative pl-8 min-w-0">
-              {/* Timeline Dot */}
-              <div className="absolute top-0 -left-[9px] h-4 w-4 rounded-full border-2 border-white bg-blue-500 ring-4 ring-blue-50 transition-all group-hover:ring-blue-100 shrink-0"></div>
+      {/* Timeline */}
+      <div className="p-5">
+        {records.length > 0 ? (
+          <div className="relative ml-3 flex flex-col gap-8 border-l-2 border-gray-100 pb-2">
+            {records.map((record, index) => (
+              <div key={index} className="relative pl-7">
+                {/* Dot */}
+                <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 border-white bg-blue-500 ring-4 ring-blue-50" />
 
-              <div className="mb-3 flex flex-col gap-4 md:flex-row md:items-start md:justify-between min-w-0">
-                <div className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-gray-900 leading-relaxed">
-                    {record.type || 'N/A'}
-                  </span>
-                  {(record.specialty || record.doctor) && (
-                    <span className="text-sm text-gray-500 leading-relaxed">
-                      {record.specialty || ''} {record.specialty && record.doctor ? '•' : ''} {record.doctor || ''}
+                {/* Meta (tipo + data) */}
+                <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0">
+                    <span className="block text-sm font-bold text-gray-900 leading-snug">
+                      {record.type || "N/A"}
+                    </span>
+                    {(record.specialty || record.doctor) && (
+                      <span className="text-xs text-gray-500">
+                        {[record.specialty, record.doctor].filter(Boolean).join(" · ")}
+                      </span>
+                    )}
+                  </div>
+                  {record.date && (
+                    <span className="shrink-0 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-600 whitespace-nowrap">
+                      {record.date}
                     </span>
                   )}
                 </div>
-                {record.date && (
-                  <span className="w-max rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600 shrink-0 whitespace-nowrap">
-                    {record.date}
-                  </span>
-                )}
-              </div>
 
-              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-5 transition-all hover:border-blue-100 hover:bg-white hover:shadow-md min-w-0">
-                {record.note && (
-                  <p className="mb-4 text-sm leading-relaxed text-gray-600">
-                    {record.note}
-                  </p>
-                )}
-
-                {record.attachments && Array.isArray(record.attachments) && record.attachments.length > 0 && (
-                  <div className="flex flex-wrap gap-2 border-t border-gray-200/50 pt-3">
-                    {record.attachments.map((att, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm whitespace-nowrap"
-                      >
-                        <FileIcon className="h-3 w-3 shrink-0 text-gray-400" />
-                        {att}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Card de nota */}
+                <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4 transition-all hover:border-blue-100 hover:bg-white hover:shadow-sm">
+                  {record.note && (
+                    <p className="text-sm leading-relaxed text-gray-600 break-words">
+                      {record.note}
+                    </p>
+                  )}
+                  {record.attachments && Array.isArray(record.attachments) && record.attachments.length > 0 && (
+                    <div
+                      className={`${record.note ? "mt-3 border-t border-gray-100 pt-3" : ""} flex flex-wrap gap-1.5`}
+                    >
+                      {record.attachments.map((att, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm whitespace-nowrap"
+                        >
+                          <FileIcon className="h-3 w-3 shrink-0 text-gray-400" />
+                          {att}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         ) : (
-          <div className="text-center py-8 text-sm text-gray-500">
+          <div className="py-8 text-center text-sm text-gray-400">
             Nenhum histórico disponível
           </div>
         )}

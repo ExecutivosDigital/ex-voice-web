@@ -1,5 +1,4 @@
 import {
-    Activity,
     AlertCircle,
     AlertTriangle,
     Beaker,
@@ -8,10 +7,8 @@ import {
     CheckCircle,
     CheckCircle2,
     ChevronRight,
-    Cigarette,
     ClipboardCheck,
     Clock,
-    Dna,
     Download,
     FileOutput,
     FileSignature,
@@ -19,18 +16,36 @@ import {
     GitBranch,
     History,
     Info,
+    Layers,
     LucideIcon,
-    Pill,
+    Share2,
+    TrendingUp,
     User,
     UserPlus,
     Users,
-    Wine,
 } from "lucide-react";
 import { Variant } from "../types/component-types";
 
 // Mapeamento de strings de ícones para componentes do lucide-react
+// Nota: ícones específicos de domínio médico foram substituídos por equivalentes genéricos.
+// O ícone real a exibir deve sempre vir da API via campo `icon` do componente.
 export const iconMap: Record<string, LucideIcon> = {
-  pill: Pill,
+  // Antes: Pill → agora Layers (genérico para "itens agrupados/lista")
+  pill: Layers,
+  "layers": Layers,
+
+  // Antes: Dna → agora Share2 (genérico para "conexões/relações")
+  dna: Share2,
+  "share-2": Share2,
+
+  // Antes: Activity (batimento cardíaco) → agora TrendingUp (genérico para "métricas/tendências")
+  activity: TrendingUp,
+  "trending-up": TrendingUp,
+
+  // Antes: Stethoscope → já mapeado para Briefcase (genérico)
+  stethoscope: Briefcase,
+
+  // Ícones genéricos — mantidos como estão
   "file-output": FileOutput,
   "user-plus": UserPlus,
   "file-signature": FileSignature,
@@ -40,8 +55,6 @@ export const iconMap: Record<string, LucideIcon> = {
   clock: Clock,
   user: User,
   "alert-circle": AlertCircle,
-  activity: Activity,
-  stethoscope: Briefcase,
   "alert-triangle": AlertTriangle,
   beaker: Beaker,
   info: Info,
@@ -52,9 +65,6 @@ export const iconMap: Record<string, LucideIcon> = {
   "chevron-right": ChevronRight,
   history: History,
   users: Users,
-  dna: Dna,
-  cigarette: Cigarette,
-  wine: Wine,
 };
 
 // Função para obter ícone por string

@@ -1,6 +1,7 @@
 "use client";
 
 import { NextAppointmentsCardData } from "../../types/component-types";
+import { TruncatedTooltip } from "../core/TruncatedTooltip";
 import { getIcon, getVariantStyles } from "../../utils/icon-mapper";
 
 interface NextAppointmentsCardProps {
@@ -9,20 +10,23 @@ interface NextAppointmentsCardProps {
   data: NextAppointmentsCardData;
 }
 
-const monthNames = [
-  "JAN",
-  "FEV",
-  "MAR",
-  "ABR",
-  "MAI",
-  "JUN",
-  "JUL",
-  "AGO",
-  "SET",
-  "OUT",
-  "NOV",
-  "DEZ",
+const MONTH_NAMES = [
+  "JAN","FEV","MAR","ABR","MAI","JUN",
+  "JUL","AGO","SET","OUT","NOV","DEZ",
 ];
+
+function parseDate(dateStr: string) {
+  const parts = dateStr.split("/");
+  if (parts.length >= 2) {
+    const day = parts[0]?.trim() || "";
+    const month = parts[1]?.trim() || "";
+    const valid =
+      day && month && !isNaN(parseInt(day)) && !isNaN(parseInt(month)) &&
+      parseInt(month) >= 1 && parseInt(month) <= 12;
+    if (valid) return { day, month };
+  }
+  return null;
+}
 
 export function NextAppointmentsCard({
   title,
@@ -32,127 +36,114 @@ export function NextAppointmentsCard({
   const styles = getVariantStyles(variant);
   const Icon = getIcon("calendar-clock");
 
-  // Calcular quantidade de agendamentos
-  const isGenericFormat =
-    data.items && Array.isArray(data.items) && data.items.length > 0;
+  const isGenericFormat = data.items && Array.isArray(data.items) && data.items.length > 0;
   const items = isGenericFormat ? data.items || [] : [];
+
   const legacyItems =
     data.appointments && Array.isArray(data.appointments)
-      ? data.appointments
+      ? data.appointments.map((appt) => ({
+          id: appt.id,
+                        primary: appt.type || "",
+          secondary: appt.doctor,
+          metadata: [
+            appt.date ? { label: "Data", value: appt.date } : null,
+            appt.time ? { label: "Hora", value: appt.time } : null,
+          ].filter(Boolean) as Array<{ label: string; value: string }>,
+          tags: appt.notes ? [appt.notes] : [],
+        }))
       : [];
-  const appointmentCount = isGenericFormat
-    ? items?.length || 0
-    : legacyItems.length;
+
+  const displayItems = isGenericFormat ? items : legacyItems;
 
   return (
-    <section className={`w-full max-w-full min-w-0 ${appointmentCount <= 1 ? "max-w-[500px]" : ""}`}>
-      <div className="mb-4 flex items-center gap-3 min-w-0">
+    <div
+      className={`h-full w-full overflow-hidden rounded-2xl border ${styles.border} bg-white shadow-sm flex flex-col`}
+    >
+      {/* Header */}
+      <div className={`flex items-center gap-3 px-5 py-4 border-b ${styles.border}`}>
         <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${styles.gradientFrom} ${styles.gradientTo} text-white`}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${styles.iconBg} ${styles.iconText}`}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 break-words min-w-0">{title}</h2>
+        <div className="min-w-0 flex-1">
+          <TruncatedTooltip content={title}>
+            <h3 className="font-semibold text-gray-900 leading-snug truncate">{title}</h3>
+          </TruncatedTooltip>
+          {displayItems.length > 0 && (
+            <p className="text-xs text-gray-400 mt-0.5">{displayItems.length} agendamento(s)</p>
+          )}
+        </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 w-full max-w-full min-w-0">
-        {/* Detectar formato: genérico (items[]) ou legado (appointments[]) */}
-        {(() => {
-          const isGenericFormat =
-            data.items && Array.isArray(data.items) && data.items.length > 0;
-          const items = isGenericFormat ? data.items : [];
 
-          // Converter formato legado para genérico
-          const legacyItems =
-            data.appointments && Array.isArray(data.appointments)
-              ? data.appointments.map((appt) => ({
-                  id: appt.id,
-                  primary: appt.type || "Agendamento",
-                  secondary: appt.doctor,
-                  metadata: [
-                    appt.date && { label: "Data", value: appt.date },
-                    appt.time && { label: "Hora", value: appt.time },
-                  ].filter(Boolean) as Array<{ label: string; value: string }>,
-                  tags: appt.notes ? [appt.notes] : [],
-                }))
-              : [];
-
-          const displayItems = isGenericFormat ? items : legacyItems;
-
-          if (!displayItems || displayItems.length === 0) {
-            return (
-              <div className="col-span-2 py-8 text-center text-sm text-gray-500">
-                Nenhum agendamento disponível
-              </div>
-            );
-          }
-
-          return displayItems.map((item, idx) => {
+      {/* Content */}
+      <div className="flex flex-col gap-3 p-5">
+        {displayItems.length === 0 ? (
+          <div className="py-8 text-center text-sm text-gray-400">
+            Nenhum agendamento disponível
+          </div>
+        ) : (
+          displayItems.map((item, idx) => {
             const dateMeta = item.metadata?.find(
               (m: { label: string; value: string }) =>
-                m.label && typeof m.label === 'string' && m.label.toLowerCase().includes("data"),
+                m.label && typeof m.label === "string" && m.label.toLowerCase().includes("data")
             );
             const timeMeta = item.metadata?.find(
               (m: { label: string; value: string }) =>
-                m.label && typeof m.label === 'string' && m.label.toLowerCase().includes("hora"),
+                m.label && typeof m.label === "string" && m.label.toLowerCase().includes("hora")
             );
-
-            const dateStr = dateMeta?.value || "";
-            // Tentar parsear data no formato DD/MM ou DD/MM/YYYY
-            let day = "";
-            let month = "";
-            if (dateStr) {
-              const parts = dateStr.split("/");
-              if (parts.length >= 2) {
-                day = parts[0]?.trim() || "";
-                month = parts[1]?.trim() || "";
-              } else {
-                // Se não estiver no formato esperado, usar a string completa
-                day = dateStr;
-              }
-            }
-
-            // Só mostrar o card de data se tiver dia e mês válidos (números)
-            const hasValidDate = day && month && !isNaN(parseInt(day)) && !isNaN(parseInt(month)) && parseInt(month) >= 1 && parseInt(month) <= 12;
+            const parsedDate = dateMeta?.value ? parseDate(dateMeta.value) : null;
 
             return (
               <div
                 key={item.id || idx}
-                className={`flex items-start gap-5 rounded-2xl border ${styles.border} bg-gradient-to-r ${styles.bg} to-white p-5 transition-all w-full max-w-full min-w-0 overflow-hidden`}
+                className={`flex items-stretch gap-4 rounded-xl border ${styles.border} ${styles.bg} p-4 overflow-hidden`}
               >
-                {hasValidDate && (
+                {/* Mini calendário */}
+                {parsedDate ? (
                   <div
-                    className={`flex min-w-[70px] shrink-0 flex-col items-center justify-center rounded-xl border ${styles.border} bg-white p-3`}
+                    className={`flex w-14 shrink-0 flex-col items-center justify-center rounded-xl border ${styles.border} bg-white py-2`}
                   >
-                    <span className={`text-2xl font-bold ${styles.text} break-words text-center`}>
-                      {day}
+                    <span className={`text-xl font-bold leading-none ${styles.text}`}>
+                      {parsedDate.day}
                     </span>
-                    {month && (
-                      <span className="text-[10px] font-bold tracking-wider text-gray-400 uppercase break-words text-center">
-                        {monthNames[parseInt(month) - 1] || month}
-                      </span>
-                    )}
+                    <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                      {MONTH_NAMES[parseInt(parsedDate.month) - 1] || parsedDate.month}
+                    </span>
                   </div>
-                )}
-                <div className="flex-1 min-w-0 overflow-hidden">
-                  <p className="font-bold text-gray-900 break-words">{item.primary}</p>
+                ) : dateMeta?.value ? (
+                  <div
+                    className={`flex shrink-0 items-center justify-center rounded-xl border ${styles.border} bg-white px-3`}
+                  >
+                    <span className={`text-xs font-bold ${styles.text} whitespace-nowrap`}>
+                      {dateMeta.value}
+                    </span>
+                  </div>
+                ) : null}
+
+                {/* Detalhes */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <p className="font-semibold text-gray-900 leading-snug break-words">
+                    {item.primary}
+                  </p>
                   {(timeMeta || item.secondary) && (
-                    <p className={`text-sm font-medium ${styles.text} break-words`}>
-                      {timeMeta?.value || ""}{" "}
-                      {timeMeta && item.secondary ? "•" : ""}{" "}
-                      {item.secondary || ""}
+                    <p className={`mt-0.5 text-sm font-medium ${styles.text} leading-snug`}>
+                      {timeMeta?.value}
+                      {timeMeta && item.secondary && " · "}
+                      {item.secondary}
                     </p>
                   )}
                   {item.tags && item.tags.length > 0 && (
-                    <p className="mt-2 inline-block rounded border border-gray-100 bg-white/50 px-2 py-1 text-xs text-gray-500 break-words max-w-full">
+                    <p className="mt-1.5 text-xs text-gray-500 leading-relaxed break-words">
                       <span className="font-medium">Obs:</span> {item.tags[0]}
                     </p>
                   )}
                 </div>
               </div>
             );
-          });
-        })()}
+          })
+        )}
       </div>
-    </section>
+    </div>
   );
 }
