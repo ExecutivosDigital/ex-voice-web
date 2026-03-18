@@ -4,7 +4,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { createContext, useContext, useRef } from "react";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
-const ACCESS_TOKEN_COOKIE = "hv_access_token";
+const ACCESS_TOKEN_COOKIE = "ev_access_token";
 
 interface ApiContextProps {
   PostAPI: (

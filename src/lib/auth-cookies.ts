@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
-const ACCESS_TOKEN_KEY = "hv_access_token";
-const REFRESH_TOKEN_KEY = "hv_refresh_token";
+const ACCESS_TOKEN_KEY = "ev_access_token";
+const REFRESH_TOKEN_KEY = "ev_refresh_token";
 
 // 365 dias em segundos (mesma validade do accessToken JWT na API)
 const ACCESS_TOKEN_MAX_AGE = 365 * 24 * 60 * 60;
@@ -78,3 +78,4 @@ export async function clearAuthCookies() {
 }
 
 export { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY };
+

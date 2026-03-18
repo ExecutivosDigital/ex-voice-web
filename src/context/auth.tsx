@@ -12,7 +12,7 @@ import React, {
 import { startSession } from "../services/analyticsService";
 import { useApiContext } from "./ApiContext";
 
-const ACCESS_TOKEN_COOKIE = "hv_access_token";
+const ACCESS_TOKEN_COOKIE = "ev_access_token";
 
 export interface User {
   id: string;
@@ -53,7 +53,7 @@ export function useSession() {
 }
 
 /**
- * Verifica se existe o cookie hv_access_token (client-side).
+ * Verifica se existe o cookie ev_access_token (client-side).
  */
 function hasAccessToken(): boolean {
   if (typeof document === "undefined") return false;

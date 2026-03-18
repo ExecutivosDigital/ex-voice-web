@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Seta os cookies de autenticação (hv_access_token + hv_refresh_token)
+    // Seta os cookies de autenticação (ev_access_token + ev_refresh_token)
     await setAuthCookies(accessToken, refreshToken);
 
     // Redireciona para o dashboard após autenticar
