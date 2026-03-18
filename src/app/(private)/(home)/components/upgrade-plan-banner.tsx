@@ -11,14 +11,13 @@ interface UpgradePlanBannerProps {
 }
 
 export function UpgradePlanBanner({ className }: UpgradePlanBannerProps) {
-  const { isTrial, availableRecording, totalRecording, profile } = useSession();
+  const { isTrial, availableRecording, totalRecording, profile, availabilityLoaded } =
+    useSession();
   const router = useRouter();
-  console.log("isTrial", isTrial);
-  console.log("availableRecording", availableRecording);
-  console.log("totalRecording", totalRecording);
   const isExpired =
     !isTrial && availableRecording === 0 && totalRecording === 0;
-  const shouldShow = profile && (isTrial || isExpired);
+  const shouldShow =
+    profile && availabilityLoaded && (isTrial || isExpired);
 
   if (!shouldShow) return null;
 
