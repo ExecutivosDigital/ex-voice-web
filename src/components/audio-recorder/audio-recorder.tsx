@@ -1,5 +1,6 @@
 import { ClientProps } from "@/@types/general-client";
 import { useApiContext } from "@/context/ApiContext";
+import { useSession } from "@/context/auth";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { trackAction, UserActionType } from "@/services/actionTrackingService";
 import { cn } from "@/utils/cn";
@@ -69,10 +70,20 @@ export function AudioRecorder({
 }: AudioRecorderProps) {
   const { GetRecordings, GetReminders, clients, selectedClient, newRecordingRequest, resetNewRecordingRequest } = useGeneralContext();
   const { PostAPI } = useApiContext();
+  const { handleGetAvailableRecording } = useSession();
   const { uploadMedia, formatDurationForAPI } = useRecordingUpload();
   const [isCreateClientSheetOpen, setIsCreateClientSheetOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const carouselImages = [
+    "/imagens/handsome-businessman-com-laptop-na-mesa_23-2147689170.avif",
+    "/imagens/pexels-edwardeyer-8336244.jpg",
+    "/imagens/pexels-edwardeyer-19787808.jpg",
+    "/imagens/pexels-estevam-foto-20714753-16778621.jpg",
+    "/imagens/pexels-felicity-tai-7964522.jpg",
+    "/imagens/pexels-shkrabaanthony-7163364.jpg",
+    "/imagens/pexels-stephanie-lima-455905576-16051533.jpg",
+  ];
   const [tempCreatedClient, setTempCreatedClient] =
     useState<ClientProps | null>(null);
   const [pendingClientName, setPendingClientName] = useState<string | null>(
@@ -105,6 +116,14 @@ export function AudioRecorder({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (currentStep === "idle") return;
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length);
+    }, 1400);
+    return () => clearInterval(timer);
+  }, [carouselImages.length, currentStep]);
 
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
   const audioPreviewRef = useRef<HTMLAudioElement>(null);
@@ -223,6 +242,7 @@ export function AudioRecorder({
       toast.success("Gravação salva com sucesso!");
 
       GetRecordings();
+      handleGetAvailableRecording();
       if (metadata.personalRecordingType === "REMINDER" && initialReminderId) {
         GetReminders();
       }
@@ -261,16 +281,6 @@ export function AudioRecorder({
       }
     }
   }, [currentStep, recorder.mediaUrl, currentMediaType]); // ← ADICIONA currentMediaType como dependência
-
-  const handleDropdownOpenChange = (open: boolean) => {
-    if (open && skipToClient) {
-      openSaveDialog("CLIENT");
-    } else if (open && initialReminderId) {
-      openSaveDialog("PERSONAL", "REMINDER");
-    } else {
-      setIsDropdownOpen(open);
-    }
-  };
 
   const getDerivedTitle = () => {
     if (metadata.name) return metadata.name;
@@ -452,7 +462,7 @@ export function AudioRecorder({
     if (skipToClient) {
       return (
         <div
-          onClick={() => handleDropdownOpenChange(true)}
+          onClick={() => openSaveDialog("CLIENT")}
           className={cn(
             "flex cursor-pointer items-center gap-2 rounded-3xl px-4 py-2 transition",
             buttonClassName,
@@ -480,45 +490,24 @@ export function AudioRecorder({
     }
 
     return (
-      <DropdownMenu
-        open={isDropdownOpen}
-        onOpenChange={handleDropdownOpenChange}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => openSaveDialog("CLIENT")}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openSaveDialog("CLIENT");
+          }
+        }}
+        className={cn(
+          "flex cursor-pointer items-center gap-2 rounded-3xl px-4 py-2 transition",
+          buttonClassName,
+        )}
       >
-        <DropdownMenuTrigger asChild>
-          <div
-            className={cn(
-              "flex items-center gap-2 rounded-3xl px-4 py-2 transition",
-              buttonClassName,
-            )}
-          >
-            <IconComponent size={20} />
-            {label}
-            <ChevronDown size={20} />
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem onSelect={() => openSaveDialog("CLIENT")}>
-            <div className="flex items-center gap-2">
-              <Video size={18} className="text-gray-600" />
-              <div>
-                <p className="font-semibold text-gray-800">Gravação</p>
-                <p className="text-xs text-gray-500">Presencial ou Online</p>
-              </div>
-            </div>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => openSaveDialog("PERSONAL")}>
-            <div className="flex items-center gap-2">
-              <Mic size={18} className="text-green-600" />
-              <div>
-                <p className="font-semibold text-gray-800">Pessoal</p>
-                <p className="text-xs text-gray-500">
-                  Lembretes, estudos, etc.
-                </p>
-              </div>
-            </div>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <IconComponent size={20} />
+        {label}
+      </div>
     );
   };
 
@@ -536,12 +525,54 @@ export function AudioRecorder({
               }
             }}
             className={cn(
-              "bg-opacity-50 fixed inset-0 z-[99999] flex items-end justify-center bg-black/20 backdrop-blur-xs",
+              "fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4 animate-in fade-in duration-300 overflow-y-auto",
               currentStep === "idle" && "hidden",
             )}
           >
+            <div className="relative w-full max-w-5xl my-auto rounded-3xl bg-white shadow-2xl flex flex-col md:flex-row md:min-h-[500px] max-h-[90vh] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-500">
+              <div className="relative hidden w-1/2 md:block overflow-hidden bg-gray-900">
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent" />
+                <div className="absolute top-10 left-10 z-20">
+                  <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-md border border-white/20">
+                    <div className="h-2 w-2 rounded-full bg-red-400 animate-pulse shadow-[0_0_8px_rgba(248,113,113,0.8)]" />
+                    <span className="text-xs font-semibold text-white tracking-wide">Gravação Inteligente</span>
+                  </div>
+                </div>
+                <div className="absolute bottom-10 left-10 z-20 text-white max-w-md pr-8">
+                  <h3 className="text-3xl font-bold leading-tight tracking-tight">
+                    Transforme reuniões <br /> em insights valiosos.
+                  </h3>
+                  <p className="mt-4 text-base text-gray-100 opacity-90 leading-relaxed font-light">
+                    Grave, transcreva e analise suas conversas com inteligência artificial.
+                  </p>
+                </div>
+                {carouselImages.map((img, index) => (
+                  <div
+                    key={img}
+                    className={cn(
+                      "absolute inset-0 h-full w-full bg-cover bg-center transition-all duration-1000 ease-in-out transform",
+                      index === currentImageIndex
+                        ? "opacity-100 scale-105"
+                        : "opacity-0 scale-100"
+                    )}
+                    style={{ backgroundImage: `url(${img})` }}
+                  />
+                ))}
+                <div className="absolute bottom-10 right-10 z-20 flex gap-2">
+                  {carouselImages.map((_, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "h-1 rounded-full transition-all duration-300",
+                        i === currentImageIndex ? "w-8 bg-gray-400" : "w-2 bg-white/30"
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="flex w-full flex-col md:w-1/2 relative bg-white overflow-y-auto">
             {currentStep === "save-dialog" && (
-              <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+              <div className="p-6 md:p-8">
                 <div className="mb-6 flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-800">
                     {metadata.recordingType === "CLIENT"
@@ -914,7 +945,7 @@ export function AudioRecorder({
             )}
 
             {currentStep === "instructions" && (
-              <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+              <div className="p-6 md:p-8">
                 <div className="mb-6 flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-800">
                     Instruções
@@ -1004,7 +1035,7 @@ export function AudioRecorder({
             )}
 
             {currentStep === "recording" && (
-              <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+              <div className="p-6 md:p-8">
                 <div className="mb-6 flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-800">
                     Gravando...
@@ -1055,7 +1086,7 @@ export function AudioRecorder({
             )}
 
             {currentStep === "preview" && (
-              <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+              <div className="p-6 md:p-8">
                 <div className="mb-6 flex items-center justify-between">
                   <h2 className="text-2xl font-bold text-gray-800">
                     Pré-visualização
@@ -1149,7 +1180,7 @@ export function AudioRecorder({
             )}
 
             {currentStep === "processing" && (
-              <div className="animate-slide-up w-full max-w-2xl rounded-t-3xl bg-white p-6">
+              <div className="p-6 md:p-8">
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="h-16 w-16 animate-spin rounded-full border-4 border-gray-600 border-t-transparent" />
                   <p className="mt-6 text-lg font-semibold text-gray-800">
@@ -1161,6 +1192,8 @@ export function AudioRecorder({
                 </div>
               </div>
             )}
+              </div>
+            </div>
           </div>,
           document.body,
         )}

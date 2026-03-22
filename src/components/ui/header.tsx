@@ -37,6 +37,8 @@ import {
   StudyIcon,
   TranscriptionIcon,
 } from "./custom-icons";
+import { CreditsIndicator } from "./credits-indicator";
+import { DownloadAppModal } from "./download-app-modal";
 import { NotificationDropdown } from "./notification-dropdown";
 
 interface BreadcrumbItem {
@@ -54,6 +56,7 @@ export function Header() {
 
   const [appUrl, setAppUrl] = useState<string>("");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isDownloadAppModalOpen, setIsDownloadAppModalOpen] = useState(false);
 
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     const breadcrumbs: BreadcrumbItem[] = [{ label: "Home", href: "/" }];
@@ -212,6 +215,10 @@ export function Header() {
         isOpen={isProfileModalOpen}
         onOpenChange={setIsProfileModalOpen}
       />
+      <DownloadAppModal
+        open={isDownloadAppModalOpen}
+        onOpenChange={setIsDownloadAppModalOpen}
+      />
       <div className="mx-auto flex w-[90%] items-center justify-between py-6">
         <Image
           src="/logos/logo2.png"
@@ -226,6 +233,15 @@ export function Header() {
         <div className="flex h-max items-center gap-2">
           <div className="flex items-center gap-2">
             <NotificationDropdown />
+            <button
+              type="button"
+              onClick={() => setIsDownloadAppModalOpen(true)}
+              className="flex h-8 shrink-0 items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-medium text-white transition-all duration-200 hover:bg-white/20"
+            >
+              <SmartphoneIcon className="h-4 w-4 shrink-0" />
+              <span>Baixar o App</span>
+            </button>
+            <CreditsIndicator />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="group flex h-10 cursor-pointer items-center gap-2 rounded-full bg-white/10 px-1 pr-3 text-white transition-all duration-200 hover:bg-white/20">
@@ -350,18 +366,9 @@ export function Header() {
       </div>
 
       <div className="mx-auto flex w-[90%] flex-col gap-1 md:gap-4">
-        <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col items-start gap-2 text-xl md:flex-row md:items-center">
-            <span>Bem vindo(a),</span>
-            <span className="font-semibold">{profile?.name}</span>
-          </div>
-          <button
-            onClick={() => appUrl && window.open(appUrl, "_blank")}
-            className="group flex h-8 items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-medium text-white transition-all duration-200 hover:bg-white/20"
-          >
-            <SmartphoneIcon className="h-4 w-4" />
-            <span>Baixar o App</span>
-          </button>
+        <div className="flex flex-col items-start gap-2 text-xl md:flex-row md:items-center">
+          <span>Bem vindo(a),</span>
+          <span className="font-semibold">{profile?.name}</span>
         </div>
 
         <div className="flex items-center gap-1 text-xs text-white/50">

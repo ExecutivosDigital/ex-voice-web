@@ -74,12 +74,12 @@ export function GeneralRecordingsTable() {
 
   const getSortIcon = (column: SortableColumn) => {
     if (sortColumn !== column)
-      return <ArrowUpDown className="h-4 w-4 text-gray-300" />;
+      return <ArrowUpDown className="h-4 w-4 text-white/40" />;
     if (sortDirection === "ASC")
-      return <ArrowUp className="h-4 w-4 text-gray-600" />;
+      return <ArrowUp className="h-4 w-4 text-white" />;
     if (sortDirection === "DESC")
-      return <ArrowDown className="h-4 w-4 text-gray-600" />;
-    return <ArrowUpDown className="h-4 w-4 text-gray-300" />;
+      return <ArrowDown className="h-4 w-4 text-white" />;
+    return <ArrowUpDown className="h-4 w-4 text-white/40" />;
   };
 
   useEffect(() => {
@@ -97,14 +97,14 @@ export function GeneralRecordingsTable() {
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <Table wrapperClass="h-full">
           <TableHeader>
-            <TableRow className="gap-1 bg-slate-100 hover:bg-slate-100">
+            <TableRow className="gap-1 bg-gradient-to-r from-neutral-500 to-neutral-900">
               {GeneralRecordingsColumns.map((column) => (
                 <TableHead
                   key={column.key}
                   className={cn(
-                    "h-12 text-xs font-semibold tracking-wider text-slate-600 uppercase",
+                    "h-12 text-xs font-semibold tracking-wider text-white uppercase",
                     column.sortable &&
-                      "cursor-pointer select-none hover:text-slate-800",
+                      "cursor-pointer select-none hover:text-white/80",
                   )}
                   onClick={() =>
                     column.sortable && handleSort(column.key as SortableColumn)

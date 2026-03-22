@@ -20,6 +20,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { BrollBackground } from "@/components/plans/broll-background";
 import { Input } from "@/components/ui/blocks/input";
 
 interface Plan {
@@ -219,8 +220,11 @@ export default function CheckoutPage() {
 
   return (
     <div className="fixed inset-0 flex h-screen w-full flex-col overflow-hidden bg-[#0a0a0a]">
-      {/* Background */}
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_-10%,rgba(76,77,78,0.12),transparent_50%)]" />
+      {/* Background: vídeo B-roll + gradiente (mesmo recurso que /plans) */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <BrollBackground variant="checkout" />
+      </div>
+      <div className="pointer-events-none fixed inset-0 z-[1] bg-[radial-gradient(ellipse_100%_80%_at_50%_-10%,rgba(120,120,130,0.08),transparent_55%)]" />
 
       {/* Header */}
       <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/10 bg-black/30 px-4 py-3 backdrop-blur-sm sm:px-6 sm:py-4">
@@ -237,7 +241,7 @@ export default function CheckoutPage() {
       </header>
 
       {/* Two columns: left summary, right form */}
-      <div className="relative z-10 flex min-h-0 flex-1">
+      <div className="relative z-[2] flex min-h-0 flex-1">
         {/* Coluna esquerda — resumo (fixo) */}
         <aside className="hidden w-full shrink-0 border-r border-white/10 bg-white/[0.02] lg:block lg:max-w-[380px]">
           <div className="sticky top-0 flex h-full flex-col overflow-y-auto p-6">

@@ -30,6 +30,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
+import { BrollBackground, BrollHeroStrip } from "@/components/plans/broll-background";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -998,17 +999,7 @@ export default function PlansPage() {
             isSuccess ? "lg:w-0 lg:min-w-0" : "lg:w-[45%]",
           )}
         >
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 z-0 h-full w-full object-cover opacity-[0.4]"
-          >
-            <source src="/B-Rolls.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 z-[1] bg-black/70" />
-          <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+          <BrollBackground />
           <div
             className={cn(
               "absolute z-90 flex w-full shrink-0 items-center justify-between px-6 py-4 sm:px-8",
@@ -1360,6 +1351,7 @@ export default function PlansPage() {
                     transition={{ duration: 0.35 }}
                     className="flex flex-1 flex-col items-center justify-center gap-8 py-8"
                   >
+                    <BrollHeroStrip className="w-full max-w-xl" />
                     <div className="w-full text-center">
                       <h1 className="text-3xl font-extrabold tracking-tight text-black sm:text-4xl">
                         Escolha seu plano
@@ -1405,7 +1397,7 @@ export default function PlansPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                       </div>
                     ) : (
-                      <div className="grid w-full grid-cols-2 gap-5">
+                      <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2">
                         {plans.map((plan, i) => {
                           const isSelected = selectedPlan === plan.id;
                           const price = getPlanCreditPrice(plan, billingCycle);
@@ -1475,6 +1467,19 @@ export default function PlansPage() {
                               >
                                 {plan.name}
                               </h3>
+
+                              {plan.description?.trim() && (
+                                <p
+                                  className={cn(
+                                    "mt-2 line-clamp-3 text-left text-xs leading-relaxed",
+                                    isSelected
+                                      ? "text-white/65"
+                                      : "text-gray-500",
+                                  )}
+                                >
+                                  {plan.description}
+                                </p>
+                              )}
 
                               <div className="mt-4">
                                 {billingCycle === "YEARLY" ? (

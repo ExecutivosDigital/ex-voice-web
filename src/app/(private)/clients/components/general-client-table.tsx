@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/blocks/table";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { GeneralClientTableItem } from "./general-client-table-row";
 
@@ -74,12 +74,12 @@ export function GeneralClientsTable() {
 
   const getSortIcon = (column: SortableColumn) => {
     if (sortColumn !== column)
-      return <ChevronUp className="h-4 w-4 text-gray-300" />;
+      return <ArrowUpDown className="h-4 w-4 text-white/40" />;
     if (sortDirection === "ASC")
-      return <ChevronUp className="h-4 w-4 text-gray-600" />;
+      return <ArrowUp className="h-4 w-4 text-white" />;
     if (sortDirection === "DESC")
-      return <ChevronDown className="h-4 w-4 text-gray-600" />;
-    return <ChevronUp className="h-4 w-4 text-gray-300" />;
+      return <ArrowDown className="h-4 w-4 text-white" />;
+    return <ArrowUpDown className="h-4 w-4 text-white/40" />;
   };
 
   useEffect(() => {
@@ -108,14 +108,14 @@ export function GeneralClientsTable() {
       <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
         <Table wrapperClass="h-full">
           <TableHeader>
-            <TableRow className="gap-1 bg-gray-50/50 hover:bg-gray-50/50">
+            <TableRow className="gap-1 bg-gradient-to-r from-neutral-500 to-neutral-900">
               {GeneralClientsColumns.map((column) => (
                 <TableHead
                   key={column.key}
                   className={cn(
-                    "h-12 text-xs font-semibold tracking-wider text-gray-500 uppercase",
+                    "h-12 text-xs font-semibold tracking-wider text-white uppercase",
                     column.sortable &&
-                      "cursor-pointer select-none hover:text-gray-700",
+                      "cursor-pointer select-none hover:text-white/80",
                   )}
                   onClick={() =>
                     column.sortable && handleSort(column.key as SortableColumn)
