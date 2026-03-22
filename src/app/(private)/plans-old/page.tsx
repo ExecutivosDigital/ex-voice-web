@@ -18,11 +18,11 @@ import {
   MessageCircle,
   PartyPopper,
   QrCode,
+  Rocket,
   Shield,
+  Sparkles,
   Ticket,
   User,
-  Users,
-  X,
   Zap,
 } from "lucide-react";
 import Image from "next/image";
@@ -30,6 +30,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
+import { BrollBackground, BrollHeroStrip } from "@/components/plans/broll-background";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -75,20 +76,13 @@ function getPlanCreditPrice(plan: Plan, cycle: BillingCycle): number {
   return plan.creditMonthlyPrice ?? plan.creditPrice ?? 0;
 }
 
-const UNLIMITED_HOURS_THRESHOLD = 720;
-
-function getMonthlyHoursAvailable(plan: Plan): number | null {
-  if (plan.monthlyRecordAvailable != null) return plan.monthlyRecordAvailable;
-  if (plan.dailyRecordAvailable != null)
-    return Math.round((plan.dailyRecordAvailable * 30) / 3600);
-  return null;
-}
-
 function getRecordLabel(plan: Plan): string {
-  const hoursPerMonth = getMonthlyHoursAvailable(plan);
-  if (hoursPerMonth != null && hoursPerMonth >= UNLIMITED_HOURS_THRESHOLD)
-    return "Ilimitado";
-  if (hoursPerMonth != null) return `${hoursPerMonth} horas/mês`;
+  if (plan.monthlyRecordAvailable != null)
+    return `${plan.monthlyRecordAvailable} horas/mês`;
+  if (plan.dailyRecordAvailable != null) {
+    const hoursPerMonth = Math.round((plan.dailyRecordAvailable * 30) / 3600);
+    return `${hoursPerMonth} horas/mês`;
+  }
   return "Gravação incluída";
 }
 
@@ -150,82 +144,6 @@ function parseExpiry(value: string): { month: string; year: string } | null {
   return { month, year };
 }
 
-// ─── Static plan metadata ─────────────────────────────────────────────────────
-
-interface PlanFeature {
-  text: string;
-  included: boolean;
-  highlight?: boolean;
-}
-
-interface PlanStaticData {
-  subtitle: string;
-  displayName?: string;
-  accentColor: string;
-  accentBg: string;
-  accentBorder: string;
-  features: PlanFeature[];
-  highlight?: boolean;
-  tag?: string;
-  badge?: string;
-}
-
-const PLAN_STATIC_DATA: PlanStaticData[] = [
-  {
-    subtitle: "Ilimitado",
-    displayName: "AUTÔNOMO",
-    accentColor: "text-blue-600",
-    accentBg: "bg-blue-50",
-    accentBorder: "border-blue-200",
-    features: [
-      { text: "Gravação ilimitada", included: true, highlight: true },
-      { text: "150 horas de transcrição mensal", included: true },
-      { text: "5 horas de transcrição por dia", included: true },
-      { text: "Resumos básico de IA", included: true },
-      { text: "Suporte comunitário", included: true },
-      { text: "Diarização de falantes", included: false },
-      { text: "Personalizar ou treinar IA", included: false },
-      { text: "Suporte dedicado", included: false },
-    ],
-  },
-  {
-    subtitle: "Ilimitado",
-    displayName: "ULTRA",
-    accentColor: "text-amber-600",
-    accentBg: "bg-amber-50",
-    accentBorder: "border-amber-200",
-    highlight: true,
-    tag: "Mais Popular",
-    features: [
-      { text: "Gravação 100% ilimitada", included: true, highlight: true },
-      { text: "Transcrição 100% ilimitada", included: true, highlight: true },
-      { text: "Resumos básico de IA", included: true },
-      { text: "Insights Avançados", included: true },
-      { text: "Diarização de falantes", included: true },
-      { text: "Personalizar ou treinar IA", included: true },
-      { text: "Suporte prioritário", included: true },
-      { text: "Exportação Avançada", included: true },
-      { text: "Pool de horas", included: false },
-    ],
-  },
-  {
-    subtitle: "Corporativo",
-    accentColor: "text-emerald-600",
-    accentBg: "bg-emerald-50",
-    accentBorder: "border-emerald-200",
-    badge: "Para equipes",
-    features: [
-      { text: "Pool de Horas inteligente", included: true, highlight: true },
-      { text: "Gravação ilimitada por usuário", included: true },
-      { text: "5h transcrição/dia por usuário", included: true },
-      { text: "Banco de horas compartilhado", included: true, highlight: true },
-      { text: "Personalizar e treinar a IA", included: true },
-      { text: "Gerente de conta dedicado", included: true },
-      { text: "SLA e suporte 24/7", included: true },
-    ],
-  },
-];
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SectionCard({
@@ -244,35 +162,6 @@ function SectionCard({
         <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
       </div>
       {children}
-    </div>
-  );
-}
-
-function PlanSelectDot({
-  selected,
-  idleBorderClass,
-  idleBgClass,
-  size = "md",
-}: {
-  selected: boolean;
-  idleBorderClass: string;
-  idleBgClass?: string;
-  size?: "md" | "sm";
-}) {
-  const dim = size === "md" ? "h-7 w-7" : "h-6 w-6";
-  const checkSz = size === "md" ? "h-3.5 w-3.5" : "h-3 w-3";
-  return (
-    <div
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-full border transition-colors",
-        dim,
-        selected
-          ? "border-white bg-white text-black"
-          : cn(idleBorderClass, idleBgClass ?? "bg-white/90"),
-      )}
-      aria-hidden
-    >
-      {selected && <Check className={checkSz} strokeWidth={2.5} />}
     </div>
   );
 }
@@ -630,7 +519,8 @@ function SuccessView({
 
 export default function PlansPage() {
   const { GetAPI, PostAPI, PutAPI } = useApiContext();
-  const { profile, setProfile, handleGetAvailableRecording } = useSession();
+  const { profile, setProfile, isTrial, handleGetAvailableRecording } =
+    useSession();
   const router = useRouter();
 
   // ── View / navigation state
@@ -681,6 +571,8 @@ export default function PlansPage() {
       if (res.status === 200 && res.body?.plans) {
         const list = res.body.plans as Plan[];
         setPlans(list);
+        if (list.length > 0)
+          setSelectedPlan(list[Math.min(1, list.length - 1)].id);
       }
     } catch {
       console.error("Erro ao buscar planos");
@@ -791,8 +683,6 @@ export default function PlansPage() {
     : discountPercent > 0
       ? discountedPrice
       : basePrice;
-
-  const displayPlans = plans;
 
   const canSubmit = useMemo(() => {
     if (!selectedPlan) return false;
@@ -1103,24 +993,13 @@ export default function PlansPage() {
         </div>
 
         {/* ═══ LEFT — Video panel (encolhe ao exibir Parabéns até tela inteira) ═══ */}
-        <motion.div
-          className="relative hidden h-screen shrink-0 flex-col overflow-hidden bg-black lg:sticky lg:top-0 lg:flex"
-          animate={{
-            width: isSuccess ? "0%" : isCheckout ? "50%" : "33.333%",
-          }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        <div
+          className={cn(
+            "relative hidden h-screen shrink-0 flex-col overflow-hidden bg-black transition-[width] duration-500 ease-out lg:sticky lg:top-0 lg:flex",
+            isSuccess ? "lg:w-0 lg:min-w-0" : "lg:w-[45%]",
+          )}
         >
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 z-0 h-full w-full object-cover opacity-100"
-          >
-            <source src="/B-Rolls.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 z-[1] bg-black/25" />
-          <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/40 via-transparent to-black/15" />
+          <BrollBackground />
           <div
             className={cn(
               "absolute z-90 flex w-full shrink-0 items-center justify-between px-6 py-4 sm:px-8",
@@ -1156,12 +1035,12 @@ export default function PlansPage() {
             <motion.div
               animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.2, 1] }}
               transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-20 -left-20 h-[28rem] w-[28rem] rounded-full bg-neutral-400/[0.08] blur-3xl"
+              className="absolute -top-20 -left-20 h-[28rem] w-[28rem] rounded-full bg-neutral-400/[0.12] blur-[100px]"
             />
             <motion.div
               animate={{ x: [0, -30, 0], y: [0, 40, 0], scale: [1, 1.3, 1] }}
               transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -right-16 bottom-[20%] h-[24rem] w-[24rem] rounded-full bg-zinc-400/[0.06] blur-3xl"
+              className="absolute -right-16 bottom-[20%] h-[24rem] w-[24rem] rounded-full bg-zinc-400/[0.10] blur-[100px]"
             />
             <motion.div
               animate={{ rotate: [0, 360] }}
@@ -1183,41 +1062,245 @@ export default function PlansPage() {
             />
           </div>
 
-          {/* Left content — checkout: imagem do plano; etapa plans: área vazia (vídeo visível) */}
+          {/* Left content */}
           <div className="relative z-10 flex h-full flex-col justify-center gap-6 p-10">
-            <AnimatePresence mode="wait">
-              {selectedPlanData && isCheckout && (
-                <motion.div
-                  key="plan-image"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-xl"
-                >
-                  <div className="relative aspect-[4/3] w-full">
-                    <Image
-                      src="/ex-team.png"
-                      alt={selectedPlanData.name}
-                      fill
-                      className="object-cover object-top"
-                      sizes="(max-width: 1024px) 100vw, 33vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute right-4 bottom-4 left-4">
-                      <p className="text-xs font-semibold tracking-widest text-white/80 uppercase">
-                        Plano selecionado
-                      </p>
-                      <h3 className="text-xl font-bold text-white">
-                        {selectedPlanData.name}
-                      </h3>
-                    </div>
+            {!isCheckout && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-2xl border border-white/10 bg-white/[0.07] p-6 backdrop-blur-xl"
+              >
+                <div className="mb-5 flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
+                    <Rocket className="h-6 w-6 text-white" />
                   </div>
-                </motion.div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white">
+                      {isTrial
+                        ? "Desbloqueie o potencial completo"
+                        : "Escolha o plano ideal"}
+                    </h2>
+                    <p className="text-sm text-white/95">
+                      Gravações inteligentes com IA
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    "Relatórios inteligentes com IA",
+                    "Suporte prioritário dedicado",
+                  ].map((feat) => (
+                    <div
+                      key={feat}
+                      className="flex items-center gap-2.5 text-sm text-white"
+                    >
+                      <Check className="h-4 w-4 shrink-0 text-emerald-400" />
+                      {feat}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+            {/* Selected plan info — em listagem: card; em checkout: imagem */}
+            <AnimatePresence mode="wait">
+              {selectedPlanData && (
+                <>
+                  {isCheckout ? (
+                    <motion.div
+                      key="plan-image"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-xl"
+                    >
+                      <div className="relative aspect-[4/3] w-full">
+                        <Image
+                          src="/ex-team.png"
+                          alt={selectedPlanData.name}
+                          fill
+                          className="object-cover object-top"
+                          sizes="(max-width: 1024px) 100vw, 45vw"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute right-4 bottom-4 left-4">
+                          <p className="text-xs font-semibold tracking-widest text-white/80 uppercase">
+                            Plano selecionado
+                          </p>
+                          <h3 className="text-xl font-bold text-white">
+                            {selectedPlanData.name}
+                          </h3>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key={selectedPlanData.id + billingCycle + paymentMethod}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.35 }}
+                      className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-xl"
+                    >
+                      <div className="flex items-center gap-4 border-b border-white/10 px-7 py-5">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+                          <Crown className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold tracking-widest text-white/70 uppercase">
+                            Plano selecionado
+                          </p>
+                          <h3 className="text-xl font-bold text-white">
+                            {selectedPlanData.name}
+                          </h3>
+                        </div>
+                      </div>
+                      <div className="px-7 pt-6 pb-5">
+                        {billingCycle === "YEARLY" ? (
+                          <>
+                            <span className="text-sm font-semibold text-white/60">
+                              12x de
+                            </span>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-4xl font-extrabold tracking-tight text-white">
+                                {fmtBRL(
+                                  (paymentMethod === "pix"
+                                    ? getPlanPixPrice(
+                                        selectedPlanData,
+                                        billingCycle,
+                                      )
+                                    : getPlanCreditPrice(
+                                        selectedPlanData,
+                                        billingCycle,
+                                      )) / 12,
+                                )}
+                              </span>
+                              <span className="text-base font-medium text-white/60">
+                                /mês
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-4xl font-extrabold tracking-tight text-white">
+                              {isFree
+                                ? "GRÁTIS"
+                                : discountPercent > 0
+                                  ? fmtBRL(
+                                      (paymentMethod === "pix"
+                                        ? getPlanPixPrice(
+                                            selectedPlanData,
+                                            billingCycle,
+                                          )
+                                        : getPlanCreditPrice(
+                                            selectedPlanData,
+                                            billingCycle,
+                                          )) *
+                                        (1 - discountPercent / 100),
+                                    )
+                                  : fmtBRL(
+                                      paymentMethod === "pix"
+                                        ? getPlanPixPrice(
+                                            selectedPlanData,
+                                            billingCycle,
+                                          )
+                                        : getPlanCreditPrice(
+                                            selectedPlanData,
+                                            billingCycle,
+                                          ),
+                                    )}
+                            </span>
+                            {!isFree && (
+                              <span className="text-base font-medium text-white/60">
+                                /mês
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {discountPercent > 0 && !isFree && (
+                          <p className="mt-1.5 text-sm font-medium text-emerald-400">
+                            {discountPercent}% de desconto aplicado
+                          </p>
+                        )}
+                      </div>
+                      <div className="mx-7 space-y-0 divide-y divide-white/[0.06]">
+                        <div className="flex items-center justify-between py-3.5">
+                          <div className="flex items-center gap-3">
+                            <Clock className="h-4 w-4 text-white/50" />
+                            <span className="text-[15px] text-white/80">
+                              Ciclo
+                            </span>
+                          </div>
+                          <span className="text-[15px] font-semibold text-white">
+                            {billingCycle === "YEARLY" ? "Anual" : "Mensal"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between py-3.5">
+                          <div className="flex items-center gap-3">
+                            <Sparkles className="h-4 w-4 text-white/50" />
+                            <span className="text-[15px] text-white/80">
+                              Gravação
+                            </span>
+                          </div>
+                          <span className="text-[15px] font-semibold text-white">
+                            {getRecordLabel(selectedPlanData)}
+                          </span>
+                        </div>
+                        {isCheckout && (
+                          <div className="flex items-center justify-between py-3.5">
+                            <div className="flex items-center gap-3">
+                              <CreditCard className="h-4 w-4 text-white/50" />
+                              <span className="text-[15px] text-white/80">
+                                Pagamento
+                              </span>
+                            </div>
+                            <span className="text-[15px] font-semibold text-white">
+                              {paymentMethod === "pix" ? "PIX" : "Cartão"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-4 flex items-center gap-5 border-t border-white/10 px-7 py-4">
+                        <span className="flex items-center gap-2 text-xs font-medium text-white/70">
+                          <Shield className="h-3.5 w-3.5" /> Seguro
+                        </span>
+                        <span className="flex items-center gap-2 text-xs font-medium text-white/70">
+                          <Zap className="h-3.5 w-3.5" /> Imediato
+                        </span>
+                        <span className="flex items-center gap-2 text-xs font-medium text-white/70">
+                          <Clock className="h-3.5 w-3.5" /> Cancele quando
+                          quiser
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+                </>
               )}
             </AnimatePresence>
+
+            {/* Social proof */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.05] px-5 py-3.5 backdrop-blur-md"
+            >
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="text-sm text-[#F7CE46]">
+                    ★
+                  </span>
+                ))}
+              </div>
+              <span className="text-sm font-bold text-white">4.9</span>
+              <div className="h-4 w-px bg-white/20" />
+              <span className="text-sm text-white/90">
+                +10.000 profissionais confiam
+              </span>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
 
         {/* ═══ RIGHT — Content panel (scroll do site) ═══ */}
         <div className="relative flex min-h-screen flex-1 flex-col bg-[#fafafa]">
@@ -1241,6 +1324,7 @@ export default function PlansPage() {
               style={{
                 background:
                   "linear-gradient(135deg, transparent 25%, rgba(161,161,170,0.08) 38%, rgba(161,161,170,0.02) 50%, transparent 60%)",
+                filter: "blur(35px)",
               }}
             />
           </div>
@@ -1249,12 +1333,10 @@ export default function PlansPage() {
           <div className="relative z-10 flex flex-col">
             <div
               className={cn(
-                "mx-auto flex w-full flex-1 flex-col px-6 sm:px-8",
-                viewState === "plans" ? "max-w-6xl" : "max-w-2xl",
+                "mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 sm:px-8",
                 isCheckout &&
                   !(pixGenerated && paymentMethod === "pix") &&
                   "pb-40",
-                viewState === "plans" && "pb-28",
                 !isCheckout && "min-h-screen",
               )}
             >
@@ -1269,25 +1351,7 @@ export default function PlansPage() {
                     transition={{ duration: 0.35 }}
                     className="flex flex-1 flex-col items-center justify-center gap-8 py-8"
                   >
-                    {/* Mobile header */}
-                    <div className="flex w-full max-w-6xl items-center justify-between lg:hidden">
-                      <button
-                        type="button"
-                        onClick={handleBack}
-                        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-sm transition hover:bg-gray-50"
-                      >
-                        <ChevronLeft className="h-4 w-4" /> Voltar
-                      </button>
-                      <Image
-                        src="/logos/logo.png"
-                        alt="EX Voice"
-                        width={160}
-                        height={48}
-                        className="h-10 w-auto object-contain"
-                      />
-                    </div>
-
-                    {/* Title */}
+                    <BrollHeroStrip className="w-full max-w-xl" />
                     <div className="w-full text-center">
                       <h1 className="text-3xl font-extrabold tracking-tight text-black sm:text-4xl">
                         Escolha seu plano
@@ -1333,19 +1397,12 @@ export default function PlansPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                       </div>
                     ) : (
-                      <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">
-                        {displayPlans.map((plan, i) => {
+                      <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2">
+                        {plans.map((plan, i) => {
                           const isSelected = selectedPlan === plan.id;
-                          const creditPrice = getPlanCreditPrice(
-                            plan,
-                            billingCycle,
-                          );
+                          const price = getPlanCreditPrice(plan, billingCycle);
                           const pixPrice = getPlanPixPrice(plan, billingCycle);
-                          const displayPrice =
-                            pixPrice > 0 ? pixPrice : creditPrice;
-                          const staticData =
-                            PLAN_STATIC_DATA[i] ??
-                            PLAN_STATIC_DATA[PLAN_STATIC_DATA.length - 1];
+                          const isPopular = plans.length >= 2 && i === 1;
 
                           return (
                             <motion.button
@@ -1361,714 +1418,172 @@ export default function PlansPage() {
                               whileTap={{ scale: 0.98 }}
                               onClick={() => setSelectedPlan(plan.id)}
                               className={cn(
-                                "group relative flex h-full w-full flex-col items-stretch rounded-[2.5rem] border px-7 py-8 text-left transition-all duration-300",
+                                "group relative flex flex-col items-center rounded-3xl p-8 text-center transition-all duration-300",
                                 isSelected
-                                  ? "border-gray-800 bg-black shadow-[0_8px_40px_-4px_rgba(0,0,0,0.30)]"
-                                  : staticData.highlight
-                                    ? "border-amber-200 bg-gradient-to-b from-amber-50 to-orange-50/30 shadow-[0_4px_24px_-4px_rgba(245,158,11,0.18)] hover:shadow-[0_12px_40px_-6px_rgba(245,158,11,0.25)]"
-                                    : staticData.badge
-                                      ? "border-emerald-200 bg-gradient-to-b from-emerald-50 to-teal-50/20 shadow-[0_6px_28px_-4px_rgba(16,185,129,0.20)] hover:shadow-[0_14px_44px_-6px_rgba(16,185,129,0.28)]"
-                                      : "border-gray-200 bg-gradient-to-b from-gray-50/80 to-white shadow-[0_4px_24px_-4px_rgba(0,0,0,0.09)] hover:shadow-[0_10px_36px_-6px_rgba(0,0,0,0.14)]",
+                                  ? "bg-black shadow-2xl ring-2 shadow-black/20 ring-black"
+                                  : "bg-white shadow-lg ring-1 shadow-gray-200/50 ring-gray-100 hover:shadow-xl hover:ring-gray-200",
+                                isPopular &&
+                                  !isSelected &&
+                                  "ring-2 ring-[#F7CE46]/40",
                               )}
                             >
-                              {/* Top accent line */}
+                              {isPopular && (
+                                <div className="absolute -top-px left-1/2 -translate-x-1/2">
+                                  <span className="inline-flex items-center gap-1 rounded-b-xl bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-4 py-1 text-[10px] font-bold tracking-wide text-[#0a0a0a] shadow-lg shadow-amber-200/40">
+                                    <Crown className="h-3 w-3" /> POPULAR
+                                  </span>
+                                </div>
+                              )}
+
+                              {isSelected && (
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  className="absolute top-4 right-4 flex h-7 w-7 items-center justify-center rounded-full bg-white"
+                                >
+                                  <Check className="h-4 w-4 text-black" />
+                                </motion.div>
+                              )}
+
                               <div
                                 className={cn(
-                                  "absolute top-0 right-8 left-8 h-[1px] bg-gradient-to-r from-transparent to-transparent",
-                                  !isSelected && staticData.highlight
-                                    ? "via-amber-400/60"
-                                    : !isSelected && i === 0
-                                      ? "via-blue-300/50"
-                                      : "via-gray-200/60",
+                                  "relative mb-5 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300",
+                                  isSelected
+                                    ? "bg-white/15 text-white"
+                                    : "bg-gray-50 text-gray-400 group-hover:bg-gray-100 group-hover:text-gray-600",
                                 )}
-                              />
-
-                              {/* Tag "Mais Popular" */}
-                              {staticData.tag && (
-                                <div className="absolute -top-3.5 left-1/2 z-10 -translate-x-1/2">
-                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-1.5 text-[10px] font-bold tracking-[0.15em] whitespace-nowrap text-white uppercase shadow-lg shadow-amber-200/60">
-                                    <Crown className="h-2.5 w-2.5" />
-                                    {staticData.tag}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Badge "Para equipes" */}
-                              {staticData.badge && (
-                                <div className="absolute -top-3.5 left-1/2 z-10 -translate-x-1/2">
-                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-1.5 text-[10px] font-bold tracking-[0.15em] whitespace-nowrap text-white uppercase shadow-lg shadow-emerald-200/50">
-                                    <Users className="h-2.5 w-2.5" />
-                                    {staticData.badge}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Card header */}
-                              <div className="mb-5 flex items-start justify-between gap-3 pt-1">
-                                <div className="min-w-0 flex-1">
-                                  <h3
-                                    className={cn(
-                                      "text-base font-bold tracking-[0.1em] uppercase",
-                                      isSelected
-                                        ? "text-white"
-                                        : staticData.accentColor,
-                                    )}
-                                  >
-                                    {staticData.displayName ?? plan.name}
-                                  </h3>
-                                  <p
-                                    className={cn(
-                                      "mt-0.5 mb-3 text-xs font-medium",
-                                      isSelected
-                                        ? "text-white/60"
-                                        : "text-gray-400",
-                                    )}
-                                  >
-                                    {staticData.subtitle}
-                                  </p>
-
-                                  {/* Price */}
-                                  <div className="flex items-baseline gap-1">
-                                    <span
-                                      className={cn(
-                                        "text-3xl font-semibold tracking-tight",
-                                        isSelected
-                                          ? "text-white"
-                                          : "text-gray-900",
-                                      )}
-                                    >
-                                      {billingCycle === "YEARLY"
-                                        ? fmtBRL(displayPrice / 12)
-                                        : fmtBRL(displayPrice)}
-                                    </span>
-                                    {(pixPrice > 0 || creditPrice > 0) && (
-                                      <span
-                                        className={cn(
-                                          "text-sm font-medium",
-                                          isSelected
-                                            ? "text-white/50"
-                                            : "text-gray-400",
-                                        )}
-                                      >
-                                        /mês
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {billingCycle === "YEARLY" && (
-                                    <p
-                                      className={cn(
-                                        "mt-0.5 text-[11px]",
-                                        isSelected
-                                          ? "text-white/50"
-                                          : "text-gray-400",
-                                      )}
-                                    >
-                                      cobrado anualmente
-                                    </p>
-                                  )}
-
-                                  {pixPrice > 0 && pixPrice < creditPrice && (
-                                    <div
-                                      className={cn(
-                                        "mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
-                                        isSelected
-                                          ? "bg-white/10 text-white/60"
-                                          : "bg-gray-100 text-gray-500",
-                                      )}
-                                    >
-                                      <CreditCard className="h-2.5 w-2.5" />
-                                      {billingCycle === "YEARLY"
-                                        ? `12x de ${fmtBRL(creditPrice / 12)}`
-                                        : fmtBRL(creditPrice)}{" "}
-                                      no Cartão
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="shrink-0 pt-0.5">
-                                  <PlanSelectDot
-                                    selected={isSelected}
-                                    idleBorderClass={
-                                      isSelected
-                                        ? ""
-                                        : cn(
-                                            staticData.accentBorder,
-                                            "border",
-                                          )
-                                    }
-                                    idleBgClass={
-                                      isSelected
-                                        ? undefined
-                                        : cn(staticData.accentBg)
-                                    }
-                                  />
-                                </div>
+                              >
+                                {i === 0 && <Zap className="h-6 w-6" />}
+                                {i === 1 && <Sparkles className="h-6 w-6" />}
+                                {i === 2 && <Crown className="h-6 w-6" />}
+                                {i >= 3 && <Zap className="h-6 w-6" />}
                               </div>
 
-                              {/* Description */}
+                              <h3
+                                className={cn(
+                                  "text-xl font-bold transition-colors",
+                                  isSelected ? "text-white" : "text-black",
+                                )}
+                              >
+                                {plan.name}
+                              </h3>
+
                               {plan.description?.trim() && (
                                 <p
                                   className={cn(
-                                    "mb-5 min-h-[44px] text-[13px] leading-relaxed font-light",
+                                    "mt-2 line-clamp-3 text-left text-xs leading-relaxed",
                                     isSelected
-                                      ? "text-white/70"
+                                      ? "text-white/65"
                                       : "text-gray-500",
                                   )}
                                 >
-                                  {plan.description.trim()}
+                                  {plan.description}
                                 </p>
                               )}
 
-                              {/* Divider */}
-                              <div
-                                className={cn(
-                                  "mb-5 h-[1px] bg-gradient-to-r from-transparent to-transparent",
-                                  isSelected ? "via-white/10" : "via-gray-200",
-                                )}
-                              />
-
-                              {/* Features */}
-                              <ul className="flex-grow space-y-2.5">
-                                {staticData.features.map((feature, idx) => (
-                                  <li
-                                    key={idx}
-                                    className="flex items-center gap-2.5"
-                                  >
-                                    {feature.included ? (
-                                      <div
-                                        className={cn(
-                                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors",
-                                          feature.highlight
-                                            ? isSelected
-                                              ? "border-white/20 bg-white/15"
-                                              : cn(
-                                                  staticData.accentBg,
-                                                  staticData.accentBorder,
-                                                )
-                                            : isSelected
-                                              ? "border-white/10 bg-white/10"
-                                              : "border-gray-200 bg-gray-50",
-                                        )}
-                                      >
-                                        <Check
-                                          className={cn(
-                                            "h-3 w-3",
-                                            feature.highlight
-                                              ? isSelected
-                                                ? "text-white"
-                                                : staticData.accentColor
-                                              : isSelected
-                                                ? "text-white/70"
-                                                : "text-gray-400",
-                                          )}
-                                          strokeWidth={2.5}
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div
-                                        className={cn(
-                                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
-                                          isSelected
-                                            ? "border-white/10 bg-white/5"
-                                            : "border-gray-100 bg-gray-50",
-                                        )}
-                                      >
-                                        <X
-                                          className={cn(
-                                            "h-3 w-3",
-                                            isSelected
-                                              ? "text-white/30"
-                                              : "text-gray-300",
-                                          )}
-                                          strokeWidth={2}
-                                        />
-                                      </div>
-                                    )}
+                              <div className="mt-4">
+                                {billingCycle === "YEARLY" ? (
+                                  <>
                                     <span
                                       className={cn(
-                                        "text-[13px] leading-snug",
-                                        feature.included
-                                          ? feature.highlight
-                                            ? isSelected
-                                              ? "font-semibold text-white"
-                                              : cn("font-semibold", staticData.accentColor)
-                                            : isSelected
-                                              ? "font-light text-white/80"
-                                              : "font-light text-gray-600"
-                                          : isSelected
-                                            ? "font-light text-white/25"
-                                            : "font-light text-gray-300",
+                                        "text-sm font-semibold",
+                                        isSelected
+                                          ? "text-white/60"
+                                          : "text-gray-400",
                                       )}
                                     >
-                                      {feature.text}
+                                      12x de
                                     </span>
-                                  </li>
-                                ))}
-                              </ul>
+                                    <div className="flex items-baseline gap-1">
+                                      <span
+                                        className={cn(
+                                          "text-4xl font-extrabold tracking-tight",
+                                          isSelected
+                                            ? "text-white"
+                                            : "text-black",
+                                        )}
+                                      >
+                                        {fmtBRL(
+                                          (pixPrice > 0 ? pixPrice : price) /
+                                            12,
+                                        )}
+                                      </span>
+                                      {pixPrice > 0 && pixPrice < price && (
+                                        <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-2 py-0.5 text-[10px] font-bold text-black">
+                                          <QrCode className="h-2.5 w-2.5" /> PIX
+                                        </span>
+                                      )}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span
+                                      className={cn(
+                                        "invisible text-sm font-semibold",
+                                        isSelected
+                                          ? "text-white/60"
+                                          : "text-gray-400",
+                                      )}
+                                    >
+                                      1x de
+                                    </span>
+                                    <div className="flex items-baseline gap-1">
+                                      <span
+                                        className={cn(
+                                          "text-4xl font-extrabold tracking-tight",
+                                          isSelected
+                                            ? "text-white"
+                                            : "text-black",
+                                        )}
+                                      >
+                                        {fmtBRL(
+                                          pixPrice > 0 ? pixPrice : price,
+                                        )}
+                                      </span>
+                                      {pixPrice > 0 && pixPrice < price && (
+                                        <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-2 py-0.5 text-[10px] font-bold text-black">
+                                          <QrCode className="h-2.5 w-2.5" /> PIX
+                                        </span>
+                                      )}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              {pixPrice > 0 && pixPrice < price && (
+                                <div
+                                  className={cn(
+                                    "mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
+                                    isSelected
+                                      ? "bg-white/10 text-white/60"
+                                      : "bg-gray-100 text-gray-500",
+                                  )}
+                                >
+                                  <CreditCard className="h-3 w-3" />
+                                  {billingCycle === "YEARLY"
+                                    ? `12x de ${fmtBRL(price / 12)}`
+                                    : fmtBRL(price)}{" "}
+                                  no Cartão
+                                </div>
+                              )}
                             </motion.button>
                           );
                         })}
-
-                        {/* Empresa — card estático full-width (não vem da API) */}
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: displayPlans.length * 0.08 }}
-                          className="group relative col-span-full overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-emerald-50/90 via-emerald-50/50 to-teal-50/60 p-7 shadow-[0_4px_24px_-4px_rgba(16,185,129,0.14)] transition-all duration-300 hover:shadow-[0_10px_36px_-6px_rgba(16,185,129,0.20)] sm:p-8"
-                        >
-                          {/* Decorative blobs */}
-                          <div className="pointer-events-none absolute top-0 right-0 h-[200px] w-[200px] rounded-full bg-emerald-200/25 blur-[70px]" />
-                          <div className="pointer-events-none absolute bottom-0 left-0 h-[140px] w-[140px] rounded-full bg-teal-200/20 blur-[60px]" />
-                          {/* Top accent line */}
-                          <div className="absolute top-0 right-0 left-0 h-[2px] bg-gradient-to-r from-emerald-400/40 via-teal-400/60 to-emerald-400/40" />
-
-                          <div className="relative z-10">
-                            {/* ── Badge ── */}
-                            <div className="mb-5">
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-1 text-[10px] font-bold tracking-[0.15em] text-white uppercase shadow-md shadow-emerald-200/50">
-                                <Users className="h-2.5 w-2.5" />
-                                Para equipes
-                              </span>
-                            </div>
-
-                            {/* ── Identity + price ── */}
-                            <div className="mb-4">
-                              <h3 className="text-base font-bold uppercase tracking-[0.1em] text-emerald-700">
-                                Empresa
-                              </h3>
-                              <p className="mt-0.5 text-xs font-medium text-gray-400">
-                                Corporativo
-                              </p>
-                              <div className="mt-3 flex items-baseline gap-2">
-                                <span className="text-3xl font-semibold tracking-tight text-gray-900">
-                                  Sob consulta
-                                </span>
-                              </div>
-                              <p className="mt-0.5 text-[11px] text-gray-400">
-                                Base do plano Pro por usuário
-                              </p>
-                            </div>
-
-                            {/* ── Description ── */}
-                            <p className="mb-6 text-[13px] leading-relaxed font-light text-gray-500">
-                              O poder do Pool de Horas: as horas diárias de cada
-                              colaborador somam-se em um banco único da empresa,
-                              garantindo que grandes reuniões nunca travem a
-                              produtividade de ninguém.
-                            </p>
-
-                            {/* ── Divider ── */}
-                            <div className="mb-6 h-[1px] bg-gradient-to-r from-transparent via-emerald-200/60 to-transparent" />
-
-                            {/* ── Features: 2-column grid ── */}
-                            <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-emerald-600">
-                              O que está incluído
-                            </p>
-                            <ul className="mb-6 grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2">
-                              {PLAN_STATIC_DATA[2].features.map(
-                                (feature, idx) => {
-                                  const empresaStatic = PLAN_STATIC_DATA[2];
-                                  return (
-                                    <li
-                                      key={idx}
-                                      className="flex items-center gap-2.5"
-                                    >
-                                      {feature.included ? (
-                                        <div
-                                          className={cn(
-                                            "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors",
-                                            feature.highlight
-                                              ? cn(
-                                                  empresaStatic.accentBg,
-                                                  empresaStatic.accentBorder,
-                                                )
-                                              : "border-gray-200 bg-gray-50",
-                                          )}
-                                        >
-                                          <Check
-                                            className={cn(
-                                              "h-3 w-3",
-                                              feature.highlight
-                                                ? empresaStatic.accentColor
-                                                : "text-gray-400",
-                                            )}
-                                            strokeWidth={2.5}
-                                          />
-                                        </div>
-                                      ) : (
-                                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-100 bg-gray-50">
-                                          <X
-                                            className="h-3 w-3 text-gray-300"
-                                            strokeWidth={2}
-                                          />
-                                        </div>
-                                      )}
-                                      <span
-                                        className={cn(
-                                          "text-[13px] leading-snug",
-                                          feature.included
-                                            ? feature.highlight
-                                              ? cn(
-                                                  "font-semibold",
-                                                  empresaStatic.accentColor,
-                                                )
-                                              : "font-light text-gray-600"
-                                            : "font-light text-gray-300",
-                                        )}
-                                      >
-                                        {feature.text}
-                                      </span>
-                                    </li>
-                                  );
-                                },
-                              )}
-                            </ul>
-
-                            {/* ── CTA ── */}
-                            <a
-                              href="https://api.whatsapp.com/send/?phone=5541997819114&text=Ola%2C+desejo+conhecer+o+plano+Empresa+da+ExVoice&type=phone_number&app_absent=0"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group/btn flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-300 bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-md shadow-emerald-200/60 transition-all duration-300 hover:bg-emerald-700 hover:shadow-lg sm:w-auto sm:px-10"
-                            >
-                              Falar com Especialista
-                              <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
-                            </a>
-                          </div>
-                        </motion.div>
                       </div>
                     )}
 
-                    {/* Pool de Horas */}
-                    {!loadingPlans && displayPlans.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="w-full"
-                      >
-                        <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-8 shadow-sm">
-                          <div className="pointer-events-none absolute top-0 right-0 h-[200px] w-[200px] rounded-full bg-emerald-100/40 blur-[80px]" />
-                          <div className="pointer-events-none absolute bottom-0 left-0 h-[150px] w-[150px] rounded-full bg-blue-100/30 blur-[60px]" />
-
-                          <div className="relative z-10">
-                            <div className="mb-6 flex items-center gap-3">
-                              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50">
-                                <Users
-                                  className="h-5 w-5 text-emerald-600"
-                                  strokeWidth={1.8}
-                                />
-                              </div>
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                  Como funciona o Pool de Horas?
-                                </h3>
-                                <p className="text-xs text-gray-400">
-                                  Exclusivo do plano Empresa
-                                </p>
-                              </div>
-                            </div>
-
-                            <p className="mb-7 text-sm leading-relaxed font-light text-gray-500">
-                              No plano Empresa, cada colaborador recebe{" "}
-                              <span className="font-medium text-gray-900">
-                                5 horas diárias de transcrição
-                              </span>
-                              . Essas horas são somadas em um{" "}
-                              <span className="font-medium text-emerald-600">
-                                banco compartilhado da empresa
-                              </span>
-                              . Se alguém esgota suas horas individuais, pode
-                              consumir do saldo geral — garantindo que grandes
-                              reuniões nunca travem a produtividade de ninguém.
-                            </p>
-
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                              {[
-                                {
-                                  users: 5,
-                                  hours: 25,
-                                  label: "Equipe pequena",
-                                },
-                                {
-                                  users: 10,
-                                  hours: 50,
-                                  label: "Empresa média",
-                                },
-                                {
-                                  users: 50,
-                                  hours: 250,
-                                  label: "Grande corporação",
-                                },
-                              ].map((example, idx) => (
-                                <div
-                                  key={idx}
-                                  className="rounded-2xl border border-gray-100 bg-gray-50 p-5 transition-all duration-300 hover:border-emerald-200 hover:bg-emerald-50/30"
-                                >
-                                  <div className="mb-3 flex items-center gap-2.5">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50">
-                                      <Users className="h-4 w-4 text-emerald-600" />
-                                    </div>
-                                    <span className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
-                                      {example.label}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-baseline gap-1.5">
-                                    <span className="text-2xl font-semibold text-gray-900">
-                                      {example.users}
-                                    </span>
-                                    <span className="text-xs text-gray-400">
-                                      usuários
-                                    </span>
-                                  </div>
-                                  <div className="mt-1.5 flex items-center gap-1.5">
-                                    <Clock className="h-3.5 w-3.5 text-emerald-500" />
-                                    <span className="text-sm font-medium text-emerald-600">
-                                      {example.hours}h/dia
-                                    </span>
-                                    <span className="text-[10px] text-gray-400">
-                                      disponíveis
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Comparison table */}
-                    {!loadingPlans && displayPlans.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.35 }}
-                        className="hidden w-full md:block"
-                      >
-                        <div className="mb-6 text-center">
-                          <span className="mb-2 block text-xs font-bold tracking-[0.2em] text-blue-600 uppercase">
-                            Visão Geral
-                          </span>
-                          <h3 className="mb-1 text-xl font-semibold tracking-tight text-gray-900">
-                            Comparação completa
-                          </h3>
-                          <p className="text-sm font-light text-gray-400">
-                            Veja lado a lado o que cada plano oferece.
-                          </p>
-                        </div>
-
-                        <div className="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-sm">
-                          <table className="w-full">
-                            <thead>
-                              <tr className="border-b border-gray-100">
-                                <th className="w-[30%] p-5 text-left align-bottom text-xs font-bold tracking-widest text-gray-400 uppercase">
-                                  Recurso
-                                </th>
-                                {displayPlans.slice(0, 4).map((p, idx) => {
-                                  const colSelected = selectedPlan === p.id;
-                                  const sd = PLAN_STATIC_DATA[idx];
-                                  const isAnySelected = selectedPlan !== null;
-                                  return (
-                                    <th
-                                      key={p.id}
-                                      className={cn(
-                                        "p-0 text-center align-bottom transition-all duration-300",
-                                        colSelected
-                                          ? sd?.accentBg
-                                          : isAnySelected
-                                            ? "opacity-40"
-                                            : idx === 2
-                                              ? "bg-amber-50/50"
-                                              : "",
-                                      )}
-                                    >
-                                      <button
-                                        type="button"
-                                        onClick={() => setSelectedPlan(p.id)}
-                                        aria-pressed={colSelected}
-                                        className={cn(
-                                          "flex w-full flex-col items-center gap-2 rounded-t-xl p-5 text-center transition-all duration-300",
-                                          colSelected
-                                            ? ""
-                                            : isAnySelected
-                                              ? "hover:opacity-100"
-                                              : idx === 2
-                                                ? "bg-amber-50/50 hover:bg-amber-50/80"
-                                                : "hover:bg-gray-50/90",
-                                        )}
-                                      >
-                                        <PlanSelectDot
-                                          selected={colSelected}
-                                          idleBorderClass="border-gray-300"
-                                          idleBgClass="bg-white"
-                                          size="sm"
-                                        />
-                                        <span
-                                          className={cn(
-                                            "block text-sm font-bold tracking-widest uppercase transition-colors duration-300",
-                                            colSelected
-                                              ? sd?.accentColor
-                                              : isAnySelected
-                                                ? "text-gray-300"
-                                                : (sd?.accentColor ?? "text-gray-500"),
-                                          )}
-                                        >
-                                          {PLAN_STATIC_DATA[idx]?.displayName ?? p.name}
-                                        </span>
-                                        <span
-                                          className={cn(
-                                            "block text-[10px] font-medium transition-colors duration-300",
-                                            colSelected
-                                              ? "text-gray-500"
-                                              : isAnySelected
-                                                ? "text-gray-300"
-                                                : "text-gray-400",
-                                          )}
-                                        >
-                                          {sd?.subtitle ?? ""}
-                                        </span>
-                                      </button>
-                                    </th>
-                                  );
-                                })}
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                              {[
-                                {
-                                  feature: "Gravação",
-                                  values: [
-                                    "Ilimitada",
-                                    "100% ilimitada",
-                                  ],
-                                },
-                                {
-                                  feature: "Transcrição",
-                                  values: [
-                                    "150h/mês · 5h/dia",
-                                    "Ilimitada",
-                                  ],
-                                },
-                                {
-                                  feature: "Resumos por IA",
-                                  values: [
-                                    "Básico",
-                                    "Básico",
-                                  ],
-                                },
-                                {
-                                  feature: "Insights avançados",
-                                  values: [false, true],
-                                },
-                                {
-                                  feature: "Diarização de falantes",
-                                  values: [false, true],
-                                },
-                                {
-                                  feature: "Personalizar ou treinar IA",
-                                  values: [false, true],
-                                },
-                                {
-                                  feature: "Pool de horas",
-                                  values: [false, false],
-                                },
-                                {
-                                  feature: "Suporte",
-                                  values: [
-                                    "Comunitário",
-                                    "Prioritário",
-                                  ],
-                                },
-                                {
-                                  feature: "Exportação avançada",
-                                  values: [false, true],
-                                },
-                              ].map((row, rowIdx) => (
-                                <tr
-                                  key={rowIdx}
-                                  className="transition-colors duration-200"
-                                >
-                                  <td className="p-4 pl-5 text-sm font-medium text-gray-700">
-                                    {row.feature}
-                                  </td>
-                                  {row.values
-                                    .slice(0, displayPlans.length)
-                                    .map((val, vIdx) => {
-                                      const colPlanId = displayPlans[vIdx]?.id;
-                                      const isColSelected =
-                                        colPlanId === selectedPlan;
-                                      const sd = PLAN_STATIC_DATA[vIdx];
-                                      const isAnySelected =
-                                        selectedPlan !== null;
-                                      return (
-                                        <td
-                                          key={vIdx}
-                                          className={cn(
-                                            "p-4 text-center transition-all duration-300",
-                                            isColSelected
-                                              ? sd?.accentBg
-                                              : isAnySelected
-                                                ? "opacity-40"
-                                                : vIdx === 2
-                                                  ? "bg-amber-50/30"
-                                                  : "",
-                                          )}
-                                        >
-                                          {typeof val === "boolean" ? (
-                                            val ? (
-                                              <div
-                                                className={cn(
-                                                  "inline-flex h-6 w-6 items-center justify-center rounded-lg border transition-colors duration-300",
-                                                  isColSelected
-                                                    ? cn(
-                                                        sd?.accentBg,
-                                                        sd?.accentBorder,
-                                                      )
-                                                    : "border-blue-200 bg-blue-50",
-                                                )}
-                                              >
-                                                <Check
-                                                  className={cn(
-                                                    "h-3 w-3 transition-colors duration-300",
-                                                    isColSelected
-                                                      ? sd?.accentColor
-                                                      : "text-blue-600",
-                                                  )}
-                                                  strokeWidth={2.5}
-                                                />
-                                              </div>
-                                            ) : (
-                                              <div className="inline-flex h-6 w-6 items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
-                                                <X className="h-3 w-3 text-gray-300" />
-                                              </div>
-                                            )
-                                          ) : (
-                                            <span
-                                              className={cn(
-                                                "text-xs transition-colors duration-300",
-                                                isColSelected
-                                                  ? cn(
-                                                      "font-semibold",
-                                                      sd?.accentColor,
-                                                    )
-                                                  : "font-light text-gray-500",
-                                              )}
-                                            >
-                                              {val}
-                                            </span>
-                                          )}
-                                        </td>
-                                      );
-                                    })}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </motion.div>
-                    )}
+                    {/* CTA */}
+                    <motion.button
+                      whileHover={{ scale: 1.01, y: -1 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => selectedPlan && setViewState("checkout")}
+                      disabled={!selectedPlan || loadingPlans}
+                      className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-black py-4 text-base font-bold text-white shadow-xl shadow-black/20 transition-all hover:shadow-2xl disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 opacity-0 transition-opacity group-hover:opacity-100" />
+                      Continuar para pagamento
+                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                    </motion.button>
 
                     <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-gray-400">
                       <span className="flex items-center gap-1.5">
@@ -2355,7 +1870,7 @@ export default function PlansPage() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 80, opacity: 0 }}
                     transition={{ duration: 0.3, ease: EASE }}
-                    className="fixed inset-x-0 bottom-0 z-[9999] border-t border-gray-100 bg-white/95 px-6 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md sm:px-8 lg:left-1/2"
+                    className="fixed inset-x-0 bottom-0 z-[9999] border-t border-gray-100 bg-white/95 px-6 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md sm:px-8 lg:left-[45%]"
                   >
                     <div className="mx-auto flex max-w-2xl items-center gap-4">
                       {/* Resumo de preço */}
@@ -2421,61 +1936,6 @@ export default function PlansPage() {
                         Fale conosco
                       </a>
                     </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>,
-              document.body,
-            )}
-
-          {/* ═══ Floating CTA (plans) — portal no body para fixar na tela durante scroll ═══ */}
-          {typeof document !== "undefined" &&
-            createPortal(
-              <AnimatePresence>
-                {viewState === "plans" && (
-                  <motion.div
-                    key="floating-plans-cta"
-                    initial={{ y: 80, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 80, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: EASE }}
-                    className="fixed inset-x-0 bottom-0 z-[9999] border-t border-gray-100 bg-white/95 px-6 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md sm:px-8 lg:left-[33.333%] lg:right-0"
-                  >
-                    <div className="mx-auto flex w-full max-w-6xl items-center gap-4">
-                      <div className="min-w-0 flex-1">
-                        {selectedPlanData ? (
-                          <>
-                            <p className="mb-0.5 truncate text-[11px] text-gray-400">
-                              {selectedPlanData.name}
-                            </p>
-                            <p className="text-lg font-bold text-black">
-                              {fmtBRL(
-                                getPlanPixPrice(selectedPlanData, billingCycle),
-                              )}
-                            </p>
-                          </>
-                        ) : (
-                          <p className="text-sm text-gray-400">
-                            Selecione um plano para continuar
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          selectedPlan && setViewState("checkout")
-                        }
-                        disabled={!selectedPlan || loadingPlans}
-                        className={cn(
-                          "flex shrink-0 items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold whitespace-nowrap shadow-lg transition-all",
-                          selectedPlan && !loadingPlans
-                            ? "bg-black text-white shadow-black/20 hover:bg-gray-800 hover:shadow-xl"
-                            : "cursor-not-allowed bg-gray-100 text-gray-400 shadow-none",
-                        )}
-                      >
-                        Continuar para pagamento
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>,

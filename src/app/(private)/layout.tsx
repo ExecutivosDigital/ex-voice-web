@@ -52,7 +52,13 @@ export default function RootLayout({
     pathname === "/plans2" ||
     pathname.startsWith("/plans2/") ||
     pathname === "/plans3" ||
-    pathname.startsWith("/plans3/");
+    pathname.startsWith("/plans3/") ||
+    pathname === "/plans4" ||
+    pathname.startsWith("/plans4/") ||
+    pathname === "/plans5" ||
+    pathname.startsWith("/plans5/") ||
+    pathname === "/plans6" ||
+    pathname.startsWith("/plans6/");
 
   if (isFullscreen) {
     return (
