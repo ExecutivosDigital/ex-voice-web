@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/custom-icons";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
-import { ChevronRight, Video } from "lucide-react";
+import { CheckCircle2, ChevronRight, Clock, Loader2, Video } from "lucide-react";
 import moment from "moment";
 import { useRouter } from "next/navigation";
 interface Props {
@@ -105,6 +105,39 @@ export function GeneralRecordingTableItem({ recording }: Props) {
   const typeStyle = getTypeStyle();
   const Icon = typeStyle.icon;
 
+  const getTranscriptionStatus = () => {
+    switch (recording.transcriptionStatus) {
+      case "DONE":
+        return {
+          label: "Concluída",
+          icon: CheckCircle2,
+          dotClass: "bg-emerald-500",
+          textClass: "text-emerald-700",
+          bgClass: "bg-emerald-50 border-emerald-200",
+        };
+      case "TRANSCRIBING":
+        return {
+          label: "Transcrevendo",
+          icon: Loader2,
+          dotClass: "bg-amber-500 animate-pulse",
+          textClass: "text-amber-700",
+          bgClass: "bg-amber-50 border-amber-200",
+        };
+      case "PENDING":
+      case "NOT_REQUESTED":
+      default:
+        return {
+          label: "Pendente",
+          icon: Clock,
+          dotClass: "bg-gray-400",
+          textClass: "text-gray-600",
+          bgClass: "bg-gray-50 border-gray-200",
+        };
+    }
+  };
+
+  const transcriptionStatus = getTranscriptionStatus();
+
   return (
     <TableRow
       onClick={handleNavigation}
@@ -162,6 +195,23 @@ export function GeneralRecordingTableItem({ recording }: Props) {
       </TableCell>
       <TableCell className="py-2 text-start text-sm whitespace-nowrap text-gray-500">
         {recording.duration || "00:00"}
+      </TableCell>
+      <TableCell className="py-2 text-start">
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+            transcriptionStatus.bgClass,
+            transcriptionStatus.textClass,
+          )}
+        >
+          <span
+            className={cn(
+              "h-1.5 w-1.5 rounded-full",
+              transcriptionStatus.dotClass,
+            )}
+          />
+          {transcriptionStatus.label}
+        </span>
       </TableCell>
       <TableCell className="py-2 pr-4 text-xs font-medium whitespace-nowrap text-zinc-400">
         <div className="flex items-center justify-end">

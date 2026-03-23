@@ -42,6 +42,7 @@ export function ChatInput({
   onClearAudio,
 }: ChatInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const audioPreviewUrl = useMemo(
     () => (audioBlob ? URL.createObjectURL(audioBlob) : null),
     [audioBlob],
@@ -52,7 +53,16 @@ export function ChatInput({
     };
   }, [audioPreviewUrl]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if ((value.trim() || files.length > 0 || !!audioBlob) && !isLoading) {
@@ -191,17 +201,17 @@ export function ChatInput({
       })()}
 
       <div className="invisible mb-1 text-center text-xs text-gray-400">""</div>
-      <div className="relative flex min-w-[80%] items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-3 shadow-sm transition-shadow focus-within:shadow-md">
+      <div className="relative flex min-w-[80%] items-end gap-2 rounded-[24px] border border-gray-200 bg-white px-4 py-3 shadow-sm transition-shadow focus-within:shadow-md">
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="group text-primary relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-all hover:scale-105 hover:opacity-90 active:scale-95"
+          className="group text-primary shrink-0 relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-neutral-500 to-neutral-900 text-white transition-all hover:scale-105 hover:opacity-90 active:scale-95"
           title="Anexar arquivos"
         >
           <Paperclip className="h-4 w-4" />
         </button>
 
-        <input
-          type="text"
+        <textarea
+          ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -211,7 +221,9 @@ export function ChatInput({
               : "Faça uma pergunta ou solicitação..."
           }
           disabled={isRecording || isLoading}
-          className="flex-1 bg-transparent px-2 text-gray-800 placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+          rows={1}
+          style={{ minHeight: "28px", maxHeight: "160px" }}
+          className="flex-1 shrink-0 resize-none overflow-y-auto bg-transparent px-2 py-1 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
         />
 
         <div className="flex items-center gap-2">

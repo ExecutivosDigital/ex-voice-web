@@ -190,27 +190,36 @@ export function RequestTranscription() {
           isLoadingPrompts
         }
         className={cn(
-          "bg-primary absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-2 rounded-lg px-4 py-2 font-semibold text-white",
+          "group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-2xl px-8 py-4 text-base font-bold text-white shadow-lg transition-all duration-300 ease-out",
+          "bg-gradient-to-r from-neutral-700 via-neutral-600 to-neutral-700 hover:shadow-2xl hover:shadow-neutral-500/25",
+          "hover:scale-[1.02] active:scale-[0.98]",
+          "before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:transition-transform before:duration-700 hover:before:translate-x-full",
           (selectedRecording?.transcriptionStatus === "PENDING" ||
             isLoadingPrompts) &&
-            "cursor-wait bg-green-400 opacity-50",
+            "cursor-wait from-amber-500 via-amber-400 to-amber-500 opacity-80 hover:scale-100 hover:shadow-amber-500/20",
           selectedRecording?.transcriptionStatus === "DONE" && "hidden",
         )}
       >
         {isRequesting ? (
           <>
-            <Loader2 className="animate-spin" />
-            Transcrevendo...
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Transcrevendo...</span>
           </>
         ) : isLoadingPrompts ? (
           <>
-            <Loader2 className="animate-spin" />
-            Carregando...
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Carregando...</span>
           </>
         ) : selectedRecording?.transcriptionStatus === "PENDING" ? (
-          "Transcrição pendente"
+          <>
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Transcrição pendente</span>
+          </>
         ) : (
-          "Solicitar Transcrição"
+          <>
+            <Sparkles className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
+            <span>Solicitar Transcrição</span>
+          </>
         )}
       </button>
 

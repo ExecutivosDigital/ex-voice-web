@@ -1,6 +1,6 @@
 "use client";
 
-import { RequestTranscription } from "@/components/ui/request-transcription";
+import { TranscriptionEmptyState } from "@/components/ui/transcription-empty-state";
 import { WaveformAudioPlayer } from "@/components/ui/waveform-audio-player";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
@@ -95,14 +95,7 @@ export function Transcription() {
             </div>
           </div>
         ) : (
-          <>
-            <h1 className="text-primary m-auto w-full text-center text-3xl font-extrabold md:w-max">
-              Transcrição não disponível
-            </h1>
-            <div className="prose prose-sm prose-h1:text-center prose-h1:text-primary prose-h2:text-primary w-full max-w-none">
-              <RequestTranscription />
-            </div>
-          </>
+          <TranscriptionEmptyState />
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { RequestTranscription } from "@/components/ui/request-transcription";
+import { TranscriptionEmptyState } from "@/components/ui/transcription-empty-state";
 import { WaveformAudioPlayer } from "@/components/ui/waveform-audio-player";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
@@ -144,18 +144,7 @@ export function Transcription() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-6 py-24 text-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-[32px] bg-slate-50 text-slate-300">
-                <Mic className="h-10 w-10" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">Transcrição não disponível</h2>
-                <p className="mt-2 text-slate-500">Estamos processando ou aguardando o áudio deste estudo.</p>
-              </div>
-              <div className="mt-4 w-full max-w-md">
-                <RequestTranscription />
-              </div>
-            </div>
+            <TranscriptionEmptyState description="O áudio deste estudo ainda não foi transcrito. Solicite agora para gerar a transcrição automaticamente." />
           )}
         </div>
       </div>

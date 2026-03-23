@@ -3,7 +3,8 @@ import { RecordingDetailsProps } from "@/@types/general-client";
 import { TableCell, TableRow } from "@/components/ui/blocks/table";
 import { ContactsIcon } from "@/components/ui/custom-icons";
 import { useGeneralContext } from "@/context/GeneralContext";
-import { ChevronRight } from "lucide-react";
+import { cn } from "@/utils/cn";
+import { CheckCircle2, ChevronRight, Clock, Loader2 } from "lucide-react";
 import moment from "moment";
 import "moment/locale/pt-br";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,6 +22,39 @@ export function SelectedPatientTableItem({ recording }: Props) {
     setSelectedRecording(recording);
     router.push(`${pathname}/${recording.id}`);
   };
+
+  const getTranscriptionStatus = () => {
+    switch (recording.transcriptionStatus) {
+      case "DONE":
+        return {
+          label: "Concluída",
+          icon: CheckCircle2,
+          dotClass: "bg-emerald-500",
+          textClass: "text-emerald-700",
+          bgClass: "bg-emerald-50 border-emerald-200",
+        };
+      case "TRANSCRIBING":
+        return {
+          label: "Transcrevendo",
+          icon: Loader2,
+          dotClass: "bg-amber-500 animate-pulse",
+          textClass: "text-amber-700",
+          bgClass: "bg-amber-50 border-amber-200",
+        };
+      case "PENDING":
+      case "NOT_REQUESTED":
+      default:
+        return {
+          label: "Pendente",
+          icon: Clock,
+          dotClass: "bg-gray-400",
+          textClass: "text-gray-600",
+          bgClass: "bg-gray-50 border-gray-200",
+        };
+    }
+  };
+
+  const transcriptionStatus = getTranscriptionStatus();
 
   return (
     <TableRow
@@ -49,6 +83,23 @@ export function SelectedPatientTableItem({ recording }: Props) {
       <TableCell className="py-4 text-start">
         <span className="inline-flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 group-hover:bg-gray-50 group-hover:text-gray-700">
           {recording.duration || "00:00"}
+        </span>
+      </TableCell>
+      <TableCell className="py-4 text-start">
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+            transcriptionStatus.bgClass,
+            transcriptionStatus.textClass,
+          )}
+        >
+          <span
+            className={cn(
+              "h-1.5 w-1.5 rounded-full",
+              transcriptionStatus.dotClass,
+            )}
+          />
+          {transcriptionStatus.label}
         </span>
       </TableCell>
       <TableCell className="py-4 pr-6 text-end">

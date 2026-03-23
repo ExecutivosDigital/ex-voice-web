@@ -36,6 +36,7 @@ export function GeneralRecordingsTable() {
     { key: "NAME", label: "Título da Gravação", sortable: true },
     { key: "CREATED_AT", label: "Data da Gravação", sortable: true },
     { key: "DURATION", label: "Tempo de Gravação", sortable: true },
+    { key: "TRANSCRIPTION_STATUS", label: "Transcrição", sortable: false },
     { key: "ACTIONS", label: "Ações", sortable: false },
   ];
 
