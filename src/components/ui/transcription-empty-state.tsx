@@ -12,9 +12,11 @@ export function TranscriptionEmptyState({
   description = "O áudio desta gravação ainda não foi transcrito. Solicite agora para gerar a transcrição automaticamente.",
 }: TranscriptionEmptyStateProps) {
   const { selectedRecording } = useGeneralContext();
-  const isPending = selectedRecording?.transcriptionStatus === "PENDING";
+  const isProcessing =
+    selectedRecording?.transcriptionStatus === "PENDING" ||
+    selectedRecording?.transcriptionStatus === "TRANSCRIBING";
 
-  if (isPending) {
+  if (isProcessing) {
     return (
       <div className="flex flex-1 w-full h-full flex-col items-center justify-center px-8 py-16 select-none mt-10">
         <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto">
@@ -44,7 +46,7 @@ export function TranscriptionEmptyState({
               Processando Áudio
             </div>
             <h2 className="text-xl font-bold text-slate-800">
-              Transcrição em Andamento
+              A Magica está acontecendo
             </h2>
             <p className="max-w-xs text-sm leading-relaxed text-slate-500">
               Sua transcrição foi solicitada e está sendo gerada. Isso pode levar alguns minutos dependendo do tamanho do áudio.

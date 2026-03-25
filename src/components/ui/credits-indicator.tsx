@@ -5,16 +5,14 @@ import { cn } from "@/utils/cn";
 import { ChevronRight, Crown, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-function formatCreditValue(value: number): string {
-  if (value >= 3600) {
-    const hours = Math.floor(value / 3600);
-    const minutes = Math.floor((value % 3600) / 60);
-    return minutes > 0 ? `${hours}h${minutes}m` : `${hours}h`;
+function formatCreditValue(seconds: number): string {
+  const hours = seconds / 3600;
+
+  if (hours > 24) {
+    return "Ilimitado";
   }
-  if (value >= 60) {
-    return `${Math.floor(value / 60)}min`;
-  }
-  return String(value);
+
+  return `${Math.floor(hours)}h`;
 }
 
 export function CreditsIndicator({ className }: { className?: string }) {
@@ -43,6 +41,8 @@ export function CreditsIndicator({ className }: { className?: string }) {
   const totalLabel = isTimeBased
     ? formatCreditValue(totalRecording)
     : String(totalRecording);
+  const isUnlimitedPlan =
+    availableLabel === "Ilimitado" && totalLabel === "Ilimitado";
 
   const statusColor = isEmpty
     ? "from-red-500 to-red-400"
@@ -121,14 +121,22 @@ export function CreditsIndicator({ className }: { className?: string }) {
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold leading-none tabular-nums tracking-tight">
-            {availableLabel}
-            <span className="text-white/30"> / </span>
-            <span className="text-white/50">{totalLabel}</span>
+            {isUnlimitedPlan ? (
+              "Ilimitado"
+            ) : (
+              <>
+                {availableLabel}
+                <span className="text-white/30"> / </span>
+                <span className="text-white/50">{totalLabel}</span>
+              </>
+            )}
           </span>
 
-          <span className="hidden text-[11px] leading-none text-white/35 sm:inline">
-            {isTimeBased ? "restante" : "gravações"}
-          </span>
+          {!isUnlimitedPlan && (
+            <span className="hidden text-[11px] leading-none text-white/35 sm:inline">
+              {isTimeBased ? "restante" : "gravações"}
+            </span>
+          )}
 
           {isTrial && (
             <span className="flex items-center gap-1 rounded-md bg-amber-400/15 px-1.5 py-0.5 text-[9px] font-bold leading-none tracking-wider text-amber-300">

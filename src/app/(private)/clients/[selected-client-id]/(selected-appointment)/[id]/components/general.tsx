@@ -8,7 +8,9 @@ import remarkGfm from "remark-gfm";
 
 export function General() {
   const { selectedRecording } = useGeneralContext();
-  const isPending = selectedRecording?.transcriptionStatus === "PENDING";
+  const isProcessing =
+    selectedRecording?.transcriptionStatus === "PENDING" ||
+    selectedRecording?.transcriptionStatus === "TRANSCRIBING";
 
   return (
     <div className="prose prose-sm prose-h1:text-center prose-h1:text-primary prose-h2:text-primary min-h-[500px] w-full max-w-none flex flex-col">
@@ -16,7 +18,7 @@ export function General() {
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {selectedRecording?.summary}
         </ReactMarkdown>
-      ) : isPending ? (
+      ) : isProcessing ? (
         <div className="flex flex-1 flex-col items-center justify-center py-16 mt-10 w-full animate-in fade-in duration-700">
           <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto relative">
             {/* Ambient glow */}
@@ -40,7 +42,7 @@ export function General() {
             </div>
             
             <h2 className="text-2xl font-bold text-slate-800 mb-3 text-center !mt-0">
-              A mágica está acontecendo...
+              A Magica está acontecendo
             </h2>
             <p className="max-w-xs text-center text-sm leading-relaxed text-slate-500">
               O seu áudio está sendo processado pela nossa Inteligência Artificial para gerar um resumo completo. Por favor, aguarde.

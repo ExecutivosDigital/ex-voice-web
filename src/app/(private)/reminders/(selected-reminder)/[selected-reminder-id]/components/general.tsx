@@ -77,10 +77,11 @@ export function General() {
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {recording.summary}
           </ReactMarkdown>
-        ) : recording?.transcriptionStatus === "PENDING" ? (
+        ) : recording?.transcriptionStatus === "PENDING" ||
+          recording?.transcriptionStatus === "TRANSCRIBING" ? (
           <div className="py-8 text-center">
             <h3 className="text-primary text-lg font-semibold">
-              Resumo Pendente
+              A Magica está acontecendo
             </h3>
             <p className="mt-2 text-sm text-gray-500">
               Estamos processando o resumo da gravação.

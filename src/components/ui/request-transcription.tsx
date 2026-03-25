@@ -180,24 +180,22 @@ export function RequestTranscription() {
     );
   }, [prompts, searchQuery]);
 
+  const transcriptionStatus = selectedRecording?.transcriptionStatus;
+  const canRequestTranscription = transcriptionStatus === "NOT_REQUESTED";
+
   return (
     <>
+      {canRequestTranscription && (
       <button
         onClick={handleSolicitarTranscriptionClick}
-        disabled={
-          selectedRecording?.transcriptionStatus === "PENDING" ||
-          isRequesting ||
-          isLoadingPrompts
-        }
+        disabled={isRequesting || isLoadingPrompts}
         className={cn(
           "group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-2xl px-8 py-4 text-base font-bold text-white shadow-lg transition-all duration-300 ease-out",
           "bg-gradient-to-r from-neutral-700 via-neutral-600 to-neutral-700 hover:shadow-2xl hover:shadow-neutral-500/25",
           "hover:scale-[1.02] active:scale-[0.98]",
           "before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:transition-transform before:duration-700 hover:before:translate-x-full",
-          (selectedRecording?.transcriptionStatus === "PENDING" ||
-            isLoadingPrompts) &&
+          isLoadingPrompts &&
             "cursor-wait from-amber-500 via-amber-400 to-amber-500 opacity-80 hover:scale-100 hover:shadow-amber-500/20",
-          selectedRecording?.transcriptionStatus === "DONE" && "hidden",
         )}
       >
         {isRequesting ? (
@@ -210,11 +208,6 @@ export function RequestTranscription() {
             <Loader2 className="h-5 w-5 animate-spin" />
             <span>Carregando...</span>
           </>
-        ) : selectedRecording?.transcriptionStatus === "PENDING" ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Transcrição pendente</span>
-          </>
         ) : (
           <>
             <Sparkles className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
@@ -222,6 +215,7 @@ export function RequestTranscription() {
           </>
         )}
       </button>
+      )}
 
       <Modal
         isOpen={isModalOpen}

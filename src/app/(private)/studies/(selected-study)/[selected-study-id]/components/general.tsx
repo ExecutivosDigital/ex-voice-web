@@ -7,6 +7,9 @@ import remarkGfm from "remark-gfm";
 
 export function General() {
   const { selectedRecording } = useGeneralContext();
+  const isProcessing =
+    selectedRecording?.transcriptionStatus === "PENDING" ||
+    selectedRecording?.transcriptionStatus === "TRANSCRIBING";
 
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -15,6 +18,10 @@ export function General() {
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {selectedRecording?.summary}
           </ReactMarkdown>
+        ) : isProcessing ? (
+          <h1 className="text-primary m-auto w-full text-center text-3xl font-extrabold md:w-max">
+            A Magica está acontecendo
+          </h1>
         ) : (
           <>
             <h1 className="text-primary m-auto w-full text-center text-3xl font-extrabold md:w-max">
