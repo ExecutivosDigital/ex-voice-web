@@ -10,6 +10,8 @@ import { motion } from "framer-motion";
 import Lenis from "lenis";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { FloatingTrialWidget } from "./new-home/components/floating-trial-widget";
+import { MinimalHeader } from "./new-home/components/minimal-header";
 // coment
 export default function RootLayout({
   children,
@@ -44,6 +46,8 @@ export default function RootLayout({
     };
   }, [pathname]);
 
+  const isNewHome = pathname === "/new-home" || pathname.startsWith("/new-home/");
+
   const isFullscreen =
     pathname === "/checkout" ||
     pathname.startsWith("/checkout/") ||
@@ -69,6 +73,31 @@ export default function RootLayout({
 
             <div className="min-h-screen w-full bg-[#0d0d0d]">
               {children}
+            </div>
+          </ChatPageProvider>
+        </GeneralContextProvider>
+      </AuthGuard>
+    );
+  }
+
+  if (isNewHome) {
+    return (
+      <AuthGuard>
+        <GeneralContextProvider>
+          <ChatPageProvider>
+            <MobileAppBlocker />
+            <Sidebar />
+            <div className="relative min-h-screen w-full bg-[radial-gradient(1200px_600px_at_10%_-10%,rgba(156,163,175,0.18),transparent),radial-gradient(900px_500px_at_110%_10%,rgba(99,102,241,0.08),transparent)]">
+              <MinimalHeader />
+              <motion.main
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="mx-auto w-full max-w-6xl px-4 py-10 md:px-6 md:py-14"
+              >
+                {children}
+              </motion.main>
+              <FloatingTrialWidget />
             </div>
           </ChatPageProvider>
         </GeneralContextProvider>
