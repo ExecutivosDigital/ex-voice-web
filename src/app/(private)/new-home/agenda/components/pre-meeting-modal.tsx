@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Meeting,
   MeetingType,
@@ -62,9 +63,15 @@ const sentimentBadge: Record<
   PastMeetingSummary["sentiment"],
   { cls: string; label: string }
 > = {
-  positivo: { cls: "bg-emerald-50 text-emerald-700 ring-emerald-100", label: "Positivo" },
+  positivo: {
+    cls: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+    label: "Positivo",
+  },
   neutro: { cls: "bg-gray-100 text-gray-700 ring-gray-200", label: "Neutro" },
-  atencao: { cls: "bg-amber-50 text-amber-700 ring-amber-100", label: "Atenção" },
+  atencao: {
+    cls: "bg-amber-50 text-amber-700 ring-amber-100",
+    label: "Atenção",
+  },
 };
 
 function minutesUntil(meeting: Meeting) {
@@ -158,7 +165,12 @@ export function PreMeetingModal({
     [meeting],
   );
 
-  if (!meeting || !ai) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!meeting || !ai || !mounted) return null;
 
   const accent = typeAccent[meeting.type];
   const Icon = accent.icon;
@@ -171,7 +183,7 @@ export function PreMeetingModal({
     .join("")
     .toUpperCase();
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {meeting && (
         <motion.div
@@ -179,7 +191,7 @@ export function PreMeetingModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-stretch justify-end bg-black/50 backdrop-blur-md md:items-center md:justify-center md:p-6"
+          className="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/50 backdrop-blur-md md:items-center md:p-6"
           onClick={onClose}
         >
           <motion.div
@@ -190,7 +202,7 @@ export function PreMeetingModal({
             onClick={(e) => e.stopPropagation()}
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
-            className="relative flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-[0_40px_80px_-20px_rgba(15,23,42,0.45)] md:h-auto md:max-h-[92vh] md:rounded-3xl"
+            className="relative flex h-[100dvh] w-full max-w-5xl flex-col overflow-hidden bg-white shadow-[0_40px_80px_-20px_rgba(15,23,42,0.45)] md:h-auto md:max-h-[92vh] md:rounded-3xl"
           >
             <Header
               meeting={meeting}
@@ -201,7 +213,7 @@ export function PreMeetingModal({
             />
 
             <div
-              className="flex-1 overflow-y-auto overscroll-contain px-6 pb-6 md:px-10"
+              className="flex-1 overflow-y-auto overscroll-contain px-5 pb-6 md:px-10"
               data-lenis-prevent
             >
               <div className="flex flex-col gap-6 pt-6">
@@ -216,7 +228,8 @@ export function PreMeetingModal({
                     {ai.objective}
                   </p>
                   <p className="mt-2 text-[11px] font-medium tracking-wider text-gray-400 uppercase">
-                    Tom sugerido · <span className="normal-case">{ai.tone}</span>
+                    Tom sugerido ·{" "}
+                    <span className="normal-case">{ai.tone}</span>
                   </p>
                 </Section>
 
@@ -290,7 +303,7 @@ export function PreMeetingModal({
                     label="Suas anotações"
                     accent="bg-gray-100 text-gray-700"
                   >
-                    <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700">
+                    <p className="text-sm leading-relaxed whitespace-pre-line text-gray-700">
                       {meeting.notes}
                     </p>
                   </Section>
@@ -332,7 +345,8 @@ export function PreMeetingModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
 
@@ -350,9 +364,11 @@ function Header({
   onClose: () => void;
 }) {
   return (
-    <div className="relative overflow-hidden border-b border-gray-100 bg-gradient-to-br from-gray-900 via-[#111318] to-[#1a1d24] px-6 pt-5 pb-5 text-white md:px-10 md:pt-5 md:pb-6">
-      <div className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
+    <div className="relative border-b border-gray-100 bg-gradient-to-br from-gray-900 via-[#111318] to-[#1a1d24] px-6 pt-7 pb-6 text-white md:px-10 md:pt-8 md:pb-6">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-10 -right-10 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
+        <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
+      </div>
 
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 backdrop-blur-sm">
@@ -370,7 +386,7 @@ function Header({
         </button>
       </div>
 
-      <div className="relative mt-4 flex items-center gap-4 md:gap-5">
+      <div className="relative mt-4 flex items-start gap-4 md:gap-5">
         <div
           className={cn(
             "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-sm font-bold ring-1 ring-white/15 backdrop-blur-sm md:h-14 md:w-14 md:text-base",
@@ -382,7 +398,7 @@ function Header({
           <p className="text-[10px] font-semibold tracking-[0.28em] text-white/50 uppercase">
             {formatDate(meeting.date)}
           </p>
-          <h2 className="mt-1 text-balance text-xl leading-tight font-semibold text-white md:text-[24px]">
+          <h2 className="mt-1 text-xl leading-tight font-semibold text-balance text-white md:text-[24px]">
             {meeting.title}
           </h2>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/70">
@@ -406,7 +422,10 @@ function Header({
             ) : null}
           </p>
           <p className="mt-1 text-[11px] text-white/50">
-            Com <span className="font-semibold text-white/80">{meeting.client}</span>
+            Com{" "}
+            <span className="font-semibold text-white/80">
+              {meeting.client}
+            </span>
           </p>
         </div>
 
@@ -450,7 +469,10 @@ function ReadinessBar({ mins }: { mins: number }) {
         ? { label: "Já deve estar pronto", tone: "urgent" as const }
         : mins <= 15
           ? { label: "Janela ideal de preparação", tone: "prep" as const }
-          : { label: "Revise quando tiver 10–15 min antes", tone: "future" as const };
+          : {
+              label: "Revise quando tiver 10–15 min antes",
+              tone: "future" as const,
+            };
 
   const barClass =
     status.tone === "live"

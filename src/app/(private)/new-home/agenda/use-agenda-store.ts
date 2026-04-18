@@ -108,21 +108,33 @@ const INITIAL: Meeting[] = [
   },
 ];
 
+export interface MeetingPrepContext {
+  objective?: string;
+  background?: string;
+  topics?: string[];
+  questions?: string[];
+  tone?: string;
+}
+
 interface AgendaState {
   meetings: Meeting[];
   googleConnected: boolean;
   googleEmail: string | null;
+  prepContexts: Record<string, MeetingPrepContext>;
   addMeeting: (meeting: Omit<Meeting, "id" | "source"> & { source?: MeetingSource }) => void;
   updateMeeting: (id: string, patch: Partial<Meeting>) => void;
   removeMeeting: (id: string) => void;
   connectGoogle: (email: string) => void;
   disconnectGoogle: () => void;
+  setPrepContext: (meetingId: string, patch: Partial<MeetingPrepContext>) => void;
+  clearPrepContext: (meetingId: string) => void;
 }
 
 export const useAgendaStore = create<AgendaState>((set) => ({
   meetings: INITIAL,
   googleConnected: false,
   googleEmail: null,
+  prepContexts: {},
   addMeeting: (meeting) =>
     set((state) => ({
       meetings: [
@@ -148,6 +160,19 @@ export const useAgendaStore = create<AgendaState>((set) => ({
     set({ googleConnected: true, googleEmail: email }),
   disconnectGoogle: () =>
     set({ googleConnected: false, googleEmail: null }),
+  setPrepContext: (meetingId, patch) =>
+    set((state) => ({
+      prepContexts: {
+        ...state.prepContexts,
+        [meetingId]: { ...(state.prepContexts[meetingId] ?? {}), ...patch },
+      },
+    })),
+  clearPrepContext: (meetingId) =>
+    set((state) => {
+      const next = { ...state.prepContexts };
+      delete next[meetingId];
+      return { prepContexts: next };
+    }),
 }));
 
 export function sortMeetings(meetings: Meeting[]) {

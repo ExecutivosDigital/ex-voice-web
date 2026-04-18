@@ -26,7 +26,7 @@ function Item({
     if (notification.route) {
       router.push(convertAppRouteToWeb(notification.route, notification.params));
     } else {
-      router.push("/notifications");
+      router.push("/new-home/notifications");
     }
   };
   return (
@@ -184,7 +184,7 @@ export function MinimalNotificationBell() {
           )}
           <button
             type="button"
-            onClick={() => router.push("/notifications")}
+            onClick={() => router.push("/new-home/notifications")}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gray-900 to-gray-700 py-2 text-sm font-semibold text-white transition hover:scale-[1.01]"
           >
             Ver todas

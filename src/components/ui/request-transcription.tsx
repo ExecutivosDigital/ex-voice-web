@@ -1,14 +1,24 @@
 "use client";
 
-import { Modal } from "@/components/ui/modal";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { handleApiError } from "@/utils/error-handler";
 import { PromptIcon } from "@/utils/prompt-icon";
-import { Check, Loader2, Search, Sparkles, X } from "lucide-react";
-import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  Building2,
+  Check,
+  Globe2,
+  Loader2,
+  Search,
+  Sparkles,
+  UserRound,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 
 interface PromptOption {
@@ -157,31 +167,79 @@ export function RequestTranscription() {
     }
   }
 
-  function getSourceColor(source: string) {
+  function getSourceChip(source: string) {
     switch (source) {
       case "USER":
-        return "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-sm";
+        return "bg-indigo-50 text-indigo-700 ring-indigo-100";
       case "COMPANY":
-        return "bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-sm";
+        return "bg-gray-100 text-gray-700 ring-gray-200";
       case "GLOBAL":
-        return "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-sm";
+        return "bg-emerald-50 text-emerald-700 ring-emerald-100";
       default:
-        return "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-sm";
+        return "bg-gray-100 text-gray-700 ring-gray-200";
+    }
+  }
+
+  function getSourceIcon(source: string) {
+    switch (source) {
+      case "USER":
+        return UserRound;
+      case "COMPANY":
+        return Building2;
+      case "GLOBAL":
+        return Globe2;
+      default:
+        return Sparkles;
     }
   }
 
   const filteredPrompts = useMemo(() => {
     if (!searchQuery.trim()) return prompts;
     const query = searchQuery.toLowerCase();
-    return prompts.filter(
-      (prompt) =>
-        prompt.name.toLowerCase().includes(query) ||
-        prompt.content.toLowerCase().includes(query),
+    return prompts.filter((prompt) =>
+      prompt.name.toLowerCase().includes(query),
     );
   }, [prompts, searchQuery]);
 
   const transcriptionStatus = selectedRecording?.transcriptionStatus;
   const canRequestTranscription = transcriptionStatus === "NOT_REQUESTED";
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleCloseModal();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isModalOpen]);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const scrollY = window.scrollY;
+    const prev = {
+      bodyOverflow: document.body.style.overflow,
+      htmlOverflow: document.documentElement.style.overflow,
+      bodyPaddingRight: document.body.style.paddingRight,
+    };
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+    return () => {
+      document.body.style.overflow = prev.bodyOverflow;
+      document.documentElement.style.overflow = prev.htmlOverflow;
+      document.body.style.paddingRight = prev.bodyPaddingRight;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isModalOpen]);
 
   return (
     <>
@@ -217,214 +275,323 @@ export function RequestTranscription() {
       </button>
       )}
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        size="max-w-4xl h-[90vh]"
-        className="overflow-hidden rounded-2xl border-0 bg-white shadow-2xl"
-      >
-        <div className="flex h-full flex-col bg-gradient-to-b from-white to-gray-50/50">
-          {/* Header com gradiente melhorado */}
-          <div className="relative flex shrink-0 items-center justify-between border-b border-gray-400/20 bg-gradient-to-r from-gray-700 via-gray-600 to-neutral-700 px-8 py-6 shadow-lg">
-            <div className="flex items-center gap-4">
-              <Image
-                src="/logos/logo2.png"
-                alt="Health Voice Logo"
-                width={160}
-                height={64}
-                className="h-6 w-auto object-contain brightness-0 invert"
-                quality={100}
-              />
-              <div className="flex flex-col gap-1.5">
-                <p className="text-sm font-medium text-white/95">
-                  Escolha a IA que será utilizado para a transcrição
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleCloseModal}
-              className="group rounded-full p-2 text-white transition-all hover:bg-white/25 hover:text-white"
-              aria-label="Fechar modal"
-            >
-              <X
-                size={22}
-                className="transition-transform group-hover:rotate-90"
-              />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div
-            className="relative flex flex-1 flex-col gap-5 p-6"
-            style={{ minHeight: 0 }}
-            onWheel={(e) => e.stopPropagation()}
-          >
-            {/* Search Bar melhorada */}
-            <div className="relative shrink-0">
-              <Search
-                className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="text"
-                placeholder="Buscar IA..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border-2 border-gray-200 bg-white py-3.5 pr-4 pl-12 text-sm shadow-sm transition-all placeholder:text-gray-400 focus:border-gray-500 focus:bg-white focus:ring-4 focus:ring-gray-500/10 focus:outline-none"
-              />
-            </div>
-
-            {/* Prompts List melhorada com scroll funcional */}
-            <div
-              className={cn(
-                "custom-scrollbar flex flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto pr-2",
-                (selectedPrompt === "default" || selectedPrompt) && "pb-24",
-              )}
-              style={{ minHeight: 0 }}
-              onWheel={(e) => e.stopPropagation()}
-            >
-              {isLoadingPrompts ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="animate-spin text-gray-500" size={32} />
-                  <p className="mt-4 text-sm text-gray-500">
-                    Carregando IA...
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Opção de Prompt Padrão - sempre visível */}
-                  <button
-                    onClick={() => handleSelectPrompt("default")}
-                    disabled={isRequesting}
-                    className={cn(
-                      "group relative flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-left transition-all duration-200",
-                      selectedPrompt === "default"
-                        ? "border-gray-400 bg-gray-100"
-                        : "hover:border-gray-300 hover:bg-gray-100/80",
-                      isRequesting && "cursor-not-allowed opacity-50",
-                    )}
-                  >
-                    {/* Ícone menos destacado */}
-                    <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-200 text-gray-500 transition-colors group-hover:bg-gray-300">
-                      <Sparkles size={20} className="text-gray-600" />
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {isModalOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/50 backdrop-blur-md md:items-center md:p-6"
+                onClick={handleCloseModal}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  onClick={(e) => e.stopPropagation()}
+                  onWheel={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
+                  className="relative flex h-[100dvh] w-full max-w-3xl flex-col overflow-hidden bg-white shadow-[0_40px_80px_-20px_rgba(15,23,42,0.45)] md:h-auto md:max-h-[90vh] md:rounded-3xl"
+                >
+                  {/* Header escuro estilo new-home */}
+                  <div className="relative shrink-0 border-b border-gray-100 bg-gradient-to-br from-gray-900 via-[#111318] to-[#1a1d24] px-6 pt-7 pb-6 text-white md:px-10 md:pt-8 md:pb-6">
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                      <div className="absolute -top-10 -right-10 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
+                      <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl" />
                     </div>
 
-                    {/* Conteúdo do prompt padrão */}
-                    <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-                      <span className="truncate font-medium text-gray-600 transition-colors group-hover:text-gray-700">
-                        IA Padrão
-                      </span>
-                      <div className="flex shrink-0 items-center gap-3">
-                        <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-medium whitespace-nowrap text-gray-600">
-                          IA Padrão
+                    <div className="relative flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 backdrop-blur-sm">
+                        <Sparkles size={12} className="text-amber-300" />
+                        <span className="text-[10px] font-bold tracking-[0.25em] text-white/80 uppercase">
+                          IA · Transcrição
                         </span>
-                        {/* Indicador de seleção */}
-                        {selectedPrompt === "default" && (
-                          <div className="flex items-center justify-center rounded-full bg-gray-600 p-1.5">
-                            <Check size={16} className="text-white" />
-                          </div>
-                        )}
                       </div>
+                      <button
+                        onClick={handleCloseModal}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/70 backdrop-blur-sm transition hover:bg-white/10 hover:text-white"
+                        aria-label="Fechar"
+                      >
+                        <X size={16} />
+                      </button>
                     </div>
-                  </button>
 
-                  {/* Lista de prompts personalizados */}
-                  {filteredPrompts.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8">
-                      <div className="rounded-full bg-gray-100 p-3">
-                        <Search className="text-gray-400" size={24} />
-                      </div>
-                      <p className="mt-3 text-center text-sm font-medium text-gray-600">
-                        Nenhuma IA encontrada para esta busca
+                    <div className="relative mt-5">
+                      <h2 className="text-balance text-xl leading-tight font-semibold text-white md:text-[22px]">
+                        Escolha a IA que vai transcrever.
+                      </h2>
+                      <p className="mt-1.5 max-w-xl text-[12px] leading-relaxed text-white/60">
+                        Selecione um prompt personalizado ou use a IA padrão. A
+                        escolha afeta resumos, insights e tom do resultado.
                       </p>
                     </div>
-                  ) : (
-                    filteredPrompts.map((prompt) => (
+                  </div>
+
+                  {/* Search */}
+                  <div className="shrink-0 border-b border-gray-100 bg-white px-5 py-4 md:px-10">
+                    <div className="relative">
+                      <Search
+                        size={15}
+                        className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Buscar IA por nome..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="h-11 w-full rounded-full border border-gray-200 bg-white/70 pr-4 pl-11 text-sm text-gray-800 shadow-sm backdrop-blur-sm outline-none transition focus:border-gray-400 focus:bg-white focus:shadow-md"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Lista */}
+                  <div
+                    className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 md:px-10"
+                    data-lenis-prevent
+                  >
+                    {isLoadingPrompts ? (
+                      <SkeletonList />
+                    ) : (
+                      <div className="flex flex-col gap-2.5">
+                        {/* IA Padrão */}
+                        <PromptRow
+                          selected={selectedPrompt === "default"}
+                          disabled={isRequesting}
+                          onClick={() => handleSelectPrompt("default")}
+                          icon={
+                            <Sparkles size={18} className="text-gray-700" />
+                          }
+                          iconWrapCls="bg-gray-100 ring-1 ring-gray-200"
+                          title="IA Padrão"
+                          chipLabel="Recomendada"
+                          chipCls="bg-amber-50 text-amber-800 ring-amber-100"
+                        />
+
+                        {filteredPrompts.length === 0 && !searchQuery ? null : filteredPrompts.length ===
+                          0 ? (
+                          <EmptySearch />
+                        ) : (
+                          filteredPrompts.map((prompt, i) => {
+                            const SourceIcon = getSourceIcon(prompt.source);
+                            const isSelected =
+                              selectedPrompt !== null &&
+                              selectedPrompt !== "default" &&
+                              selectedPrompt.id === prompt.id;
+                            return (
+                              <PromptRow
+                                key={prompt.id}
+                                index={i}
+                                selected={isSelected}
+                                disabled={isRequesting}
+                                onClick={() => handleSelectPrompt(prompt)}
+                                icon={
+                                  <PromptIcon
+                                    icon={prompt.icon}
+                                    size={18}
+                                    className="text-white"
+                                  />
+                                }
+                                iconWrapCls="bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+                                title={prompt.name}
+                                chipLabel={getSourceLabel(prompt.source)}
+                                chipCls={getSourceChip(prompt.source)}
+                                chipIcon={
+                                  <SourceIcon
+                                    size={10}
+                                    className="shrink-0"
+                                  />
+                                }
+                              />
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex flex-col gap-3 border-t border-gray-100 bg-gray-50/70 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-10 md:py-5">
+                    <p className="flex items-center gap-2 text-[11px] text-gray-500">
+                      <Sparkles size={12} className="text-amber-500" />
+                      {selectedPrompt
+                        ? selectedPrompt === "default"
+                          ? "IA padrão selecionada."
+                          : `Selecionada: ${selectedPrompt.name}`
+                        : "Selecione uma IA para continuar."}
+                    </p>
+                    <div className="flex items-center gap-2">
                       <button
-                        key={prompt.id}
-                        onClick={() => handleSelectPrompt(prompt)}
-                        disabled={isRequesting}
+                        type="button"
+                        onClick={handleCloseModal}
+                        className="rounded-full px-3.5 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmSelection}
+                        disabled={!selectedPrompt || isRequesting}
                         className={cn(
-                          "group relative flex w-full items-center gap-4 rounded-xl border-2 bg-white p-4 text-left shadow-sm transition-all duration-200",
-                          selectedPrompt &&
-                            selectedPrompt !== "default" &&
-                            selectedPrompt.id === prompt.id
-                            ? "border-gray-500 bg-gray-50 shadow-md shadow-gray-500/20"
-                            : "border-gray-100 hover:border-gray-300 hover:shadow-md hover:shadow-gray-500/10",
-                          isRequesting && "cursor-not-allowed opacity-50",
+                          "inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold text-white shadow-lg transition",
+                          !selectedPrompt || isRequesting
+                            ? "cursor-not-allowed bg-gray-300 shadow-none"
+                            : "bg-gradient-to-r from-gray-900 to-gray-700 shadow-gray-900/20 hover:scale-[1.02]",
                         )}
                       >
-                        {/* Ícone com gradiente melhorado */}
-                        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-500 via-gray-600 to-neutral-600 shadow-lg shadow-gray-500/30 transition-transform group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-gray-500/40">
-                          <PromptIcon
-                            icon={prompt.icon}
-                            size={24}
-                            className="text-white drop-shadow-sm"
-                          />
-                        </div>
-                        {/* Conteúdo do prompt */}
-                        <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-                          <span className="truncate font-semibold text-gray-900 transition-colors group-hover:text-gray-600">
-                            {prompt.name}
-                          </span>
-                          <div className="flex shrink-0 items-center gap-3">
-                            <span
-                              className={cn(
-                                "rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap shadow-sm transition-all",
-                                getSourceColor(prompt.source),
-                              )}
-                            >
-                              {getSourceLabel(prompt.source)}
-                            </span>
-                            {/* Indicador de seleção */}
-                            {selectedPrompt &&
-                              selectedPrompt !== "default" &&
-                              selectedPrompt.id === prompt.id && (
-                                <div className="flex items-center justify-center rounded-full bg-gray-600 p-1.5 shadow-lg">
-                                  <Check size={16} className="text-white" />
-                                </div>
-                              )}
-                          </div>
-                        </div>
+                        {isRequesting ? (
+                          <>
+                            <Loader2 size={13} className="animate-spin" />
+                            Solicitando...
+                          </>
+                        ) : (
+                          <>
+                            <Check size={13} />
+                            Confirmar transcrição
+                            <ArrowRight size={13} />
+                          </>
+                        )}
                       </button>
-                    ))
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Botão flutuante de confirmação */}
-            {selectedPrompt && (
-              <div className="animate-in fade-in absolute right-6 bottom-6 left-6 z-10 duration-300">
-                <button
-                  onClick={handleConfirmSelection}
-                  disabled={isRequesting}
-                  className={cn(
-                    "flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-gray-600 to-neutral-600 px-6 py-4 font-semibold text-white shadow-lg shadow-gray-500/50 transition-all hover:from-gray-700 hover:to-neutral-700 hover:shadow-xl hover:shadow-gray-500/60 disabled:cursor-not-allowed disabled:opacity-50",
-                  )}
-                >
-                  {isRequesting ? (
-                    <>
-                      <Loader2 className="animate-spin" size={20} />
-                      <span>Solicitando transcrição...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check size={20} />
-                      <span>
-                        Confirmar seleção de IA:{" "}
-                        {selectedPrompt === "default"
-                          ? "IA Padrão"
-                          : selectedPrompt.name}
-                      </span>
-                    </>
-                  )}
-                </button>
-              </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
             )}
-          </div>
-        </div>
-      </Modal>
+          </AnimatePresence>,
+          document.body,
+        )}
     </>
+  );
+}
+
+function PromptRow({
+  icon,
+  iconWrapCls,
+  title,
+  subtitle,
+  chipLabel,
+  chipCls,
+  chipIcon,
+  selected,
+  disabled,
+  onClick,
+  index = 0,
+}: {
+  icon: React.ReactNode;
+  iconWrapCls: string;
+  title: string;
+  subtitle?: string;
+  chipLabel: string;
+  chipCls: string;
+  chipIcon?: React.ReactNode;
+  selected: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  index?: number;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.18) }}
+      whileHover={!disabled ? { y: -1 } : undefined}
+      className={cn(
+        "group relative flex items-start gap-3 overflow-hidden rounded-2xl border p-3 text-left transition md:gap-4 md:p-4",
+        selected
+          ? "border-gray-900 bg-white shadow-[0_12px_30px_-18px_rgba(15,23,42,0.4)]"
+          : "border-gray-200/70 bg-white hover:border-gray-300 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.2)]",
+        disabled && "cursor-not-allowed opacity-50",
+      )}
+    >
+      {selected && (
+        <span
+          className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900"
+          aria-hidden
+        />
+      )}
+      <div
+        className={cn(
+          "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+          iconWrapCls,
+        )}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate text-sm font-semibold text-gray-900">
+            {title}
+          </p>
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold tracking-wider uppercase ring-1",
+              chipCls,
+            )}
+          >
+            {chipIcon}
+            {chipLabel}
+          </span>
+        </div>
+        {subtitle ? (
+          <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-gray-500">
+            {subtitle}
+          </p>
+        ) : null}
+      </div>
+      <div className="flex shrink-0 items-center pt-1">
+        <span
+          className={cn(
+            "flex h-6 w-6 items-center justify-center rounded-full transition",
+            selected
+              ? "bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+              : "border border-gray-200 bg-white text-gray-300 group-hover:border-gray-300",
+          )}
+        >
+          <Check size={12} strokeWidth={3} className={selected ? "" : "opacity-0"} />
+        </span>
+      </div>
+    </motion.button>
+  );
+}
+
+function SkeletonList() {
+  return (
+    <div className="flex flex-col gap-2.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-start gap-3 rounded-2xl border border-gray-200/60 bg-white p-4"
+        >
+          <div className="h-11 w-11 shrink-0 animate-pulse rounded-xl bg-gray-100" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3 w-1/3 animate-pulse rounded-full bg-gray-100" />
+            <div className="h-2.5 w-2/3 animate-pulse rounded-full bg-gray-100" />
+          </div>
+          <div className="h-6 w-6 animate-pulse rounded-full bg-gray-100" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptySearch() {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-12 text-center backdrop-blur-sm">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
+        <Search size={18} />
+      </div>
+      <p className="mt-4 text-sm font-semibold text-gray-900">
+        Nenhuma IA encontrada
+      </p>
+      <p className="mt-1 max-w-xs text-xs text-gray-500">
+        Tente buscar por outro nome ou limpe o campo.
+      </p>
+    </div>
   );
 }

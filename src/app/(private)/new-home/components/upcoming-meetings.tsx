@@ -20,6 +20,7 @@ import {
   meetingTypeLabel,
   useAgendaStore,
 } from "../agenda/use-agenda-store";
+import { PreRecordingModal } from "./pre-recording-modal";
 
 const typeAccent: Record<MeetingType, { cls: string; icon: typeof Video }> = {
   meet: { cls: "text-emerald-700 bg-emerald-50 ring-emerald-100", icon: Video },
@@ -45,6 +46,7 @@ export function UpcomingMeetings() {
   const removeMeeting = useAgendaStore((s) => s.removeMeeting);
 
   const upcoming = useMemo(() => getUpcoming(meetings).slice(0, 3), [meetings]);
+  const [prepping, setPrepping] = useState<Meeting | null>(null);
 
   return (
     <section className="flex flex-col gap-5">
@@ -79,13 +81,22 @@ export function UpcomingMeetings() {
                 key={meeting.id}
                 meeting={meeting}
                 index={i}
-                onOpen={() => router.push("/new-home/agenda")}
+                onOpen={() => setPrepping(meeting)}
                 onDelete={() => removeMeeting(meeting.id)}
               />
             ))}
           </AnimatePresence>
         </div>
       )}
+
+      <PreRecordingModal
+        meeting={prepping}
+        onClose={() => setPrepping(null)}
+        onStartRecording={(m) => {
+          setPrepping(null);
+          console.log("start recording for", m.id);
+        }}
+      />
     </section>
   );
 }
