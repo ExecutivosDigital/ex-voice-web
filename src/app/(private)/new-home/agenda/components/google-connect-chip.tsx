@@ -25,7 +25,7 @@ export function GoogleConnectChip() {
 
   if (googleConnected) {
     return (
-      <div className="flex items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50/60 py-1 pr-1 pl-3">
+      <div className="group flex h-9 items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50/60 pr-1 pl-3 transition">
         <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -38,7 +38,7 @@ export function GoogleConnectChip() {
         </span>
         <button
           onClick={disconnectGoogle}
-          className="inline-flex h-6 w-6 items-center justify-center rounded-full text-emerald-700/60 transition hover:bg-emerald-100 hover:text-emerald-800"
+          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-emerald-700/60 opacity-0 transition group-hover:opacity-100 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:opacity-100"
           aria-label="Desconectar"
         >
           <X size={12} />

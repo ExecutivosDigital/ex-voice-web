@@ -3,18 +3,22 @@
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowRight,
   CalendarPlus,
   Clock,
   MapPin,
   Monitor,
-  Pencil,
-  Trash2,
+  Sparkles,
   Video,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { MeetingFormModal } from "./components/meeting-form-modal";
+import { DayView } from "./components/day-view";
 import { GoogleConnectChip } from "./components/google-connect-chip";
+import { MeetingFormModal } from "./components/meeting-form-modal";
 import { MonthCalendar } from "./components/month-calendar";
+import { PreMeetingModal } from "./components/pre-meeting-modal";
+import { ViewSwitcher, AgendaView } from "./components/view-switcher";
+import { YearView } from "./components/year-view";
 import {
   Meeting,
   MeetingType,
@@ -64,67 +68,60 @@ function formatLongDate(iso: string) {
   });
 }
 
-function dayLabel(iso: string) {
-  const today = toISO(new Date());
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  if (iso === today) return "Hoje";
-  if (iso === toISO(tomorrow)) return "Amanhã";
-  const d = new Date(iso + "T00:00");
-  return d.toLocaleDateString("pt-BR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-  });
+function minutesBetween(iso: string, time: string) {
+  const target = new Date(`${iso}T${time}:00`);
+  return Math.round((target.getTime() - Date.now()) / 60000);
 }
 
 export default function AgendaPage() {
   const meetings = useAgendaStore((s) => s.meetings);
-  const removeMeeting = useAgendaStore((s) => s.removeMeeting);
 
   const todayISO = toISO(new Date());
   const [selectedDate, setSelectedDate] = useState(todayISO);
+  const [viewDate, setViewDate] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+  const [view, setView] = useState<AgendaView>("month");
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
   const [defaultDate, setDefaultDate] = useState<string | undefined>(undefined);
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [preMeeting, setPreMeeting] = useState<Meeting | null>(null);
 
   const sortedMeetings = useMemo(() => sortMeetings(meetings), [meetings]);
-
   const selectedDayMeetings = useMemo(
     () => sortedMeetings.filter((m) => m.date === selectedDate),
     [sortedMeetings, selectedDate],
   );
 
-  const upcomingDays = useMemo(() => {
-    const future = sortedMeetings.filter((m) => m.date >= todayISO);
-    const map = new Map<string, Meeting[]>();
-    for (const m of future) {
-      if (!map.has(m.date)) map.set(m.date, []);
-      map.get(m.date)!.push(m);
-    }
-    return Array.from(map.entries()).slice(0, 8);
+  const nextMeeting = useMemo(() => {
+    const now = Date.now();
+    return (
+      sortedMeetings.find((m) => {
+        const start = new Date(`${m.date}T${m.startTime}:00`).getTime();
+        return start >= now;
+      }) ?? null
+    );
+  }, [sortedMeetings]);
+
+  const todayMeetings = useMemo(
+    () => sortedMeetings.filter((m) => m.date === todayISO),
+    [sortedMeetings, todayISO],
+  );
+  const weekMeetings = useMemo(() => {
+    const d = new Date();
+    const in7 = new Date();
+    in7.setDate(d.getDate() + 7);
+    const end = toISO(in7);
+    return sortedMeetings.filter((m) => m.date >= todayISO && m.date <= end);
   }, [sortedMeetings, todayISO]);
-
-  const totalCount = meetings.length;
-  const todayCount = meetings.filter((m) => m.date === todayISO).length;
-
-  const handleDelete = (id: string) => {
-    if (confirmingId !== id) {
-      setConfirmingId(id);
-      setTimeout(() => {
-        setConfirmingId((current) => (current === id ? null : current));
-      }, 2500);
-      return;
-    }
-    setConfirmingId(null);
-    removeMeeting(id);
-  };
 
   const handleEdit = (meeting: Meeting) => {
     setEditing(meeting);
     setDefaultDate(undefined);
     setModalOpen(true);
+    setPreMeeting(null);
   };
 
   const handleNew = (date?: string) => {
@@ -133,147 +130,102 @@ export default function AgendaPage() {
     setModalOpen(true);
   };
 
+  const handleSelectMonth = (year: number, month: number) => {
+    setViewDate(new Date(year, month, 1));
+    setView("month");
+  };
+
+  const handleSelectDate = (iso: string) => {
+    setSelectedDate(iso);
+    const d = new Date(iso + "T00:00");
+    setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
+  };
+
   return (
-    <div className="flex w-full flex-col gap-10">
-      <section className="flex flex-col gap-2">
-        <p className="text-xs font-medium tracking-[0.18em] text-gray-400 capitalize">
-          Agenda
-        </p>
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-balance text-2xl font-semibold text-gray-900 md:text-3xl">
-              Sua agenda.
-            </h1>
-            <p className="mt-1 max-w-xl text-sm leading-relaxed text-gray-500">
-              Veja tudo do mês num toque. Clique em um dia para abrir os
-              compromissos ou confira a lista dos próximos dias.
-            </p>
-          </div>
+    <div className="flex w-full flex-col gap-8">
+      <CockpitHeader
+        todayCount={todayMeetings.length}
+        weekCount={weekMeetings.length}
+        totalCount={meetings.length}
+        nextMeeting={nextMeeting}
+        onOpenNext={() => nextMeeting && setPreMeeting(nextMeeting)}
+      />
 
-          <div className="flex flex-wrap items-center gap-2">
-            <GoogleConnectChip />
-            <Stat label="Hoje" value={todayCount} />
-            <Stat label="Total" value={totalCount} />
-            <button
-              onClick={() => handleNew()}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-4 text-xs font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
-            >
-              <CalendarPlus size={13} />
-              Nova reunião
-            </button>
-          </div>
-        </div>
-      </section>
+      <ViewToolbar view={view} onViewChange={setView} />
 
-      <section className="grid grid-cols-1 gap-5 lg:grid-cols-[1.35fr_1fr]">
-        <div className="rounded-3xl border border-gray-200/70 bg-white/80 p-5 backdrop-blur-sm shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:p-6">
-          <MonthCalendar
-            meetings={meetings}
-            selectedDate={selectedDate}
-            onSelectDate={setSelectedDate}
-          />
-        </div>
-
-        <div className="flex flex-col gap-3 rounded-3xl border border-gray-200/70 bg-white/80 p-5 backdrop-blur-sm md:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold tracking-[0.3em] text-gray-400 uppercase">
-                Dia selecionado
-              </p>
-              <h3 className="mt-1 truncate text-lg font-semibold text-gray-900 capitalize">
-                {selectedDate === todayISO
-                  ? "Hoje"
-                  : formatLongDate(selectedDate)}
-              </h3>
-              {selectedDate !== todayISO ? (
-                <p className="text-[11px] text-gray-400 capitalize">
-                  {formatLongDate(selectedDate)}
-                </p>
-              ) : null}
-            </div>
-            <button
-              onClick={() => handleNew(selectedDate)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
-            >
-              <CalendarPlus size={12} />
-              Adicionar
-            </button>
-          </div>
-
-          {selectedDayMeetings.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-10 text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-gray-100 to-gray-200">
-                <CalendarPlus size={18} className="text-gray-500" />
-              </div>
-              <p className="mt-3 text-sm font-semibold text-gray-800">
-                Dia livre
-              </p>
-              <p className="mt-0.5 max-w-xs text-xs text-gray-500">
-                Nenhuma reunião marcada. Que tal agendar uma?
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <AnimatePresence initial={false}>
-                {selectedDayMeetings.map((meeting) => (
-                  <MeetingRow
-                    key={meeting.id}
-                    meeting={meeting}
-                    confirming={confirmingId === meeting.id}
-                    onEdit={() => handleEdit(meeting)}
-                    onDelete={() => handleDelete(meeting.id)}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.25em] text-gray-400 uppercase">
-              Próximos dias
-            </p>
-            <h2 className="mt-1 text-xl font-semibold text-gray-900 md:text-2xl">
-              Lista rápida
-            </h2>
-          </div>
-          <span className="text-[11px] font-medium text-gray-400">
-            {upcomingDays.reduce((acc, [, items]) => acc + items.length, 0)}{" "}
-            reuniões a caminho
-          </span>
-        </div>
-
-        {upcomingDays.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-14 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200">
-              <CalendarPlus size={20} className="text-gray-500" />
-            </div>
-            <p className="mt-3 text-sm font-semibold text-gray-900">
-              Agenda livre
-            </p>
-            <p className="mt-1 max-w-sm text-xs text-gray-500">
-              Nenhum compromisso à vista. Crie um ou conecte o Google Agenda.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {upcomingDays.map(([date, items]) => (
-              <DayColumn
-                key={date}
-                date={date}
-                items={items}
-                isSelected={date === selectedDate}
-                isToday={date === todayISO}
-                onSelect={() => setSelectedDate(date)}
-                onAdd={() => handleNew(date)}
-              />
-            ))}
-          </div>
+      <AnimatePresence mode="wait">
+        {view === "day" && (
+          <motion.div
+            key="day"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+          >
+            <DayView
+              meetings={meetings}
+              selectedDate={selectedDate}
+              onSelectDate={handleSelectDate}
+              onOpenMeeting={(m) => setPreMeeting(m)}
+              onAdd={(d) => handleNew(d)}
+            />
+          </motion.div>
         )}
-      </section>
+
+        {view === "month" && (
+          <motion.section
+            key="month"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+            className="grid grid-cols-1 gap-5 lg:grid-cols-[1.35fr_1fr]"
+          >
+            <div className="rounded-3xl border border-gray-200/70 bg-white/80 p-5 backdrop-blur-sm shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:p-6">
+              <MonthCalendar
+                meetings={meetings}
+                selectedDate={selectedDate}
+                viewDate={viewDate}
+                onSelectDate={setSelectedDate}
+                onViewDateChange={setViewDate}
+              />
+            </div>
+
+            <SelectedDayPanel
+              selectedDate={selectedDate}
+              todayISO={todayISO}
+              meetings={selectedDayMeetings}
+              onAdd={() => handleNew(selectedDate)}
+              onOpen={(m) => setPreMeeting(m)}
+              onOpenDayView={() => setView("day")}
+            />
+          </motion.section>
+        )}
+
+        {view === "year" && (
+          <motion.div
+            key="year"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+          >
+            <YearView
+              meetings={meetings}
+              year={viewDate.getFullYear()}
+              selectedDate={selectedDate}
+              onYearChange={(y) =>
+                setViewDate(new Date(y, viewDate.getMonth(), 1))
+              }
+              onSelectMonth={handleSelectMonth}
+              onSelectDate={(iso) => {
+                handleSelectDate(iso);
+                setView("day");
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <MeetingFormModal
         open={modalOpen}
@@ -281,236 +233,406 @@ export default function AgendaPage() {
         editing={editing}
         defaultDate={defaultDate}
       />
+
+      <PreMeetingModal
+        meeting={preMeeting}
+        onClose={() => setPreMeeting(null)}
+        onEdit={handleEdit}
+        onStartRecording={(m) => {
+          setPreMeeting(null);
+          // Hook de gravação integra aqui depois.
+          console.log("start recording for", m.id);
+        }}
+      />
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex h-9 flex-col items-start justify-center rounded-full border border-gray-200 bg-white/80 px-3 backdrop-blur-sm">
-      <span className="text-[8px] font-semibold tracking-[0.2em] text-gray-400 uppercase leading-none">
-        {label}
-      </span>
-      <span className="text-xs font-semibold text-gray-900 leading-tight">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function DayColumn({
-  date,
-  items,
-  isSelected,
-  isToday,
-  onSelect,
-  onAdd,
+function ViewToolbar({
+  view,
+  onViewChange,
 }: {
-  date: string;
-  items: Meeting[];
-  isSelected: boolean;
-  isToday: boolean;
-  onSelect: () => void;
-  onAdd: () => void;
+  view: AgendaView;
+  onViewChange: (v: AgendaView) => void;
 }) {
-  const d = new Date(date + "T00:00");
-  const dayNum = d.getDate();
-  const weekday = d.toLocaleDateString("pt-BR", { weekday: "short" });
-
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className={cn(
-        "group flex flex-col gap-3 rounded-2xl border bg-white p-4 transition",
-        isSelected
-          ? "border-gray-900/70 shadow-[0_10px_30px_-18px_rgba(17,24,39,0.45)]"
-          : "border-gray-200/70 hover:border-gray-300 hover:shadow-[0_6px_18px_-12px_rgba(15,23,42,0.18)]",
-      )}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <button
-          onClick={onSelect}
-          className="flex items-center gap-2.5 text-left"
-        >
-          <div
-            className={cn(
-              "flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl font-semibold transition",
-              isSelected
-                ? "bg-gray-900 text-white"
-                : isToday
-                  ? "bg-gray-100 text-gray-900"
-                  : "bg-gray-50 text-gray-700",
-            )}
-          >
-            <span className="text-[9px] font-semibold tracking-wider uppercase opacity-70">
-              {weekday.slice(0, 3)}
-            </span>
-            <span className="text-sm tabular-nums">{dayNum}</span>
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 capitalize">
-              {dayLabel(date)}
-            </p>
-            <p className="text-[11px] text-gray-400">
-              {items.length} {items.length === 1 ? "reunião" : "reuniões"}
-            </p>
-          </div>
-        </button>
-        <button
-          onClick={onAdd}
-          aria-label="Adicionar neste dia"
-          className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-900"
-        >
-          <CalendarPlus size={13} />
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-1.5 border-t border-gray-100 pt-3">
-        {items.slice(0, 4).map((meeting) => (
-          <CompactRow
-            key={meeting.id}
-            meeting={meeting}
-            onClick={onSelect}
-          />
-        ))}
-        {items.length > 4 ? (
-          <button
-            onClick={onSelect}
-            className="mt-1 self-start text-[11px] font-semibold text-gray-500 transition hover:text-gray-900"
-          >
-            + {items.length - 4} reuniões
-          </button>
-        ) : null}
-      </div>
-    </motion.div>
+    <div className="flex items-center gap-3">
+      <span className="hidden text-[10px] font-semibold tracking-[0.3em] text-gray-400 uppercase md:inline">
+        Visualizar por
+      </span>
+      <ViewSwitcher value={view} onChange={onViewChange} />
+      <span className="h-px flex-1 bg-gradient-to-r from-gray-200 to-transparent" />
+    </div>
   );
 }
 
-function MeetingRow({
+function CockpitHeader({
+  todayCount,
+  weekCount,
+  totalCount,
+  nextMeeting,
+  onOpenNext,
+}: {
+  todayCount: number;
+  weekCount: number;
+  totalCount: number;
+  nextMeeting: Meeting | null;
+  onOpenNext: () => void;
+}) {
+  const nextMins = useMemo(
+    () =>
+      nextMeeting
+        ? minutesBetween(nextMeeting.date, nextMeeting.startTime)
+        : null,
+    [nextMeeting],
+  );
+
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-medium tracking-[0.18em] text-gray-400 capitalize">
+          Agenda
+        </p>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-balance text-2xl font-semibold text-gray-900 md:text-3xl">
+              Seu cockpit.
+            </h1>
+            <p className="mt-1 max-w-xl text-sm leading-relaxed text-gray-500">
+              Próximas conversas, direcionamentos da IA e histórico do cliente
+              no mesmo lugar. Clique numa reunião para abrir o{" "}
+              <span className="font-medium text-gray-700">Pre-Meeting</span>.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <GoogleConnectChip />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <NextMeetingCard
+          meeting={nextMeeting}
+          minutes={nextMins}
+          onOpen={onOpenNext}
+        />
+        <StatCard label="Hoje" value={todayCount} hint="compromissos" tone="light" />
+        <StatCard
+          label="Próx. 7 dias"
+          value={weekCount}
+          hint="na semana"
+          tone="light"
+        />
+        <StatCard
+          label="Agenda total"
+          value={totalCount}
+          hint="registradas"
+          tone="light"
+        />
+      </div>
+    </section>
+  );
+}
+
+function NextMeetingCard({
   meeting,
-  confirming,
-  onEdit,
-  onDelete,
+  minutes,
+  onOpen,
 }: {
-  meeting: Meeting;
-  confirming: boolean;
-  onEdit: () => void;
-  onDelete: () => void;
+  meeting: Meeting | null;
+  minutes: number | null;
+  onOpen: () => void;
 }) {
+  if (!meeting) {
+    return (
+      <div className="flex items-center justify-between rounded-3xl border border-dashed border-gray-200 bg-white/70 p-5">
+        <div>
+          <p className="text-[10px] font-semibold tracking-[0.28em] text-gray-400 uppercase">
+            Próximo compromisso
+          </p>
+          <p className="mt-1.5 text-sm font-semibold text-gray-900">
+            Agenda livre
+          </p>
+          <p className="text-xs text-gray-500">
+            Nenhuma reunião à vista. Hora de respirar.
+          </p>
+        </div>
+        <Sparkles className="text-gray-300" size={28} />
+      </div>
+    );
+  }
+
   const accent = typeAccent[meeting.type];
   const Icon = accent.icon;
+  const countdown =
+    minutes === null
+      ? ""
+      : minutes <= 0
+        ? "Agora"
+        : minutes < 60
+          ? `em ${minutes} min`
+          : minutes < 60 * 24
+            ? `em ${Math.floor(minutes / 60)}h`
+            : `em ${Math.floor(minutes / 60 / 24)}d`;
+
+  const urgent = minutes !== null && minutes <= 15;
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -8, scale: 0.98 }}
-      transition={{ duration: 0.22 }}
-      className="group relative flex items-stretch gap-3 overflow-hidden rounded-2xl border border-gray-200/70 bg-white p-3 pr-2 transition hover:border-gray-300 hover:shadow-[0_8px_24px_-14px_rgba(15,23,42,0.2)]"
+    <motion.button
+      whileHover={{ y: -2 }}
+      onClick={onOpen}
+      className={cn(
+        "group relative flex items-center gap-4 overflow-hidden rounded-3xl border p-5 text-left transition",
+        urgent
+          ? "border-red-200 bg-gradient-to-br from-red-50 via-white to-white shadow-[0_12px_40px_-20px_rgba(239,68,68,0.35)]"
+          : "border-gray-900/80 bg-gradient-to-br from-gray-900 via-[#111318] to-[#1a1d24] text-white shadow-[0_12px_40px_-20px_rgba(17,24,39,0.6)]",
+      )}
     >
-      <div className={cn("w-1 rounded-full", accent.bar)} />
+      <div
+        className={cn(
+          "pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full blur-3xl",
+          urgent ? "bg-red-500/20" : "bg-emerald-500/10",
+        )}
+      />
 
-      <div className="flex shrink-0 flex-col items-start gap-0.5 pr-2 md:min-w-[64px]">
-        <span className="text-sm font-semibold text-gray-900 tabular-nums">
-          {meeting.startTime}
-        </span>
-        <span className="text-[10px] text-gray-400 tabular-nums">
-          {meeting.endTime}
-        </span>
+      <div
+        className={cn(
+          "relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ring-1",
+          urgent
+            ? "bg-white text-red-600 ring-red-200"
+            : "bg-white/10 text-white ring-white/15",
+        )}
+      >
+        <Icon size={22} />
       </div>
 
-      <div className="min-w-0 flex-1 border-l border-gray-100 pl-3">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <p className="truncate text-sm font-semibold text-gray-900">
-            {meeting.title}
-          </p>
+      <div className="relative min-w-0 flex-1">
+        <div className="flex items-center gap-2">
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wider uppercase ring-1",
-              accent.cls,
+              "text-[10px] font-semibold tracking-[0.28em] uppercase",
+              urgent ? "text-red-600" : "text-white/50",
             )}
           >
-            <Icon size={9} />
-            {meetingTypeLabel(meeting.type)}
+            Próximo
+          </span>
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase",
+              urgent
+                ? "bg-red-500 text-white"
+                : minutes !== null && minutes < 60
+                  ? "bg-amber-400 text-amber-950"
+                  : "bg-white/10 text-white ring-1 ring-white/20",
+            )}
+          >
+            {urgent && (
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-80" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+              </span>
+            )}
+            {countdown || meetingTypeLabel(meeting.type)}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-[11px] text-gray-500">
-          Com{" "}
-          <span className="font-medium text-gray-700">{meeting.client}</span>
-          {meeting.location ? ` · ${meeting.location}` : ""}
+        <h3
+          className={cn(
+            "mt-1 truncate text-base font-semibold md:text-lg",
+            urgent ? "text-gray-900" : "text-white",
+          )}
+        >
+          {meeting.title}
+        </h3>
+        <p
+          className={cn(
+            "mt-0.5 flex items-center gap-2 text-[11px]",
+            urgent ? "text-gray-600" : "text-white/60",
+          )}
+        >
+          <Clock size={11} />
+          {meeting.startTime} – {meeting.endTime} · Com {meeting.client}
         </p>
       </div>
 
-      <div className="flex shrink-0 items-center gap-0.5">
-        <span className="hidden items-center gap-1 pr-1 text-[10px] text-gray-400 md:flex">
-          <Clock size={10} />
-          {durationLabel(meeting.startTime, meeting.endTime)}
-        </span>
-        <button
-          type="button"
-          onClick={onEdit}
-          aria-label="Editar"
-          className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 opacity-0 transition hover:bg-gray-100 hover:text-gray-900 group-hover:opacity-100"
-        >
-          <Pencil size={12} />
-        </button>
-        <button
-          type="button"
-          onClick={onDelete}
-          aria-label={confirming ? "Confirmar exclusão" : "Excluir"}
+      <ArrowRight
+        size={18}
+        className={cn(
+          "relative shrink-0 transition-transform group-hover:translate-x-1",
+          urgent ? "text-gray-500" : "text-white/70",
+        )}
+      />
+    </motion.button>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: number;
+  hint: string;
+  tone: "light" | "dark";
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col justify-between rounded-3xl border p-5",
+        tone === "dark"
+          ? "border-gray-900 bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+          : "border-gray-200/70 bg-white/80 backdrop-blur-sm",
+      )}
+    >
+      <p
+        className={cn(
+          "text-[10px] font-semibold tracking-[0.28em] uppercase",
+          tone === "dark" ? "text-white/60" : "text-gray-400",
+        )}
+      >
+        {label}
+      </p>
+      <div className="mt-4 flex items-baseline gap-1.5">
+        <span
           className={cn(
-            "inline-flex h-7 items-center justify-center gap-1 rounded-full px-1.5 text-[9px] font-semibold tracking-wider uppercase transition",
-            confirming
-              ? "bg-red-50 text-red-600 ring-1 ring-red-200"
-              : "w-7 text-gray-400 opacity-0 hover:bg-red-50 hover:text-red-600 group-hover:opacity-100",
+            "text-3xl font-semibold tabular-nums",
+            tone === "dark" ? "text-white" : "text-gray-900",
           )}
         >
-          <Trash2 size={12} />
-          {confirming ? "Confirmar" : null}
-        </button>
+          {value}
+        </span>
+        <span
+          className={cn(
+            "text-[11px] font-medium",
+            tone === "dark" ? "text-white/60" : "text-gray-400",
+          )}
+        >
+          {hint}
+        </span>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-function CompactRow({
-  meeting,
-  onClick,
+function SelectedDayPanel({
+  selectedDate,
+  todayISO,
+  meetings,
+  onAdd,
+  onOpen,
+  onOpenDayView,
 }: {
-  meeting: Meeting;
-  onClick: () => void;
+  selectedDate: string;
+  todayISO: string;
+  meetings: Meeting[];
+  onAdd: () => void;
+  onOpen: (meeting: Meeting) => void;
+  onOpenDayView: () => void;
 }) {
-  const accent = typeAccent[meeting.type];
   return (
-    <button
-      onClick={onClick}
-      className="group flex items-center gap-2.5 rounded-xl border border-transparent px-2 py-2 text-left transition hover:border-gray-200 hover:bg-gray-50/60"
-    >
-      <span className={cn("h-7 w-0.5 shrink-0 rounded-full", accent.bar)} />
-      <span className="text-[11px] font-semibold text-gray-900 tabular-nums">
-        {meeting.startTime}
-      </span>
-      <span className="min-w-0 flex-1 truncate text-xs text-gray-700 group-hover:text-gray-900">
-        {meeting.title}
-      </span>
-      <span className="hidden truncate text-[10px] text-gray-400 sm:inline">
-        {meeting.client}
-      </span>
-    </button>
-  );
-}
+    <div className="flex flex-col gap-3 rounded-3xl border border-gray-200/70 bg-white/80 p-5 backdrop-blur-sm md:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold tracking-[0.3em] text-gray-400 uppercase">
+            Dia selecionado
+          </p>
+          <h3 className="mt-1 truncate text-lg font-semibold text-gray-900 capitalize">
+            {selectedDate === todayISO ? "Hoje" : formatLongDate(selectedDate)}
+          </h3>
+          <p className="text-[11px] text-gray-400 capitalize">
+            {meetings.length} {meetings.length === 1 ? "compromisso" : "compromissos"}
+            {selectedDate !== todayISO
+              ? ` · ${formatLongDate(selectedDate)}`
+              : ""}
+          </p>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onOpenDayView}
+            className="inline-flex h-8 items-center gap-1 rounded-full border border-gray-200 bg-white px-3 text-[10px] font-semibold tracking-wider text-gray-600 uppercase transition hover:border-gray-300 hover:text-gray-900"
+          >
+            Abrir dia
+            <ArrowRight size={11} />
+          </button>
+          <button
+            onClick={onAdd}
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-gray-900 px-3 text-[11px] font-semibold text-white transition hover:bg-gray-700"
+          >
+            <CalendarPlus size={12} />
+            Adicionar
+          </button>
+        </div>
+      </div>
 
-function durationLabel(start: string, end: string) {
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  const mins = eh * 60 + em - (sh * 60 + sm);
-  if (mins <= 0) return "--";
-  if (mins < 60) return `${mins}min`;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return m === 0 ? `${h}h` : `${h}h${m}`;
+      {meetings.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-10 text-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-gray-100 to-gray-200">
+            <CalendarPlus size={18} className="text-gray-500" />
+          </div>
+          <p className="mt-3 text-sm font-semibold text-gray-800">Dia livre</p>
+          <p className="mt-0.5 max-w-xs text-xs text-gray-500">
+            Nenhuma reunião marcada. Agende ou use esse tempo para revisar.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {meetings.map((meeting) => (
+            <button
+              key={meeting.id}
+              onClick={() => onOpen(meeting)}
+              className="group relative flex items-stretch gap-3 overflow-hidden rounded-2xl border border-gray-200/70 bg-white p-3 text-left transition hover:border-gray-300 hover:shadow-[0_8px_24px_-14px_rgba(15,23,42,0.25)]"
+            >
+              <div
+                className={cn(
+                  "w-1 rounded-full",
+                  typeAccent[meeting.type].bar,
+                )}
+              />
+              <div className="flex shrink-0 flex-col items-start gap-0.5 pr-2 md:min-w-[64px]">
+                <span className="text-sm font-semibold text-gray-900 tabular-nums">
+                  {meeting.startTime}
+                </span>
+                <span className="text-[10px] text-gray-400 tabular-nums">
+                  {meeting.endTime}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1 border-l border-gray-100 pl-3">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <p className="truncate text-sm font-semibold text-gray-900">
+                    {meeting.title}
+                  </p>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wider uppercase ring-1",
+                      typeAccent[meeting.type].cls,
+                    )}
+                  >
+                    {meetingTypeLabel(meeting.type)}
+                  </span>
+                </div>
+                <p className="mt-0.5 truncate text-[11px] text-gray-500">
+                  Com{" "}
+                  <span className="font-medium text-gray-700">
+                    {meeting.client}
+                  </span>
+                  {meeting.location ? ` · ${meeting.location}` : ""}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center">
+                <span className="hidden items-center gap-1 rounded-full bg-gray-900 px-2.5 py-1 text-[9px] font-bold tracking-wider text-white uppercase opacity-0 transition group-hover:opacity-100 md:inline-flex">
+                  <Sparkles size={10} /> Pre-Meeting
+                </span>
+                <ArrowRight
+                  size={14}
+                  className="ml-1 text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-gray-900"
+                />
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

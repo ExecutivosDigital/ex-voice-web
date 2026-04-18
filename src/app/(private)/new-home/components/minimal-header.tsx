@@ -114,7 +114,7 @@ export function MinimalHeader() {
 
             <button
               onClick={() => router.push("/new-home/plans")}
-              className="group relative ml-1 inline-flex items-center gap-1.5 overflow-hidden rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 px-3.5 py-1.5 text-sm font-semibold text-white shadow-[0_4px_14px_-4px_rgba(245,158,11,0.65)] transition hover:scale-[1.03]"
+              className="group relative ml-1 inline-flex items-center gap-1.5 overflow-hidden rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 px-3.5 py-1.5 text-sm font-semibold text-gray-900 shadow-[0_4px_14px_-4px_rgba(245,158,11,0.65)] transition hover:scale-[1.03]"
               aria-label="Fazer upgrade"
             >
               <span className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:250%_100%] animate-[shimmer_2.8s_ease-in-out_infinite]" />
@@ -205,33 +205,6 @@ export function MinimalHeader() {
           </div>
         </div>
 
-        <div className="mx-auto flex w-full max-w-6xl items-center gap-1 overflow-x-auto px-4 pb-3 md:hidden">
-          {NAV_ITEMS.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <button
-                key={item.href}
-                onClick={() => router.push(item.href)}
-                className={cn(
-                  "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                  active
-                    ? "bg-gradient-to-r from-gray-900 to-gray-700 text-white shadow-sm"
-                    : "bg-gray-100/70 text-gray-600",
-                )}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-          <button
-            onClick={() => router.push("/new-home/plans")}
-            className="group relative inline-flex shrink-0 items-center gap-1 overflow-hidden rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
-          >
-            <span className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:250%_100%] animate-[shimmer_2.8s_ease-in-out_infinite]" />
-            <Sparkles size={12} className="relative" />
-            <span className="relative">Planos</span>
-          </button>
-        </div>
       </header>
     </>
   );

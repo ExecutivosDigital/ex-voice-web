@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { FloatingTrialWidget } from "./new-home/components/floating-trial-widget";
 import { MinimalHeader } from "./new-home/components/minimal-header";
+import { MobileBottomNav } from "./new-home/components/mobile-bottom-nav";
 // coment
 export default function RootLayout({
   children,
@@ -46,7 +47,14 @@ export default function RootLayout({
     };
   }, [pathname]);
 
-  const isNewHome = pathname === "/new-home" || pathname.startsWith("/new-home/");
+  const isNewHome =
+    pathname === "/new-home" ||
+    pathname.startsWith("/new-home/") ||
+    pathname === "/new-home-Mockup" ||
+    pathname === "/new-home-Dispositivo" ||
+    pathname === "/new-home-Cor" ||
+    pathname === "/new-home-Logos" ||
+    pathname === "/new-home-minimalista";
 
   const isFullscreen =
     pathname === "/checkout" ||
@@ -85,7 +93,6 @@ export default function RootLayout({
       <AuthGuard>
         <GeneralContextProvider>
           <ChatPageProvider>
-            <MobileAppBlocker />
             <Sidebar />
             <div className="relative min-h-screen w-full bg-[radial-gradient(1200px_600px_at_10%_-10%,rgba(156,163,175,0.18),transparent),radial-gradient(900px_500px_at_110%_10%,rgba(99,102,241,0.08),transparent)]">
               <MinimalHeader />
@@ -93,11 +100,12 @@ export default function RootLayout({
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
-                className="mx-auto w-full max-w-6xl px-4 py-10 md:px-6 md:py-14"
+                className="mx-auto w-full max-w-6xl px-4 pt-6 pb-28 md:px-6 md:py-14"
               >
                 {children}
               </motion.main>
               <FloatingTrialWidget />
+              <MobileBottomNav />
             </div>
           </ChatPageProvider>
         </GeneralContextProvider>

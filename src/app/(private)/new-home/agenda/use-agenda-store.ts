@@ -18,6 +18,23 @@ export interface Meeting {
   source: MeetingSource;
 }
 
+export interface PastMeetingSummary {
+  id: string;
+  date: string;
+  title: string;
+  highlights: string[];
+  nextSteps: string[];
+  sentiment: "positivo" | "neutro" | "atencao";
+}
+
+export interface AiDirectives {
+  objective: string;
+  resume: string[];
+  watchouts: string[];
+  questions: string[];
+  tone: string;
+}
+
 function toISODate(offsetDays: number) {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
@@ -164,4 +181,139 @@ export function meetingTypeLabel(type: MeetingType) {
     case "presencial":
       return "Presencial";
   }
+}
+
+const MOCK_HISTORY: Record<string, PastMeetingSummary[]> = {
+  "Maria Silva": [
+    {
+      id: "h-ms-1",
+      date: toISODate(-7),
+      title: "Sessão 3 · Plano de ação",
+      highlights: [
+        "Relatou progresso nos hábitos de sono.",
+        "Identificou gatilho de ansiedade no trabalho.",
+      ],
+      nextSteps: [
+        "Continuar diário de humor 3x por semana.",
+        "Testar técnica de respiração 4-7-8 antes de reuniões.",
+      ],
+      sentiment: "positivo",
+    },
+    {
+      id: "h-ms-2",
+      date: toISODate(-14),
+      title: "Sessão 2 · Mapeamento",
+      highlights: ["Mapeamos as 3 frentes principais de stress."],
+      nextSteps: ["Enviar material de apoio sobre autocuidado."],
+      sentiment: "neutro",
+    },
+  ],
+  "João Santos": [
+    {
+      id: "h-js-1",
+      date: toISODate(-3),
+      title: "Call comercial · Apresentação",
+      highlights: [
+        "Demonstrou interesse no plano Pro.",
+        "Perguntou sobre integração com CRM.",
+      ],
+      nextSteps: [
+        "Enviar proposta revisada até sexta.",
+        "Confirmar reunião com time técnico dele.",
+      ],
+      sentiment: "positivo",
+    },
+  ],
+  "Ana Costa": [
+    {
+      id: "h-ac-1",
+      date: toISODate(-30),
+      title: "Contato inicial",
+      highlights: ["Primeira consulta: histórico coletado."],
+      nextSteps: ["Preparar plano personalizado para apresentar."],
+      sentiment: "neutro",
+    },
+  ],
+  "Carlos Mendes": [
+    {
+      id: "h-cm-1",
+      date: toISODate(-10),
+      title: "Revisão trimestral",
+      highlights: [
+        "Resultados abaixo do esperado em 2 indicadores.",
+        "Ficou preocupado com o prazo do projeto X.",
+      ],
+      nextSteps: [
+        "Revisar cronograma do projeto X.",
+        "Alinhar expectativas sobre o Q2.",
+      ],
+      sentiment: "atencao",
+    },
+  ],
+  "Beatriz Lima": [
+    {
+      id: "h-bl-1",
+      date: toISODate(-21),
+      title: "Primeira consulta",
+      highlights: ["Queixa principal: dores recorrentes."],
+      nextSteps: ["Agendar exames complementares."],
+      sentiment: "neutro",
+    },
+  ],
+};
+
+export function getPastMeetings(client: string): PastMeetingSummary[] {
+  return MOCK_HISTORY[client] ?? [];
+}
+
+export function getAiDirectives(meeting: Meeting): AiDirectives {
+  const history = getPastMeetings(meeting.client);
+  const lastSession = history[0];
+
+  if (!lastSession) {
+    return {
+      objective:
+        "Primeiro contato. Foque em entender o contexto, expectativas e dores principais.",
+      resume: [
+        "Apresente-se brevemente e explique a estrutura da conversa.",
+        "Deixe a pessoa falar mais que você nos primeiros 10 minutos.",
+      ],
+      watchouts: [
+        "Evite propor soluções antes de entender o cenário completo.",
+      ],
+      questions: [
+        "O que te trouxe até aqui hoje?",
+        "Como está a situação atualmente?",
+        "Se saíssemos daqui com uma única vitória, qual seria?",
+      ],
+      tone: "Acolhedor, curioso, sem pressa.",
+    };
+  }
+
+  const tone =
+    lastSession.sentiment === "atencao"
+      ? "Escuta ativa e validação. Evite frases defensivas."
+      : lastSession.sentiment === "positivo"
+        ? "Confiante e consultivo. Mantenha o ritmo."
+        : "Neutro e investigativo. Aprofunde pontos abertos.";
+
+  return {
+    objective: `Dar continuidade ao que ficou em aberto na sessão de ${new Date(lastSession.date + "T00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}. Feche pelo menos um next step.`,
+    resume: lastSession.nextSteps,
+    watchouts:
+      lastSession.sentiment === "atencao"
+        ? [
+            "O cliente saiu preocupado na última conversa.",
+            "Tópico sensível: evite retomar sem contextualizar.",
+          ]
+        : [
+            "Confirme se os combinados da última sessão foram executados.",
+          ],
+    questions: [
+      `Como foi colocar em prática "${lastSession.nextSteps[0] ?? "os combinados"}"?`,
+      "O que mudou desde a última vez que conversamos?",
+      "Existe algo novo que apareceu e que precisamos incluir aqui?",
+    ],
+    tone,
+  };
 }

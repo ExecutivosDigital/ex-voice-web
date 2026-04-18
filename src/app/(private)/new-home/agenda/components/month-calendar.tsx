@@ -2,12 +2,9 @@
 
 import { cn } from "@/utils/cn";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Dot } from "lucide-react";
-import { useMemo, useState } from "react";
-import {
-  Meeting,
-  MeetingType,
-} from "../../agenda/use-agenda-store";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useMemo } from "react";
+import { Meeting, MeetingType } from "../../agenda/use-agenda-store";
 
 const WEEKDAYS_SHORT = ["D", "S", "T", "Q", "Q", "S", "S"];
 const MONTHS = [
@@ -77,21 +74,20 @@ function buildMonthGrid(viewDate: Date) {
 interface MonthCalendarProps {
   meetings: Meeting[];
   selectedDate: string;
+  viewDate: Date;
   onSelectDate: (iso: string) => void;
+  onViewDateChange: (date: Date) => void;
+  compact?: boolean;
 }
 
 export function MonthCalendar({
   meetings,
   selectedDate,
+  viewDate,
   onSelectDate,
+  onViewDateChange,
+  compact,
 }: MonthCalendarProps) {
-  const initial = selectedDate
-    ? new Date(selectedDate + "T00:00")
-    : new Date();
-  const [viewDate, setViewDate] = useState(
-    new Date(initial.getFullYear(), initial.getMonth(), 1),
-  );
-
   const meetingsByDate = useMemo(() => {
     const map = new Map<string, Meeting[]>();
     for (const m of meetings) {
@@ -105,12 +101,12 @@ export function MonthCalendar({
   const todayISO = toISO(new Date());
 
   const prev = () =>
-    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
+    onViewDateChange(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
   const next = () =>
-    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
+    onViewDateChange(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
   const goToday = () => {
     const now = new Date();
-    setViewDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    onViewDateChange(new Date(now.getFullYear(), now.getMonth(), 1));
     onSelectDate(toISO(now));
   };
 
@@ -140,7 +136,6 @@ export function MonthCalendar({
           onClick={goToday}
           className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1 text-[10px] font-semibold tracking-wider text-gray-600 uppercase transition hover:border-gray-300 hover:text-gray-900"
         >
-          <Dot size={14} />
           Hoje
         </button>
       </div>
@@ -160,10 +155,14 @@ export function MonthCalendar({
         {cells.map((cell, idx) => {
           const iso = toISO(cell.date);
           const dayMeetings = meetingsByDate.get(iso) ?? [];
+          const count = dayMeetings.length;
           const isToday = iso === todayISO;
           const isSelected = iso === selectedDate;
           const isWeekend =
             cell.date.getDay() === 0 || cell.date.getDay() === 6;
+
+          const primaryType = dayMeetings[0]?.type;
+          const hasMeetings = count > 0;
 
           return (
             <motion.button
@@ -171,54 +170,78 @@ export function MonthCalendar({
               onClick={() => onSelectDate(iso)}
               whileTap={{ scale: 0.96 }}
               className={cn(
-                "group relative flex aspect-square flex-col items-center justify-start gap-1 rounded-xl border border-transparent px-1 pt-1.5 pb-1 transition",
-                !cell.inMonth && "opacity-35",
+                "group relative flex aspect-square flex-col items-stretch justify-between rounded-xl border p-1.5 text-left transition",
+                !cell.inMonth && "opacity-40",
                 isSelected
-                  ? "border-gray-900 bg-gray-900 text-white shadow-[0_8px_18px_-8px_rgba(17,24,39,0.45)]"
+                  ? "border-gray-900 bg-gray-900 text-white shadow-[0_10px_24px_-10px_rgba(17,24,39,0.55)]"
                   : isToday
                     ? "border-gray-900/10 bg-gray-50 text-gray-900"
-                    : "hover:border-gray-200 hover:bg-gray-50",
+                    : hasMeetings
+                      ? "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                      : "border-transparent hover:border-gray-200 hover:bg-gray-50",
+                compact && "aspect-auto min-h-[52px]",
               )}
             >
-              <span
-                className={cn(
-                  "text-xs font-semibold tabular-nums",
-                  isSelected
-                    ? "text-white"
-                    : isToday
-                      ? "text-gray-900"
-                      : isWeekend
-                        ? "text-gray-400"
-                        : "text-gray-700",
-                )}
-              >
-                {cell.date.getDate()}
-              </span>
+              <div className="flex items-start justify-between">
+                <span
+                  className={cn(
+                    "text-xs font-semibold tabular-nums",
+                    isSelected
+                      ? "text-white"
+                      : isToday
+                        ? "text-gray-900"
+                        : isWeekend
+                          ? "text-gray-400"
+                          : "text-gray-700",
+                  )}
+                >
+                  {cell.date.getDate()}
+                </span>
 
-              {dayMeetings.length > 0 ? (
-                <div className="mt-auto flex items-center gap-0.5">
-                  {dayMeetings.slice(0, 3).map((m, i) => (
+                {hasMeetings && (
+                  <span
+                    className={cn(
+                      "inline-flex min-w-[18px] shrink-0 items-center justify-center rounded-full px-1 text-[9px] font-bold tabular-nums leading-[16px]",
+                      isSelected
+                        ? "bg-white/20 text-white ring-1 ring-white/30"
+                        : primaryType
+                          ? cn(
+                              "text-white ring-1",
+                              typeDot[primaryType],
+                              "ring-white",
+                            )
+                          : "bg-gray-900 text-white",
+                    )}
+                    aria-label={`${count} ${count === 1 ? "reunião" : "reuniões"}`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </div>
+
+              {hasMeetings ? (
+                <div className="flex items-end gap-0.5">
+                  {dayMeetings.slice(0, 4).map((m, i) => (
                     <span
                       key={i}
                       className={cn(
-                        "h-1 w-1 rounded-full",
+                        "h-1 flex-1 rounded-full",
                         isSelected ? "bg-white/70" : typeDot[m.type],
                       )}
                     />
                   ))}
-                  {dayMeetings.length > 3 ? (
+                  {Array.from({ length: Math.max(0, 4 - dayMeetings.length) }).map((_, i) => (
                     <span
+                      key={`e-${i}`}
                       className={cn(
-                        "ml-0.5 text-[8px] font-semibold",
-                        isSelected ? "text-white/70" : "text-gray-400",
+                        "h-1 flex-1 rounded-full",
+                        isSelected ? "bg-white/10" : "bg-gray-100",
                       )}
-                    >
-                      +{dayMeetings.length - 3}
-                    </span>
-                  ) : null}
+                    />
+                  ))}
                 </div>
               ) : (
-                <span className="mt-auto h-1" />
+                <span className="h-1" />
               )}
             </motion.button>
           );
