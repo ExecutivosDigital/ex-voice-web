@@ -7,6 +7,9 @@ const PUBLIC_PATHS = [
   "/reset-password",
   "/privacy",
   "/terms",
+  "/preview",
+  "/silencio",
+  "/v2",
 ];
 
 // Prefixos que devem ser ignorados pelo middleware
@@ -33,7 +36,14 @@ export function middleware(request: NextRequest) {
   );
 
   // Usuário autenticado tentando acessar login/register → redireciona para home
-  if (isAuthenticated && isPublicPath) {
+  // (exceto /preview/*, que é visualizável em qualquer estado de auth)
+  if (
+    isAuthenticated &&
+    isPublicPath &&
+    !pathname.startsWith("/preview") &&
+    !pathname.startsWith("/silencio") &&
+    !pathname.startsWith("/v2")
+  ) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
