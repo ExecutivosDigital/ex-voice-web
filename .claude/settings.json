@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/mayco/OneDRoute/Documentos/Projetos/ex-voice-web/src/context/**)"
+    ]
+  }
+}

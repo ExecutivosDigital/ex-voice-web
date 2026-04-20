@@ -1,12 +1,14 @@
 "use client";
 
+import { ImmersiveRecorder } from "@/app/(private)/_components/immersive-recorder";
+import { RecordMode } from "@/app/(private)/_components/mode-cards";
 import { ClientProps, RecordingDetailsProps } from "@/@types/general-client";
-import { AudioRecorder } from "@/components/audio-recorder/audio-recorder";
 import { ComingSoonOverlay } from "@/components/coming-soon-overlay";
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
+import { RecordingModeModal } from "./components/recording-mode-modal";
 import {
   ActivitySquare,
   ArrowLeft,
@@ -55,14 +57,22 @@ export default function ClientDetailPage() {
   const { selectedClient } = useGeneralContext();
   const router = useRouter();
   const [view, setView] = useState<ViewMode>("recordings");
+  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
+  const [activeMode, setActiveMode] = useState<RecordMode | null>(null);
 
   if (!selectedClient) return null;
+
+  const handleModeSelect = (mode: RecordMode) => {
+    setIsModeModalOpen(false);
+    setActiveMode(mode);
+  };
 
   return (
     <div className="flex w-full flex-col gap-8">
       <MinimalHeader
         client={selectedClient}
         onBack={() => router.push("/clients")}
+        onNewRecording={() => setIsModeModalOpen(true)}
       />
 
       <ViewSwitcher view={view} onChange={setView} />
@@ -76,7 +86,10 @@ export default function ClientDetailPage() {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.3 }}
           >
-            <RecordingsView client={selectedClient} />
+            <RecordingsView
+              client={selectedClient}
+              onNewRecording={() => setIsModeModalOpen(true)}
+            />
           </motion.div>
         )}
         {view === "about" && (
@@ -106,6 +119,24 @@ export default function ClientDetailPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <RecordingModeModal
+        isOpen={isModeModalOpen}
+        onClose={() => setIsModeModalOpen(false)}
+        onSelect={handleModeSelect}
+        clientName={selectedClient.name}
+      />
+
+      <AnimatePresence>
+        {activeMode && (
+          <ImmersiveRecorder
+            key={activeMode}
+            mode={activeMode}
+            onClose={() => setActiveMode(null)}
+            preSelectedClientIds={[selectedClient.id]}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -113,9 +144,11 @@ export default function ClientDetailPage() {
 function MinimalHeader({
   client,
   onBack,
+  onNewRecording,
 }: {
   client: ClientProps;
   onBack: () => void;
+  onNewRecording: () => void;
 }) {
   return (
     <div className="flex flex-col gap-4">
@@ -140,13 +173,14 @@ function MinimalHeader({
           </h1>
         </div>
 
-        <AudioRecorder
-          buttonClassName="inline-flex shrink-0 h-10 items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-4 text-xs font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
-          skipToClient
-          customLabel="Nova gravação"
-          customIcon={Plus}
-          initialClientId={client.id}
-        />
+        <button
+          type="button"
+          onClick={onNewRecording}
+          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-4 text-xs font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+        >
+          <Plus size={16} />
+          Nova gravação
+        </button>
       </div>
     </div>
   );
@@ -228,7 +262,13 @@ function statusMeta(status: RecordingDetailsProps["transcriptionStatus"]) {
   }
 }
 
-function RecordingsView({ client }: { client: ClientProps }) {
+function RecordingsView({
+  client,
+  onNewRecording,
+}: {
+  client: ClientProps;
+  onNewRecording: () => void;
+}) {
   const {
     recordings,
     isGettingRecordings,
@@ -261,7 +301,7 @@ function RecordingsView({ client }: { client: ClientProps }) {
       {isGettingRecordings ? (
         <SkeletonList />
       ) : recordings.length === 0 ? (
-        <EmptyRecordings clientId={client.id} />
+        <EmptyRecordings onNewRecording={onNewRecording} />
       ) : (
         <div className="flex flex-col gap-3">
           <AnimatePresence mode="popLayout">
@@ -382,7 +422,7 @@ function SkeletonList() {
   );
 }
 
-function EmptyRecordings({ clientId }: { clientId: string }) {
+function EmptyRecordings({ onNewRecording }: { onNewRecording: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-16 text-center backdrop-blur-sm">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
@@ -396,13 +436,14 @@ function EmptyRecordings({ clientId }: { clientId: string }) {
         aqui.
       </p>
       <div className="mt-6">
-        <AudioRecorder
-          buttonClassName="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
-          skipToClient
-          customLabel="Começar gravação"
-          customIcon={Plus}
-          initialClientId={clientId}
-        />
+        <button
+          type="button"
+          onClick={onNewRecording}
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+        >
+          <Plus size={16} />
+          Começar gravação
+        </button>
       </div>
     </div>
   );

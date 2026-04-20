@@ -38,6 +38,7 @@ type Stage = "intro" | "recording" | "saveForm" | "saving";
 interface ImmersiveRecorderProps {
   mode: Mode;
   onClose: () => void;
+  preSelectedClientIds?: string[];
 }
 
 const INTRO_COUNTDOWN_SECONDS = 0;
@@ -172,11 +173,15 @@ function Waveform({ active }: { active: boolean }) {
   );
 }
 
-export function ImmersiveRecorder({ mode, onClose }: ImmersiveRecorderProps) {
+export function ImmersiveRecorder({
+  mode,
+  onClose,
+  preSelectedClientIds,
+}: ImmersiveRecorderProps) {
   const router = useRouter();
   const { PostAPI } = useApiContext();
   const { handleGetAvailableRecording } = useSession();
-  const { GetRecordings, clients, setClients } = useGeneralContext();
+  const { GetRecordings, GetClients, clients, setClients } = useGeneralContext();
   const { uploadMedia, formatDurationForAPI } = useRecordingUpload();
 
   const mediaType: "audio" | "video" = mode === "online" ? "video" : "audio";
@@ -191,10 +196,29 @@ export function ImmersiveRecorder({ mode, onClose }: ImmersiveRecorderProps) {
   });
 
   const [title, setTitle] = useState("");
-  const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
+  const [selectedContactIds, setSelectedContactIds] = useState<string[]>(
+    preSelectedClientIds ?? [],
+  );
   const [contactSearch, setContactSearch] = useState("");
   const [newContactName, setNewContactName] = useState("");
   const [creatingContact, setCreatingContact] = useState(false);
+  const [pendingClientName, setPendingClientName] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!pendingClientName) return;
+    const found = clients.find(
+      (c) =>
+        c.name?.trim().toLowerCase() === pendingClientName.trim().toLowerCase(),
+    );
+    if (found?.id) {
+      setSelectedContactIds((prev) =>
+        prev.includes(found.id) ? prev : [...prev, found.id],
+      );
+      setPendingClientName(null);
+    }
+  }, [clients, pendingClientName]);
 
   const recorder = useMediaRecorder({
     mediaType,
@@ -343,22 +367,26 @@ export function ImmersiveRecorder({ mode, onClose }: ImmersiveRecorderProps) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rawClient = (data.body?.client || data.body) as any;
         const newId = rawClient?.id || rawClient?._id;
-        if (!newId) {
-          toast.error("Contato criado, mas sem ID na resposta.");
-          return;
+        if (newId) {
+          const newClient = { ...rawClient, id: newId, name };
+          setClients((prev) =>
+            prev.some((c) => c.id === newId) ? prev : [newClient, ...prev],
+          );
+          setSelectedContactIds((prev) =>
+            prev.includes(newId) ? prev : [...prev, newId],
+          );
         }
-        const newClient = { ...rawClient, id: newId, name };
-        setClients((prev) => [newClient, ...prev]);
-        setSelectedContactIds((prev) => [...prev, newId]);
+        setPendingClientName(name);
         setNewContactName("");
         toast.success(`${name} adicionado.`);
+        await GetClients();
       } else {
         toast.error(handleApiError(data, "Falha ao criar contato."));
       }
     } finally {
       setCreatingContact(false);
     }
-  }, [PostAPI, newContactName, setClients]);
+  }, [PostAPI, newContactName, setClients, GetClients]);
 
   const handleConfirmSave = useCallback(() => {
     if (!recorder.mediaBlob) {

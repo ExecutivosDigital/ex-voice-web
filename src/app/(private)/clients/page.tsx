@@ -3,6 +3,7 @@
 import { ClientProps } from "@/@types/general-client";
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import { CreateClientSheet } from "@/components/ui/create-client-sheet";
+import { EditClientModal } from "@/components/ui/edit-client-modal";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
@@ -10,6 +11,7 @@ import { debounce } from "lodash";
 import {
   ArrowUpRight,
   Calendar,
+  Pencil,
   Plus,
   Search,
   UserPlus,
@@ -40,6 +42,7 @@ export default function MinimalClientsPage() {
 
   const [query, setQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [clientToEdit, setClientToEdit] = useState<ClientProps | null>(null);
 
   const debouncedSearch = useMemo(
     () =>
@@ -121,6 +124,7 @@ export default function MinimalClientsPage() {
                   key={client.id}
                   client={client}
                   onOpen={() => handleOpen(client)}
+                  onEdit={() => setClientToEdit(client)}
                   index={i}
                 />
               ))}
@@ -147,6 +151,12 @@ export default function MinimalClientsPage() {
           onClose={() => setIsCreateOpen(false)}
         />
       )}
+
+      <EditClientModal
+        isOpen={!!clientToEdit}
+        client={clientToEdit}
+        onClose={() => setClientToEdit(null)}
+      />
     </div>
   );
 }
@@ -154,15 +164,28 @@ export default function MinimalClientsPage() {
 function ClientCard({
   client,
   onOpen,
+  onEdit,
   index,
 }: {
   client: ClientProps;
   onOpen: () => void;
+  onEdit: () => void;
   index: number;
 }) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onOpen();
+    }
+  };
+
   return (
-    <motion.button
+    <motion.div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
+      onKeyDown={handleKeyDown}
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -170,17 +193,29 @@ function ClientCard({
       transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.3) }}
       whileHover={{ y: -2 }}
       className={cn(
-        "group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-gray-200/70 bg-white p-4 text-left transition",
+        "group relative flex cursor-pointer flex-col gap-3 overflow-hidden rounded-2xl border border-gray-200/70 bg-white p-4 text-left transition outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20",
         "shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-gray-300 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.25)]",
       )}
     >
       <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
 
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit();
+        }}
+        aria-label={`Editar ${client.name}`}
+        className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-500 opacity-0 shadow-sm backdrop-blur-sm transition hover:border-gray-300 hover:bg-white hover:text-gray-900 focus:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
+      >
+        <Pencil size={13} strokeWidth={2.2} />
+      </button>
+
       <div className="flex items-center justify-between">
         <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-xs font-semibold text-white shadow-sm">
           {initials(client.name) || "?"}
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-[10px] font-semibold tracking-wider text-gray-600 uppercase">
+        <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-[10px] font-semibold tracking-wider text-gray-600 uppercase transition group-hover:opacity-0">
           <Calendar size={10} />
           {client.createdAt
             ? `Desde ${moment(client.createdAt).format("MMM/YY")}`
@@ -203,7 +238,7 @@ function ClientCard({
           <ArrowUpRight size={12} />
         </span>
       </div>
-    </motion.button>
+    </motion.div>
   );
 }
 

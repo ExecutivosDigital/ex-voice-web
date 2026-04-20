@@ -411,10 +411,10 @@ export function AudioRecorder({
     }
     
     const { type, subType } = newRecordingRequest;
-    
+
     // Reset o request ANTES de abrir a sheet
     resetNewRecordingRequest();
-    
+
     if (type === "PERSONAL" && subType) {
       // Gravação pessoal com tipo específico (REMINDER, STUDY, OTHER)
       updateMetadata({
