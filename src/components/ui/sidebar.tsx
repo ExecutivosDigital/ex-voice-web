@@ -2,9 +2,17 @@
 import { useSession } from "@/context/auth";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
-import { Bell, User } from "lucide-react";
+import {
+  Bell,
+  Calendar,
+  Mic,
+  Sparkles,
+  User,
+  Users,
+  Waves,
+} from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,10 +20,32 @@ import {
   DropdownMenuTrigger,
 } from "./blocks/dropdown-menu";
 
+const NAV_ITEMS: {
+  label: string;
+  href: string;
+  icon: typeof Mic;
+  highlight?: boolean;
+}[] = [
+  { label: "Gravação", href: "/", icon: Mic },
+  { label: "Últimas Gravações", href: "/recordings", icon: Waves },
+  { label: "Clientes", href: "/clients", icon: Users },
+  { label: "Agenda", href: "/agenda", icon: Calendar },
+  { label: "Planos", href: "/plans", icon: Sparkles, highlight: true },
+];
+
 export function Sidebar() {
   const { mobileMenu, setMobileMenu } = useSidebar();
   const router = useRouter();
+  const pathname = usePathname();
   const { clearSession } = useSession();
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === href : pathname.startsWith(href);
+
+  const handleNavigate = (href: string) => {
+    router.push(href);
+    setMobileMenu(false);
+  };
 
   return (
     <>
@@ -77,6 +107,38 @@ export function Sidebar() {
               />
               Baixar App Store
             </button>
+
+            <div className="my-2 h-px bg-white/15" />
+
+            <nav
+              className="flex flex-col gap-1"
+              aria-label="Navegação principal"
+            >
+              {NAV_ITEMS.map((item) => {
+                const active = isActive(item.href);
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.href}
+                    onClick={() => handleNavigate(item.href)}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition",
+                      item.highlight
+                        ? active
+                          ? "bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-gray-900 shadow-[0_6px_18px_-6px_rgba(245,158,11,0.7)]"
+                          : "bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-gray-900 shadow-[0_4px_14px_-4px_rgba(245,158,11,0.5)] hover:scale-[1.01]"
+                        : active
+                          ? "bg-white/15 text-white"
+                          : "text-white/75 hover:bg-white/10 hover:text-white",
+                    )}
+                  >
+                    <Icon size={16} strokeWidth={2.2} />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20">

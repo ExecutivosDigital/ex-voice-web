@@ -10,9 +10,9 @@ import { motion } from "framer-motion";
 import Lenis from "lenis";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { FloatingTrialWidget } from "./new-home/components/floating-trial-widget";
-import { MinimalHeader } from "./new-home/components/minimal-header";
-import { MobileBottomNav } from "./new-home/components/mobile-bottom-nav";
+import { FloatingTrialWidget } from "./_components/floating-trial-widget";
+import { MinimalHeader } from "./_components/minimal-header";
+import { MobileBottomNav } from "./_components/mobile-bottom-nav";
 // coment
 export default function RootLayout({
   children,
@@ -47,46 +47,44 @@ export default function RootLayout({
     };
   }, [pathname]);
 
-  const isNewHome =
-    pathname === "/new-home" ||
-    pathname.startsWith("/new-home/") ||
-    pathname === "/new-home-Mockup" ||
-    pathname === "/new-home-Dispositivo" ||
-    pathname === "/new-home-Cor" ||
-    pathname === "/new-home-Logos" ||
-    pathname === "/new-home-minimalista";
+  const isNewHome = true;
+  // pathname === "" ||
+  // pathname.startsWith("/") ||
+  // pathname === "-Mockup" ||
+  // pathname === "-Dispositivo" ||
+  // pathname === "-Cor" ||
+  // pathname === "-Logos" ||
+  // pathname === "-minimalista";
 
-  const isFullscreen =
-    pathname === "/checkout" ||
-    pathname.startsWith("/checkout/") ||
-    pathname === "/plans" ||
-    pathname.startsWith("/plans/") ||
-    pathname === "/plans2" ||
-    pathname.startsWith("/plans2/") ||
-    pathname === "/plans3" ||
-    pathname.startsWith("/plans3/") ||
-    pathname === "/plans4" ||
-    pathname.startsWith("/plans4/") ||
-    pathname === "/plans5" ||
-    pathname.startsWith("/plans5/") ||
-    pathname === "/plans6" ||
-    pathname.startsWith("/plans6/");
+  // const isFullscreen =
+  //   pathname === "/checkout" ||
+  //   pathname.startsWith("/checkout/") ||
+  //   pathname === "/plans" ||
+  //   pathname.startsWith("/plans/") ||
+  //   pathname === "/plans2" ||
+  //   pathname.startsWith("/plans2/") ||
+  //   pathname === "/plans3" ||
+  //   pathname.startsWith("/plans3/") ||
+  //   pathname === "/plans4" ||
+  //   pathname.startsWith("/plans4/") ||
+  //   pathname === "/plans5" ||
+  //   pathname.startsWith("/plans5/") ||
+  //   pathname === "/plans6" ||
+  //   pathname.startsWith("/plans6/");
 
-  if (isFullscreen) {
-    return (
-      <AuthGuard>
-        <GeneralContextProvider>
-          <ChatPageProvider>
-        <MobileAppBlocker />
+  // if (isFullscreen) {
+  //   return (
+  //     <AuthGuard>
+  //       <GeneralContextProvider>
+  //         <ChatPageProvider>
+  //           <MobileAppBlocker />
 
-            <div className="min-h-screen w-full bg-[#0d0d0d]">
-              {children}
-            </div>
-          </ChatPageProvider>
-        </GeneralContextProvider>
-      </AuthGuard>
-    );
-  }
+  //           <div className="min-h-screen w-full bg-[#0d0d0d]">{children}</div>
+  //         </ChatPageProvider>
+  //       </GeneralContextProvider>
+  //     </AuthGuard>
+  //   );
+  // }
 
   if (isNewHome) {
     return (
@@ -118,28 +116,27 @@ export default function RootLayout({
       <GeneralContextProvider>
         <ChatPageProvider>
           <div
-          className={cn(
-            "relative flex w-full flex-col pb-20",
-            pathname.includes("/chat") && "pb-0",
-          )}
-        >
-          <Header />
-          <Sidebar />
-        <MobileAppBlocker />
-
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
             className={cn(
-              "relative z-10 mx-auto -mt-14 flex min-h-[75vh] w-full max-w-[90%] flex-col gap-4 overflow-hidden rounded-3xl bg-white p-6",
-              pathname.includes("/chat") && "min-h-[70vh]",
+              "relative flex w-full flex-col pb-20",
+              pathname.includes("/chat") && "pb-0",
             )}
           >
-            {children}
-          </motion.div>
-        </div>
+            <Header />
+            <Sidebar />
+            <MobileAppBlocker />
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className={cn(
+                "relative z-10 mx-auto -mt-14 flex min-h-[75vh] w-full max-w-[90%] flex-col gap-4 overflow-hidden rounded-3xl bg-white p-6",
+                pathname.includes("/chat") && "min-h-[70vh]",
+              )}
+            >
+              {children}
+            </motion.div>
+          </div>
         </ChatPageProvider>
       </GeneralContextProvider>
     </AuthGuard>

@@ -1,7 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Eye, EyeOff, Loader2, LockIcon, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  Loader2,
+  LockIcon,
+  XCircle,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -100,16 +107,14 @@ function ResetPasswordContent() {
           <XCircle className="h-8 w-8 text-red-600" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            Link inválido
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900">Link inválido</h3>
           <p className="mt-2 text-sm text-gray-500">
             Este link de recuperação de senha é inválido ou já expirou.
           </p>
         </div>
         <Link
           href="/login"
-          className="mt-2 text-sm text-primary font-semibold hover:text-blue-700 hover:underline transition-colors"
+          className="text-primary mt-2 text-sm font-semibold transition-colors hover:text-blue-700 hover:underline"
         >
           Voltar para o login
         </Link>
@@ -135,7 +140,7 @@ function ResetPasswordContent() {
         </div>
         <Link
           href="/login"
-          className="mt-4 w-full rounded-xl bg-primary px-4 py-3 text-center font-semibold text-white shadow-sm transition hover:bg-blue-600"
+          className="bg-primary mt-4 w-full rounded-xl px-4 py-3 text-center font-semibold text-white shadow-sm transition hover:bg-blue-600"
         >
           Ir para o login
         </Link>
@@ -153,9 +158,7 @@ function ResetPasswordContent() {
 
       <Form {...form}>
         <div className="flex flex-col gap-4" onKeyDown={handleKeyPress}>
-          <p className="text-sm text-gray-500">
-            Defina sua nova senha abaixo.
-          </p>
+          <p className="text-sm text-gray-500">Defina sua nova senha abaixo.</p>
 
           <FormField
             control={form.control}
@@ -220,7 +223,7 @@ function ResetPasswordContent() {
           <button
             onClick={form.handleSubmit(handleResetPassword)}
             disabled={isLoading}
-            className="w-full rounded-xl bg-primary px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="bg-primary flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
               <Loader2 className="animate-spin" size={20} />
@@ -234,7 +237,7 @@ function ResetPasswordContent() {
       <div className="mt-4 text-center">
         <Link
           href="/login"
-          className="text-sm text-gray-500 hover:text-primary hover:underline transition-colors"
+          className="hover:text-primary text-sm text-gray-500 transition-colors hover:underline"
         >
           Voltar para o login
         </Link>
@@ -251,16 +254,14 @@ export default function ResetPasswordPage() {
           <div className="mb-6 flex justify-center">
             <Image
               src="/logos/logo-dark.png"
-              alt="Health Voice"
+              alt="Voice"
               width={200}
               height={60}
               className="h-10 w-auto object-contain"
             />
           </div>
 
-          <h2 className="text-3xl font-bold text-gray-900">
-            Redefinir senha
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900">Redefinir senha</h2>
           <p className="mt-2 text-gray-500">
             Crie uma nova senha para sua conta
           </p>
@@ -269,7 +270,7 @@ export default function ResetPasswordPage() {
         <Suspense
           fallback={
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <Loader2 className="text-primary h-8 w-8 animate-spin" />
             </div>
           }
         >

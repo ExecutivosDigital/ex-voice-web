@@ -1,37 +1,25 @@
 "use client";
 
 import { useApiContext } from "@/context/ApiContext";
-import { useSession } from "@/context/auth";
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
   Check,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Copy,
-  CreditCard,
+  ChevronDown,
   Crown,
-  Loader2,
-  MapPin,
-  MessageCircle,
-  PartyPopper,
-  QrCode,
+  Headphones,
+  Minus,
+  Quote,
   Shield,
-  Ticket,
-  User,
+  ShieldCheck,
+  Sparkles,
+  Star,
   Users,
-  X,
   Zap,
 } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import toast from "react-hot-toast";
-
-// ─── Types ───────────────────────────────────────────────────────────────────
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface Plan {
   id: string;
@@ -45,39 +33,161 @@ interface Plan {
   creditPrice?: number;
   dailyRecordAvailable?: number;
   monthlyRecordAvailable?: number;
-  channels?: string[];
 }
 
 type BillingCycle = "MONTHLY" | "YEARLY";
-type PaymentMethod = "card" | "pix";
-type ViewState = "plans" | "checkout" | "success";
+type PaymentMethod = "PIX" | "CREDIT";
 
-// ─── Utilities ────────────────────────────────────────────────────────────────
+interface PlanPreset {
+  displayName: string;
+  subtitle: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  features: { text: string; highlight?: boolean }[];
+  featured?: boolean;
+  tag?: string;
+  tagline: string;
+}
 
-const onlyDigits = (v: string) => v.replace(/\D/g, "");
+const PLAN_PRESETS: PlanPreset[] = [
+  {
+    displayName: "Autônomo",
+    subtitle: "Para profissionais independentes",
+    tagline: "Comece leve, cresça no seu tempo.",
+    icon: Headphones,
+    features: [
+      { text: "Gravação ilimitada", highlight: true },
+      { text: "150h de transcrição / mês" },
+      { text: "5h de transcrição / dia" },
+      { text: "Resumos básicos com IA" },
+      { text: "Suporte comunitário" },
+    ],
+  },
+  {
+    displayName: "Ultra",
+    subtitle: "Mais escolhido",
+    tagline: "Tudo sem limite. Sem fricção.",
+    icon: Crown,
+    featured: true,
+    tag: "Mais popular",
+    features: [
+      { text: "Gravação 100% ilimitada", highlight: true },
+      { text: "Transcrição 100% ilimitada", highlight: true },
+      { text: "Insights avançados com IA" },
+      { text: "Diarização de falantes" },
+      { text: "Personalizar ou treinar IA" },
+      { text: "Suporte prioritário" },
+      { text: "Exportação avançada" },
+    ],
+  },
+  {
+    displayName: "Corporativo",
+    subtitle: "Para equipes e empresas",
+    tagline: "Seu time com IA em conjunto.",
+    icon: Users,
+    features: [
+      { text: "Pool de horas compartilhado", highlight: true },
+      { text: "Gravação ilimitada por usuário" },
+      { text: "5h de transcrição / dia por usuário" },
+      { text: "Treinar IA com base de conhecimento" },
+      { text: "Gerente de conta dedicado" },
+      { text: "SLA e suporte 24/7" },
+    ],
+  },
+];
 
-const fmtBRL = (v: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    v,
-  );
+const COMPARISON_ROWS: {
+  label: string;
+  values: [string | boolean, string | boolean, string | boolean];
+}[] = [
+  {
+    label: "Gravação de reuniões",
+    values: ["Ilimitada", "Ilimitada", "Ilimitada"],
+  },
+  {
+    label: "Transcrição por mês",
+    values: ["150h", "Ilimitada", "Pool compartilhado"],
+  },
+  { label: "Resumos com IA", values: [true, true, true] },
+  { label: "Insights avançados", values: [false, true, true] },
+  { label: "Diarização de falantes", values: [false, true, true] },
+  { label: "Treinar IA própria", values: [false, true, true] },
+  { label: "Exportação avançada", values: [false, true, true] },
+  { label: "Gerente dedicado", values: [false, false, true] },
+  { label: "SLA 24/7", values: [false, false, true] },
+];
 
-const EASE = [0.32, 0.72, 0, 1] as const;
+const TESTIMONIALS = [
+  {
+    quote:
+      "Em duas semanas, economizei pelo menos 8 horas por mês só em anotações. A transcrição é absurdamente precisa.",
+    author: "Mariana Lopes",
+    role: "Psicóloga clínica",
+    rating: 5,
+  },
+  {
+    quote:
+      "Finalmente posso focar no cliente durante a reunião. O resumo chega pronto e já entro na próxima com tudo organizado.",
+    author: "Rafael Moretti",
+    role: "Consultor financeiro",
+    rating: 5,
+  },
+  {
+    quote:
+      "Nosso time inteiro migrou e o ganho foi imediato: reuniões mais produtivas, decisões mais rápidas, histórico impecável.",
+    author: "Fernanda Castro",
+    role: "Head de Operações · Nuvya",
+    rating: 5,
+  },
+];
 
-function getPlanPixPrice(plan: Plan, cycle: BillingCycle): number {
+const FAQ_ITEMS = [
+  {
+    q: "Posso trocar de plano a qualquer momento?",
+    a: "Sim. Você pode fazer upgrade ou downgrade quando quiser. Cobramos apenas a diferença proporcional, sem letra miúda.",
+  },
+  {
+    q: "Como funciona o cancelamento?",
+    a: "Cancelamento 100% online, em um clique, sem multas ou burocracia. Você mantém o acesso até o fim do período já pago.",
+  },
+  {
+    q: "Meus dados e reuniões ficam seguros?",
+    a: "Sim. Criptografia de ponta em repouso e em trânsito, conformidade com LGPD e isolamento completo entre contas.",
+  },
+  {
+    q: "Qual a diferença entre PIX e cartão?",
+    a: "PIX oferece o melhor preço, cobrado no ciclo escolhido. Cartão tem renovação automática e também pode ser anual.",
+  },
+  {
+    q: "Tem período de teste?",
+    a: "Todos os planos têm garantia de satisfação: se não gostar nos primeiros 7 dias, devolvemos 100% do valor.",
+  },
+];
+
+const UNLIMITED_THRESHOLD = 720;
+
+function fmtBRL(v: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(v);
+}
+
+function getPlanPrice(
+  plan: Plan,
+  cycle: BillingCycle,
+  method: PaymentMethod,
+): number {
+  if (method === "CREDIT") {
+    if (cycle === "YEARLY")
+      return plan.creditYearlyPrice ?? (plan.creditMonthlyPrice ?? 0) * 12;
+    return plan.creditMonthlyPrice ?? plan.creditPrice ?? 0;
+  }
   if (cycle === "YEARLY")
     return plan.pixYearlyPrice ?? (plan.pixPrice ?? 0) * 12;
   return plan.pixMonthlyPrice ?? plan.pixPrice ?? 0;
 }
 
-function getPlanCreditPrice(plan: Plan, cycle: BillingCycle): number {
-  if (cycle === "YEARLY")
-    return plan.creditYearlyPrice ?? (plan.creditMonthlyPrice ?? 0) * 12;
-  return plan.creditMonthlyPrice ?? plan.creditPrice ?? 0;
-}
-
-const UNLIMITED_HOURS_THRESHOLD = 720;
-
-function getMonthlyHoursAvailable(plan: Plan): number | null {
+function getMonthlyHours(plan: Plan): number | null {
   if (plan.monthlyRecordAvailable != null) return plan.monthlyRecordAvailable;
   if (plan.dailyRecordAvailable != null)
     return Math.round((plan.dailyRecordAvailable * 30) / 3600);
@@ -85,607 +195,47 @@ function getMonthlyHoursAvailable(plan: Plan): number | null {
 }
 
 function getRecordLabel(plan: Plan): string {
-  const hoursPerMonth = getMonthlyHoursAvailable(plan);
-  if (hoursPerMonth != null && hoursPerMonth >= UNLIMITED_HOURS_THRESHOLD)
-    return "Ilimitado";
-  if (hoursPerMonth != null) return `${hoursPerMonth} horas/mês`;
+  const h = getMonthlyHours(plan);
+  if (h != null && h >= UNLIMITED_THRESHOLD) return "Uso ilimitado";
+  if (h != null) return `${h}h por mês`;
   return "Gravação incluída";
 }
 
-function maskCpfCnpj(value: string): string {
-  const v = onlyDigits(value);
-  if (v.length <= 11) {
-    return v
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-  }
-  return v
-    .substring(0, 14)
-    .replace(/(\d{2})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1/$2")
-    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
-}
-
-function maskCep(value: string): string {
-  const v = onlyDigits(value).slice(0, 8);
-  return v.replace(/^(\d{5})(\d)/, "$1-$2");
-}
-
-function maskPhoneBR(v: string): string {
-  let d = onlyDigits(v).slice(0, 13);
-  let prefix = "";
-  if (d.startsWith("55")) {
-    prefix = "+55 ";
-    d = d.slice(2);
-  }
-  if (d.length <= 2) return prefix + d;
-  if (d.length <= 6) return `${prefix}(${d.slice(0, 2)}) ${d.slice(2)}`;
-  if (d.length <= 10)
-    return `${prefix}(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
-  return `${prefix}(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
-}
-
-function maskCardNumber(v: string): string {
-  return onlyDigits(v)
-    .slice(0, 16)
-    .replace(/(\d{4})(?=\d)/g, "$1 ")
-    .trim();
-}
-
-function maskExpiry(v: string): string {
-  const d = onlyDigits(v).slice(0, 4);
-  if (d.length <= 2) return d;
-  return `${d.slice(0, 2)}/${d.slice(2)}`;
-}
-
-function parseExpiry(value: string): { month: string; year: string } | null {
-  const m = value.match(/^(\d{2})[\/\-]?(\d{2}|\d{4})$/);
-  if (!m) return null;
-  const month = m[1];
-  let year = m[2];
-  if (Number(month) < 1 || Number(month) > 12) return null;
-  if (year.length === 2) year = `20${year}`;
-  return { month, year };
-}
-
-// ─── Static plan metadata ─────────────────────────────────────────────────────
-
-interface PlanFeature {
-  text: string;
-  included: boolean;
-  highlight?: boolean;
-}
-
-interface PlanStaticData {
-  subtitle: string;
-  displayName?: string;
-  accentColor: string;
-  accentBg: string;
-  accentBorder: string;
-  features: PlanFeature[];
-  highlight?: boolean;
-  tag?: string;
-  badge?: string;
-}
-
-const PLAN_STATIC_DATA: PlanStaticData[] = [
-  {
-    subtitle: "Ilimitado",
-    displayName: "AUTÔNOMO",
-    accentColor: "text-blue-600",
-    accentBg: "bg-blue-50",
-    accentBorder: "border-blue-200",
-    features: [
-      { text: "Gravação ilimitada", included: true, highlight: true },
-      { text: "150 horas de transcrição mensal", included: true },
-      { text: "5 horas de transcrição por dia", included: true },
-      { text: "Resumos básico de IA", included: true },
-      { text: "Suporte comunitário", included: true },
-      { text: "Diarização de falantes", included: false },
-      { text: "Personalizar ou treinar IA", included: false },
-      { text: "Suporte dedicado", included: false },
-    ],
-  },
-  {
-    subtitle: "Ilimitado",
-    displayName: "ULTRA",
-    accentColor: "text-amber-600",
-    accentBg: "bg-amber-50",
-    accentBorder: "border-amber-200",
-    highlight: true,
-    tag: "Mais Popular",
-    features: [
-      { text: "Gravação 100% ilimitada", included: true, highlight: true },
-      { text: "Transcrição 100% ilimitada", included: true, highlight: true },
-      { text: "Resumos básico de IA", included: true },
-      { text: "Insights Avançados", included: true },
-      { text: "Diarização de falantes", included: true },
-      { text: "Personalizar ou treinar IA", included: true },
-      { text: "Suporte prioritário", included: true },
-      { text: "Exportação Avançada", included: true },
-      { text: "Pool de horas", included: false },
-    ],
-  },
-  {
-    subtitle: "Corporativo",
-    accentColor: "text-emerald-600",
-    accentBg: "bg-emerald-50",
-    accentBorder: "border-emerald-200",
-    badge: "Para equipes",
-    features: [
-      { text: "Pool de Horas inteligente", included: true, highlight: true },
-      { text: "Gravação ilimitada por usuário", included: true },
-      { text: "5h transcrição/dia por usuário", included: true },
-      { text: "Banco de horas compartilhado", included: true, highlight: true },
-      { text: "Personalizar e treinar a IA", included: true },
-      { text: "Gerente de conta dedicado", included: true },
-      { text: "SLA e suporte 24/7", included: true },
-    ],
-  },
-];
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function SectionCard({
-  title,
-  icon,
-  children,
-}: {
-  title: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="mb-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <div className="mb-5 flex items-center gap-2.5">
-        {icon && <span className="text-gray-400">{icon}</span>}
-        <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-      </div>
-      {children}
-    </div>
+function getPresetFor(plan: Plan, index: number): PlanPreset {
+  const byName = PLAN_PRESETS.find((p) =>
+    plan.name?.toLowerCase().includes(p.displayName.toLowerCase()),
   );
+  return byName ?? PLAN_PRESETS[index % PLAN_PRESETS.length];
 }
 
-function PlanSelectDot({
-  selected,
-  idleBorderClass,
-  idleBgClass,
-  size = "md",
-}: {
-  selected: boolean;
-  idleBorderClass: string;
-  idleBgClass?: string;
-  size?: "md" | "sm";
-}) {
-  const dim = size === "md" ? "h-7 w-7" : "h-6 w-6";
-  const checkSz = size === "md" ? "h-3.5 w-3.5" : "h-3 w-3";
-  return (
-    <div
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-full border transition-colors",
-        dim,
-        selected
-          ? "border-white bg-white text-black"
-          : cn(idleBorderClass, idleBgClass ?? "bg-white/90"),
-      )}
-      aria-hidden
-    >
-      {selected && <Check className={checkSz} strokeWidth={2.5} />}
-    </div>
-  );
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
-function Field({
-  label,
-  placeholder,
-  value,
-  onChange,
-  type = "text",
-  maxLength,
-  disabled = false,
-  rightElement,
-  className,
-}: {
-  label?: string;
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  maxLength?: number;
-  disabled?: boolean;
-  rightElement?: React.ReactNode;
-  className?: string;
-}) {
-  const [focused, setFocused] = useState(false);
-  return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
-      {label && (
-        <label className="text-xs font-semibold text-gray-500">{label}</label>
-      )}
-      <div
-        className={cn(
-          "flex h-11 items-center gap-2 rounded-xl border bg-gray-50 px-3.5 transition-all",
-          focused
-            ? "border-gray-400 bg-white ring-2 ring-gray-100"
-            : "border-gray-200",
-          disabled && "opacity-50",
-        )}
-      >
-        <input
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => !disabled && onChange(e.target.value)}
-          maxLength={maxLength}
-          disabled={disabled}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-300 outline-none"
-        />
-        {rightElement}
-      </div>
-    </div>
-  );
-}
-
-function PaymentMethodTabs({
-  selected,
-  onChange,
-}: {
-  selected: PaymentMethod;
-  onChange: (m: PaymentMethod) => void;
-}) {
-  return (
-    <div className="mb-6 flex gap-1 rounded-xl bg-gray-100 p-1">
-      {(["pix", "card"] as PaymentMethod[]).map((m) => (
-        <button
-          key={m}
-          type="button"
-          onClick={() => onChange(m)}
-          className={cn(
-            "flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all",
-            selected === m
-              ? "bg-white text-black shadow-sm"
-              : "text-gray-400 hover:text-gray-600",
-          )}
-        >
-          {m === "pix" ? (
-            <QrCode className="h-4 w-4" />
-          ) : (
-            <CreditCard className="h-4 w-4" />
-          )}
-          {m === "pix" ? "PIX" : "Cartão"}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function CardPreview({
-  holder,
-  cardNumber,
-  exp,
-}: {
-  holder: string;
-  cardNumber: string;
-  exp: string;
-}) {
-  return (
-    <div
-      className="relative mb-6 w-full overflow-hidden rounded-2xl p-5"
-      style={{
-        background: "linear-gradient(135deg, #171717 0%, #5b5b5b 100%)",
-        minHeight: 160,
-        boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
-      }}
-    >
-      <div className="mb-4 flex items-start justify-between">
-        <Image
-          src="/logos/iconWhite.png"
-          alt="EX Voice"
-          width={70}
-          height={26}
-          className="h-6 w-auto object-contain opacity-80"
-          onError={() => {}} // silent fallback
-        />
-        <CreditCard className="h-5 w-5 text-white/40" />
-      </div>
-      <p className="mb-4 font-mono text-lg tracking-widest text-white">
-        {cardNumber ? maskCardNumber(cardNumber) : "**** **** **** ****"}
-      </p>
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="mb-0.5 text-[9px] font-semibold text-white/50 uppercase">
-            Titular
-          </p>
-          <p className="text-xs font-medium text-white capitalize">
-            {holder || "Seu Nome"}
-          </p>
-        </div>
-        <div>
-          <p className="mb-0.5 text-right text-[9px] font-semibold text-white/50 uppercase">
-            Validade
-          </p>
-          <p className="text-xs font-medium text-white">{exp || "MM/AA"}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FreePlanBanner() {
-  return (
-    <div
-      className="mb-6 flex w-full flex-col items-center justify-center rounded-2xl p-5"
-      style={{
-        background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
-        minHeight: 120,
-        boxShadow: "0 10px 40px rgba(16,185,129,0.3)",
-      }}
-    >
-      <div className="mb-2 rounded-full bg-white/20 p-2.5">
-        <Ticket className="h-7 w-7 text-white" />
-      </div>
-      <p className="text-xl font-bold text-white">100% OFF</p>
-      <p className="mt-0.5 text-xs text-emerald-100">
-        Assinatura Gratuita Garantida
-      </p>
-    </div>
-  );
-}
-
-function PixGeneratedView({
-  price,
-  pixCode,
-  pixEncodedImage,
-  copied,
-  onCopy,
-  onAlreadyPaid,
-}: {
-  price: string;
-  pixCode: string;
-  pixEncodedImage: string | null;
-  copied: boolean;
-  onCopy: () => void;
-  onAlreadyPaid: () => void;
-}) {
-  const qrUri = pixEncodedImage
-    ? pixEncodedImage.startsWith("data:")
-      ? pixEncodedImage
-      : `data:image/png;base64,${pixEncodedImage}`
-    : null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-4"
-    >
-      <div>
-        <h2 className="text-2xl font-bold text-black">PIX gerado!</h2>
-        <p className="mt-1.5 text-sm text-gray-500">
-          Escaneie o QR Code ou copie o código para pagar
-        </p>
-      </div>
-
-      <div className="flex flex-col items-center gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        {/* QR Code */}
-        <div className="flex h-48 w-48 items-center justify-center rounded-2xl border border-gray-200 bg-white p-4">
-          {qrUri ? (
-            <img
-              src={qrUri}
-              alt="QR Code PIX"
-              className="h-full w-full object-contain"
-            />
-          ) : (
-            <QrCode className="h-36 w-36 text-gray-800" strokeWidth={1.2} />
-          )}
-        </div>
-
-        {/* Price */}
-        <div className="w-full rounded-xl border border-gray-100 bg-gray-50 px-6 py-3 text-center">
-          <p className="mb-1 text-xs font-semibold tracking-wider text-gray-400 uppercase">
-            Valor
-          </p>
-          <p className="text-2xl font-bold text-black">{price}</p>
-        </div>
-
-        {/* PIX Code */}
-        <div className="w-full">
-          <p className="mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase">
-            Código PIX Copia e Cola
-          </p>
-          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 font-mono text-xs leading-relaxed break-all text-gray-500 select-all">
-            {pixCode || "—"}
-          </div>
-        </div>
-
-        {/* Copy button */}
-        <button
-          type="button"
-          onClick={onCopy}
-          disabled={!pixCode}
-          className={cn(
-            "flex w-full items-center justify-center gap-2.5 rounded-xl py-3.5 text-sm font-bold transition-all",
-            copied
-              ? "border border-emerald-200 bg-emerald-50 text-emerald-600"
-              : "bg-black text-white shadow-lg shadow-black/20 hover:bg-gray-800",
-            !pixCode && "cursor-not-allowed opacity-50",
-          )}
-        >
-          {copied ? (
-            <>
-              <Check className="h-4 w-4" strokeWidth={3} /> Código Copiado!
-            </>
-          ) : (
-            <>
-              <Copy className="h-4 w-4" /> Copiar Código PIX
-            </>
-          )}
-        </button>
-
-        {/* Already paid */}
-        <button
-          type="button"
-          onClick={onAlreadyPaid}
-          className="w-full rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-500 transition-all hover:border-gray-300 hover:text-gray-700"
-        >
-          Já realizei o pagamento
-        </button>
-      </div>
-
-      {/* Polling indicator */}
-      <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Aguardando confirmação do pagamento...
-      </div>
-    </motion.div>
-  );
-}
-
-function SuccessView({
-  onGoHome,
-  onCommunity,
-}: {
-  onGoHome: () => void;
-  onCommunity: () => void;
-}) {
-  return (
-    <motion.div
-      key="success"
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="flex flex-1 flex-col items-center justify-center gap-8 py-12 text-center"
-    >
-      <motion.div
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-        className="flex h-24 w-24 items-center justify-center rounded-full border border-black/10 bg-gray-50 shadow-inner"
-      >
-        <PartyPopper className="h-11 w-11 text-black" strokeWidth={1.5} />
-      </motion.div>
-
-      <div className="space-y-3">
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="text-4xl font-extrabold tracking-tight text-black"
-        >
-          Parabéns!
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="text-xl font-semibold text-gray-700"
-        >
-          Sua assinatura foi confirmada
-        </motion.p>
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65 }}
-          className="mx-auto max-w-sm text-sm leading-relaxed text-gray-400"
-        >
-          Obrigado por confiar na EX Voice. Agora você tem acesso completo às
-          ferramentas de transcrição e IA para elevar o nível do seu
-          atendimento.
-        </motion.p>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="flex w-full max-w-xs flex-col gap-3"
-      >
-        <button
-          onClick={onGoHome}
-          className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-black text-base font-bold text-white shadow-xl shadow-black/20 transition-all hover:bg-gray-800"
-        >
-          Ir para o painel{" "}
-          <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
-        </button>
-        <button
-          onClick={onCommunity}
-          className="flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-500 transition-all hover:border-gray-300 hover:text-gray-700"
-        >
-          <MessageCircle className="h-5 w-5" />
-          Acessar a Comunidade
-        </button>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
-export default function PlansPage() {
-  const { GetAPI, PostAPI, PutAPI } = useApiContext();
-  const { profile, setProfile, handleGetAvailableRecording } = useSession();
+export default function MinimalPlansPage() {
+  const { GetAPI } = useApiContext();
   const router = useRouter();
 
-  // ── View / navigation state
-  const [viewState, setViewState] = useState<ViewState>("plans");
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [loadingPlans, setLoadingPlans] = useState(true);
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>("MONTHLY");
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [cycle, setCycle] = useState<BillingCycle>("YEARLY");
+  const [method, setMethod] = useState<PaymentMethod>("PIX");
 
-  // ── Payment method (PIX como padrão)
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
-
-  // ── PIX state
-  const [pixGenerated, setPixGenerated] = useState(false);
-  const [pixCopied, setPixCopied] = useState(false);
-  const [pixPayload, setPixPayload] = useState<string>("");
-  const [pixEncodedImage, setPixEncodedImage] = useState<string | null>(null);
-  const [pixSignatureId, setPixSignatureId] = useState<string | null>(null);
-
-  // ref para poder parar o interval do polling dentro do callback assíncrono
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null,
-  );
-
-  // ── Form fields
-  const [cpf, setCpf] = useState("");
-  const [cep, setCep] = useState("");
-  const [address, setAddress] = useState("");
-  const [house, setHouse] = useState("");
-  const [holder, setHolder] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [exp, setExp] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [coupon, setCoupon] = useState("");
-
-  // ── Loading / coupon state
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
-  const [discountPercent, setDiscountPercent] = useState(0);
-
-  // ── Fetch plans
   const fetchPlans = useCallback(async () => {
-    setLoadingPlans(true);
+    setIsLoading(true);
     try {
       const res = await GetAPI("/signature-plan/channel/WEB", true);
       if (res.status === 200 && res.body?.plans) {
-        const list = res.body.plans as Plan[];
-        setPlans(list);
+        setPlans(res.body.plans as Plan[]);
       }
     } catch {
       console.error("Erro ao buscar planos");
     } finally {
-      setLoadingPlans(false);
+      setIsLoading(false);
     }
   }, [GetAPI]);
 
@@ -693,1808 +243,893 @@ export default function PlansPage() {
     fetchPlans();
   }, [fetchPlans]);
 
-  // ── Pre-fill form from profile
-  useEffect(() => {
-    if (profile) {
-      if (!cpf) setCpf(profile.cpfCnpj ?? "");
-      if (!cep) setCep(profile.postalCode ?? "");
-      if (!address) setAddress(profile.address ?? "");
-      if (!house) setHouse(profile.addressNumber ?? "");
-      if (!holder) setHolder(profile.name ?? "");
-      if (!email) setEmail(profile.email ?? "");
-      if (!phone) setPhone(profile.mobilePhone ?? "");
+  const yearlySavings = useMemo(() => {
+    if (!plans.length) return 0;
+    const first = plans[0];
+    const monthly = getPlanPrice(first, "MONTHLY", method);
+    const yearly = getPlanPrice(first, "YEARLY", method);
+    if (!monthly || !yearly) return 0;
+    return Math.max(0, Math.round((1 - yearly / (monthly * 12)) * 100));
+  }, [plans, method]);
+
+  const orderedPlans = useMemo(() => {
+    if (!plans.length) return [] as Plan[];
+    const featured = plans.find((p) => p.name?.toLowerCase().includes("ultra"));
+    if (!featured) return plans;
+    const rest = plans.filter((p) => p.id !== featured.id);
+    if (plans.length === 2) {
+      return [rest[0], featured].filter(Boolean) as Plan[];
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile]);
-
-  // ── CEP auto-fill
-  useEffect(() => {
-    const cleaned = onlyDigits(cep);
-    if (cleaned.length === 8) {
-      fetch(`https://brasilapi.com.br/api/cep/v2/${cleaned}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.cep) {
-            setAddress(
-              [data.street, data.neighborhood, data.city]
-                .filter(Boolean)
-                .join(", ") + (data.state ? ` - ${data.state}` : ""),
-            );
-          }
-        })
-        .catch(() => {});
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cep]);
-
-  // ── PIX polling
-  useEffect(() => {
-    if (!pixGenerated || !pixSignatureId || isFree) return;
-
-    let mounted = true;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-    const checkStatus = async () => {
-      try {
-        const res = await GetAPI(`/signature/${pixSignatureId}/status`, true);
-        if (!mounted) return;
-        if ([200, 201].includes(res.status) && res.body?.isPaid) {
-          // Para o interval imediatamente (acessível via ref dentro do callback)
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
-          await handleGetAvailableRecording();
-          setViewState("success");
-          return;
-        }
-      } catch {
-        /* continua tentando */
-      }
-    };
-
-    checkStatus();
-    pollingIntervalRef.current = setInterval(checkStatus, 5000);
-
-    // Para o polling após 15 minutos
-    timeoutId = setTimeout(() => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-    }, 900000);
-
-    return () => {
-      mounted = false;
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pixGenerated, pixSignatureId]);
-
-  // ── Computed
-  const selectedPlanData = plans.find((p) => p.id === selectedPlan);
-
-  const basePrice = selectedPlanData
-    ? paymentMethod === "card"
-      ? getPlanCreditPrice(selectedPlanData, billingCycle)
-      : getPlanPixPrice(selectedPlanData, billingCycle)
-    : 0;
-
-  const discountedPrice = basePrice * (1 - discountPercent / 100);
-  const isFree = discountPercent === 100;
-  const finalPrice = isFree
-    ? 0
-    : discountPercent > 0
-      ? discountedPrice
-      : basePrice;
-
-  const displayPlans = plans;
-
-  const canSubmit = useMemo(() => {
-    if (!selectedPlan) return false;
-    const cpfOk = onlyDigits(cpf).length >= 11;
-    const holderOk = holder.trim().length >= 3;
-    const emailOk = email.trim().length > 3 && email.includes("@");
-    const phoneOk = onlyDigits(phone).length >= 10;
-    const cepOk = onlyDigits(cep).length >= 8;
-    const addressOk = address.trim().length > 0;
-    const houseOk = house.trim().length > 0;
-    const addressSectionOk = cepOk && addressOk && houseOk;
-
-    if (isFree) return cpfOk && holderOk && emailOk && phoneOk;
-    if (paymentMethod === "pix")
-      return cpfOk && holderOk && emailOk && phoneOk && addressSectionOk;
-
-    const cardOk = onlyDigits(cardNumber).length >= 12;
-    const cvvOk = onlyDigits(cvv).length >= 3;
-    const expOk = !!parseExpiry(exp);
-    return (
-      cpfOk &&
-      holderOk &&
-      emailOk &&
-      phoneOk &&
-      addressSectionOk &&
-      cardOk &&
-      cvvOk &&
-      expOk
-    );
-  }, [
-    cpf,
-    holder,
-    email,
-    phone,
-    cep,
-    address,
-    house,
-    cardNumber,
-    cvv,
-    exp,
-    isFree,
-    selectedPlan,
-    paymentMethod,
-  ]);
-
-  // ── Helpers
-  async function updateProfileFromForm(): Promise<boolean> {
-    const payload: Record<string, string> = {
-      name: holder,
-      email: email.trim(),
-      cpfCnpj: onlyDigits(cpf),
-      mobilePhone: onlyDigits(phone),
-    };
-    if (!isFree) {
-      payload.postalCode = onlyDigits(cep);
-      payload.address = address.trim();
-      payload.addressNumber = house.trim();
-    }
-    const result = await PutAPI("/user", payload, true);
-    if (result.status === 200 && profile) {
-      setProfile({
-        ...profile,
-        name: payload.name,
-        email: payload.email,
-        cpfCnpj: payload.cpfCnpj ?? null,
-        mobilePhone: payload.mobilePhone ?? null,
-        postalCode: payload.postalCode ?? null,
-        address: payload.address ?? null,
-        addressNumber: payload.addressNumber ?? null,
-      });
-      return true;
-    }
-    return false;
-  }
-
-  async function handleCard() {
-    if (!selectedPlan) throw new Error("Plano não selecionado.");
-    const finalCoupon = coupon.trim();
-
-    if (isFree) {
-      const body: Record<string, unknown> = { billingCycle };
-      if (finalCoupon) body.code = finalCoupon;
-      const resp = await PostAPI(`/signature/pix/${selectedPlan}`, body, true);
-      if ([200, 201].includes(resp.status)) {
-        await handleGetAvailableRecording();
-        setViewState("success");
-      }
-      return resp;
-    }
-
-    const expParsed = parseExpiry(exp);
-    if (!expParsed) throw new Error("Data de expiração inválida.");
-
-    const body = {
-      planId: selectedPlan,
-      billingCycle,
-      code: finalCoupon || undefined,
-      creditCard: {
-        holderName: holder.toUpperCase(),
-        number: onlyDigits(cardNumber),
-        expiryMonth: expParsed.month,
-        expiryYear: expParsed.year,
-        ccv: onlyDigits(cvv),
-      },
-      creditCardHolderInfo: {
-        name: holder,
-        email: email.trim(),
-        cpfCnpj: onlyDigits(cpf),
-        postalCode: onlyDigits(cep),
-        addressNumber: house.trim(),
-        phone: onlyDigits(phone),
-      },
-      billingInfo: {
-        name: holder,
-        email: email.trim(),
-        cpfCnpj: onlyDigits(cpf),
-        mobilePhone: onlyDigits(phone),
-        postalCode: onlyDigits(cep),
-        address: address.trim(),
-        addressNumber: house.trim(),
-      },
-    };
-
-    const resp = await PostAPI("/signature/credit/new", body, true);
-    if ([200, 201].includes(resp.status)) {
-      await handleGetAvailableRecording();
-      setViewState("success");
-    }
-    return resp;
-  }
-
-  async function handleGeneratePix(): Promise<{ status: number; body?: any }> {
-    if (!selectedPlan) return { status: 400 };
-    const finalCoupon = coupon.trim();
-    const body = {
-      billingCycle,
-      code: finalCoupon || undefined,
-      billingInfo: {
-        name: holder,
-        email: email.trim(),
-        cpfCnpj: onlyDigits(cpf),
-        mobilePhone: onlyDigits(phone),
-        postalCode: onlyDigits(cep),
-        address: address.trim(),
-        addressNumber: house.trim(),
-      },
-    };
-    const resp = await PostAPI(`/signature/pix/${selectedPlan}`, body, true);
-    if ([200, 201].includes(resp.status) && resp.body?.payment) {
-      setPixPayload(resp.body.payment.payload || "");
-      setPixEncodedImage(resp.body.payment.encodedImage || null);
-      setPixSignatureId(resp.body.signatureId || null);
-      setPixGenerated(true);
-    }
-    return resp;
-  }
-
-  async function onSubmit() {
-    if (!canSubmit) {
-      toast.error(
-        paymentMethod === "pix" || isFree
-          ? "Verifique seus dados pessoais."
-          : "Verifique os dados do cartão e endereço.",
-      );
-      return;
-    }
-
-    setSubmitLoading(true);
-    try {
-      await updateProfileFromForm();
-
-      if (paymentMethod === "pix" && !isFree) {
-        const resp = await handleGeneratePix();
-        if (![200, 201].includes(resp.status)) {
-          const msg =
-            resp.body?.message ||
-            resp.body?.errors?.[0]?.description ||
-            "Não foi possível gerar o PIX. Tente novamente.";
-          toast.error(msg);
-        }
-        return;
-      }
-
-      const resp = await handleCard();
-      if (resp && ![200, 201].includes(resp.status)) {
-        const msg =
-          resp.body?.message ||
-          resp.body?.errors?.[0]?.description ||
-          "Não foi possível processar o pagamento.";
-        toast.error(msg);
-      }
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro desconhecido.");
-    } finally {
-      setSubmitLoading(false);
-    }
-  }
-
-  async function handleCopyPixCode() {
-    if (!pixPayload) return;
-    try {
-      await navigator.clipboard.writeText(pixPayload);
-      setPixCopied(true);
-      toast.success("Código PIX copiado!");
-      setTimeout(() => setPixCopied(false), 3000);
-    } catch {
-      toast.error("Não foi possível copiar.");
-    }
-  }
-
-  async function handleCheckCoupon() {
-    const code = coupon.trim().toUpperCase();
-    if (!code) return;
-    setIsValidatingCoupon(true);
-    try {
-      const resp = await GetAPI(`/coupon/${code}`, false);
-      if (resp.status === 200 && resp.body?.discount !== undefined) {
-        const discount = Number(resp.body.discount);
-        setDiscountPercent(discount);
-        toast.success(
-          discount === 100
-            ? "100% de desconto concedido!"
-            : `${discount}% de desconto concedido!`,
-        );
-      } else {
-        setDiscountPercent(0);
-        toast.error(
-          String(resp.body?.message || resp.body || "Cupom não encontrado."),
-        );
-      }
-    } catch {
-      setDiscountPercent(0);
-      toast.error("Erro ao validar cupom. Tente novamente.");
-    } finally {
-      setIsValidatingCoupon(false);
-    }
-  }
-
-  function handleChangePaymentMethod(m: PaymentMethod) {
-    setPaymentMethod(m);
-    setPixGenerated(false);
-    setPixCopied(false);
-    setPixPayload("");
-    setPixEncodedImage(null);
-    setPixSignatureId(null);
-  }
-
-  function handleBack() {
-    if (viewState === "success") return;
-    if (pixGenerated) {
-      setPixGenerated(false);
-    } else if (viewState === "checkout") {
-      setViewState("plans");
-    } else {
-      router.push("/");
-    }
-  }
-
-  const isCheckout = viewState === "checkout";
-  const isSuccess = viewState === "success";
-
-  // ── Price label helpers
-  const priceLabel = () => {
-    if (isFree) return "";
-    if (paymentMethod === "card" && billingCycle === "YEARLY")
-      return "Cobrança em 12x (anual)";
-    if (paymentMethod === "card") return "Cobrança mensal";
-    return billingCycle === "YEARLY"
-      ? "Valor total anual via PIX"
-      : "Pagamento via PIX";
-  };
-
-  const submitLabel = () => {
-    if (submitLoading) return "Processando...";
-    if (isFree) return "Confirmar Inscrição Gratuita";
-    if (paymentMethod === "pix") return "Gerar PIX";
-    return "Finalizar Pagamento";
-  };
+    return [rest[0], featured, rest[1]].filter(Boolean) as Plan[];
+  }, [plans]);
 
   return (
-    <div className="min-h-screen w-full bg-[#111]">
-      <div className="relative flex min-h-screen w-full flex-col bg-white lg:flex-row">
-        {/* ═══ Crossing patterns ═══ */}
-        <div className="pointer-events-none absolute inset-0 z-[5]">
-          <motion.div
-            animate={{ y: [0, -30, 0], x: [0, 15, 0] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[15%] left-[45%] h-[500px] w-[500px] rounded-full opacity-[0.06]"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(100,100,100,0.5) 0%, transparent 70%)",
-            }}
-          />
-          <motion.div
-            animate={{ y: [0, 20, 0], x: [0, -20, 0] }}
-            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute bottom-[10%] left-[42%] h-[600px] w-[600px] rounded-full opacity-[0.05]"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(82,82,91,0.4) 0%, transparent 70%)",
-            }}
-          />
-          <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-            className="absolute top-[30%] left-[47%] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gray-400/[0.06]"
-          />
-        </div>
+    <div className="flex w-full flex-col gap-14">
+      <Hero />
 
-        {/* ═══ LEFT — Video panel (encolhe ao exibir Parabéns até tela inteira) ═══ */}
-        <motion.div
-          className="relative hidden h-screen shrink-0 flex-col overflow-hidden bg-black lg:sticky lg:top-0 lg:flex"
-          animate={{
-            width: isSuccess ? "0%" : isCheckout ? "50%" : "33.333%",
-          }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 z-0 h-full w-full object-cover opacity-100"
-          >
-            <source src="/B-Rolls.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 z-[1] bg-black/25" />
-          <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/40 via-transparent to-black/15" />
-          <div
-            className={cn(
-              "absolute z-90 flex w-full shrink-0 items-center justify-between px-6 py-4 sm:px-8",
-              isSuccess && "hidden",
-            )}
-          >
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.07] p-6 px-4 py-2 text-sm font-medium text-white shadow-sm backdrop-blur-xl transition hover:bg-white/20 hover:shadow-md"
-            >
-              <ChevronLeft className="h-4 w-4" /> Voltar
-            </button>
-            <div className="flex items-center justify-center">
-              <Image
-                src="/logos/logo.png"
-                alt="EX Voice"
-                width={200}
-                height={60}
-                className="h-12 w-auto object-contain"
-              />
-            </div>
-          </div>
-          {/* Left panel patterns */}
-          <div className="pointer-events-none absolute inset-0 z-[3]">
-            <div
-              className="absolute inset-0 opacity-[0.06]"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.8) 1px, transparent 0)",
-                backgroundSize: "32px 32px",
-              }}
-            />
-            <motion.div
-              animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.2, 1] }}
-              transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-20 -left-20 h-[28rem] w-[28rem] rounded-full bg-neutral-400/[0.08] blur-3xl"
-            />
-            <motion.div
-              animate={{ x: [0, -30, 0], y: [0, 40, 0], scale: [1, 1.3, 1] }}
-              transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -right-16 bottom-[20%] h-[24rem] w-[24rem] rounded-full bg-zinc-400/[0.06] blur-3xl"
-            />
-            <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-              className="absolute top-[10%] right-[10%] h-48 w-48"
-            >
-              <div className="h-full w-full rounded-full border border-white/[0.08]" />
-              <div className="absolute inset-4 rounded-full border border-dashed border-white/[0.06]" />
-            </motion.div>
-            <motion.div
-              animate={{ y: ["-100%", "200%"] }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "linear",
-                repeatDelay: 4,
-              }}
-              className="absolute left-0 h-px w-full bg-gradient-to-r from-transparent via-white/[0.10] to-transparent"
-            />
-          </div>
+      <BillingBar
+        cycle={cycle}
+        method={method}
+        onCycleChange={setCycle}
+        onMethodChange={setMethod}
+        yearlySavings={yearlySavings}
+      />
 
-          {/* Left content — checkout: imagem do plano; etapa plans: área vazia (vídeo visível) */}
-          <div className="relative z-10 flex h-full flex-col justify-center gap-6 p-10">
-            <AnimatePresence mode="wait">
-              {selectedPlanData && isCheckout && (
-                <motion.div
-                  key="plan-image"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-xl"
-                >
-                  <div className="relative aspect-[4/3] w-full">
-                    <Image
-                      src="/ex-team.png"
-                      alt={selectedPlanData.name}
-                      fill
-                      className="object-cover object-top"
-                      sizes="(max-width: 1024px) 100vw, 33vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute right-4 bottom-4 left-4">
-                      <p className="text-xs font-semibold tracking-widest text-white/80 uppercase">
-                        Plano selecionado
-                      </p>
-                      <h3 className="text-xl font-bold text-white">
-                        {selectedPlanData.name}
-                      </h3>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-
-        {/* ═══ RIGHT — Content panel (scroll do site) ═══ */}
-        <div className="relative flex min-h-screen flex-1 flex-col bg-[#fafafa]">
-          {/* Right panel patterns */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="absolute inset-0">
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `
-                    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(212,212,216,0.12) 0%, transparent 60%),
-                    radial-gradient(ellipse 60% 60% at 80% 80%, rgba(228,228,231,0.1) 0%, transparent 50%)
-                  `,
-                }}
-              />
-            </div>
-            <motion.div
-              animate={{ x: ["-5%", "5%", "-5%"], y: ["-3%", "3%", "-3%"] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-[10%] -left-[5%] h-[60%] w-[120%]"
-              style={{
-                background:
-                  "linear-gradient(135deg, transparent 25%, rgba(161,161,170,0.08) 38%, rgba(161,161,170,0.02) 50%, transparent 60%)",
-              }}
-            />
-          </div>
-
-          {/* Conteúdo rolável com o scroll do site */}
-          <div className="relative z-10 flex flex-col">
-            <div
-              className={cn(
-                "mx-auto flex w-full flex-1 flex-col px-6 sm:px-8",
-                viewState === "plans" ? "max-w-6xl" : "max-w-2xl",
-                isCheckout &&
-                  !(pixGenerated && paymentMethod === "pix") &&
-                  "pb-40",
-                viewState === "plans" && "pb-28",
-                !isCheckout && "min-h-screen",
-              )}
-            >
-              <AnimatePresence mode="wait">
-                {/* ═══ PLANS ═══ */}
-                {viewState === "plans" && (
-                  <motion.div
-                    key="plans"
-                    initial={{ opacity: 0, x: -16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -30, scale: 0.96 }}
-                    transition={{ duration: 0.35 }}
-                    className="flex flex-1 flex-col items-center justify-center gap-8 py-8"
-                  >
-                    {/* Mobile header */}
-                    <div className="flex w-full max-w-6xl items-center justify-between lg:hidden">
-                      <button
-                        type="button"
-                        onClick={handleBack}
-                        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-sm transition hover:bg-gray-50"
-                      >
-                        <ChevronLeft className="h-4 w-4" /> Voltar
-                      </button>
-                      <Image
-                        src="/logos/logo.png"
-                        alt="EX Voice"
-                        width={160}
-                        height={48}
-                        className="h-10 w-auto object-contain"
-                      />
-                    </div>
-
-                    {/* Title */}
-                    <div className="w-full text-center">
-                      <h1 className="text-3xl font-extrabold tracking-tight text-black sm:text-4xl">
-                        Escolha seu plano
-                      </h1>
-                      <p className="mt-2 text-base text-gray-500">
-                        Selecione o plano ideal e desbloqueie todo o potencial
-                        do EX Voice.
-                      </p>
-                    </div>
-
-                    {/* Billing toggle */}
-                    <div className="inline-flex rounded-full bg-white p-1.5 shadow-sm ring-1 ring-black/5">
-                      <button
-                        onClick={() => setBillingCycle("MONTHLY")}
-                        className={cn(
-                          "rounded-full px-6 py-2.5 text-sm font-semibold transition-all",
-                          billingCycle === "MONTHLY"
-                            ? "bg-black text-white shadow-md"
-                            : "text-gray-500 hover:text-gray-700",
-                        )}
-                      >
-                        Mensal
-                      </button>
-                      <button
-                        onClick={() => setBillingCycle("YEARLY")}
-                        className={cn(
-                          "flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition-all",
-                          billingCycle === "YEARLY"
-                            ? "bg-black text-white shadow-md"
-                            : "text-gray-500 hover:text-gray-700",
-                        )}
-                      >
-                        Anual
-                        <span className="rounded-full bg-gradient-to-r from-[#F7CE46] to-[#FFCC00] px-2 py-0.5 text-[10px] font-bold text-black">
-                          -20%
-                        </span>
-                      </button>
-                    </div>
-
-                    {/* Plan cards */}
-                    {loadingPlans ? (
-                      <div className="flex items-center justify-center py-16">
-                        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                      </div>
-                    ) : (
-                      <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">
-                        {displayPlans.map((plan, i) => {
-                          const isSelected = selectedPlan === plan.id;
-                          const creditPrice = getPlanCreditPrice(
-                            plan,
-                            billingCycle,
-                          );
-                          const pixPrice = getPlanPixPrice(plan, billingCycle);
-                          const displayPrice =
-                            pixPrice > 0 ? pixPrice : creditPrice;
-                          const staticData =
-                            PLAN_STATIC_DATA[i] ??
-                            PLAN_STATIC_DATA[PLAN_STATIC_DATA.length - 1];
-
-                          return (
-                            <motion.button
-                              key={plan.id}
-                              type="button"
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: i * 0.08 }}
-                              whileHover={{
-                                y: -4,
-                                transition: { duration: 0.2 },
-                              }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => setSelectedPlan(plan.id)}
-                              className={cn(
-                                "group relative flex h-full w-full flex-col items-stretch rounded-[2.5rem] border px-7 py-8 text-left transition-all duration-300",
-                                isSelected
-                                  ? "border-gray-800 bg-black shadow-[0_8px_40px_-4px_rgba(0,0,0,0.30)]"
-                                  : staticData.highlight
-                                    ? "border-amber-200 bg-gradient-to-b from-amber-50 to-orange-50/30 shadow-[0_4px_24px_-4px_rgba(245,158,11,0.18)] hover:shadow-[0_12px_40px_-6px_rgba(245,158,11,0.25)]"
-                                    : staticData.badge
-                                      ? "border-emerald-200 bg-gradient-to-b from-emerald-50 to-teal-50/20 shadow-[0_6px_28px_-4px_rgba(16,185,129,0.20)] hover:shadow-[0_14px_44px_-6px_rgba(16,185,129,0.28)]"
-                                      : "border-gray-200 bg-gradient-to-b from-gray-50/80 to-white shadow-[0_4px_24px_-4px_rgba(0,0,0,0.09)] hover:shadow-[0_10px_36px_-6px_rgba(0,0,0,0.14)]",
-                              )}
-                            >
-                              {/* Top accent line */}
-                              <div
-                                className={cn(
-                                  "absolute top-0 right-8 left-8 h-[1px] bg-gradient-to-r from-transparent to-transparent",
-                                  !isSelected && staticData.highlight
-                                    ? "via-amber-400/60"
-                                    : !isSelected && i === 0
-                                      ? "via-blue-300/50"
-                                      : "via-gray-200/60",
-                                )}
-                              />
-
-                              {/* Tag "Mais Popular" */}
-                              {staticData.tag && (
-                                <div className="absolute -top-3.5 left-1/2 z-10 -translate-x-1/2">
-                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-1.5 text-[10px] font-bold tracking-[0.15em] whitespace-nowrap text-white uppercase shadow-lg shadow-amber-200/60">
-                                    <Crown className="h-2.5 w-2.5" />
-                                    {staticData.tag}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Badge "Para equipes" */}
-                              {staticData.badge && (
-                                <div className="absolute -top-3.5 left-1/2 z-10 -translate-x-1/2">
-                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-1.5 text-[10px] font-bold tracking-[0.15em] whitespace-nowrap text-white uppercase shadow-lg shadow-emerald-200/50">
-                                    <Users className="h-2.5 w-2.5" />
-                                    {staticData.badge}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Card header */}
-                              <div className="mb-5 flex items-start justify-between gap-3 pt-1">
-                                <div className="min-w-0 flex-1">
-                                  <h3
-                                    className={cn(
-                                      "text-base font-bold tracking-[0.1em] uppercase",
-                                      isSelected
-                                        ? "text-white"
-                                        : staticData.accentColor,
-                                    )}
-                                  >
-                                    {staticData.displayName ?? plan.name}
-                                  </h3>
-                                  <p
-                                    className={cn(
-                                      "mt-0.5 mb-3 text-xs font-medium",
-                                      isSelected
-                                        ? "text-white/60"
-                                        : "text-gray-400",
-                                    )}
-                                  >
-                                    {staticData.subtitle}
-                                  </p>
-
-                                  {/* Price */}
-                                  <div className="flex items-baseline gap-1">
-                                    <span
-                                      className={cn(
-                                        "text-3xl font-semibold tracking-tight",
-                                        isSelected
-                                          ? "text-white"
-                                          : "text-gray-900",
-                                      )}
-                                    >
-                                      {billingCycle === "YEARLY"
-                                        ? fmtBRL(displayPrice / 12)
-                                        : fmtBRL(displayPrice)}
-                                    </span>
-                                    {(pixPrice > 0 || creditPrice > 0) && (
-                                      <span
-                                        className={cn(
-                                          "text-sm font-medium",
-                                          isSelected
-                                            ? "text-white/50"
-                                            : "text-gray-400",
-                                        )}
-                                      >
-                                        /mês
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {billingCycle === "YEARLY" && (
-                                    <p
-                                      className={cn(
-                                        "mt-0.5 text-[11px]",
-                                        isSelected
-                                          ? "text-white/50"
-                                          : "text-gray-400",
-                                      )}
-                                    >
-                                      cobrado anualmente
-                                    </p>
-                                  )}
-
-                                  {pixPrice > 0 && pixPrice < creditPrice && (
-                                    <div
-                                      className={cn(
-                                        "mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
-                                        isSelected
-                                          ? "bg-white/10 text-white/60"
-                                          : "bg-gray-100 text-gray-500",
-                                      )}
-                                    >
-                                      <CreditCard className="h-2.5 w-2.5" />
-                                      {billingCycle === "YEARLY"
-                                        ? `12x de ${fmtBRL(creditPrice / 12)}`
-                                        : fmtBRL(creditPrice)}{" "}
-                                      no Cartão
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="shrink-0 pt-0.5">
-                                  <PlanSelectDot
-                                    selected={isSelected}
-                                    idleBorderClass={
-                                      isSelected
-                                        ? ""
-                                        : cn(
-                                            staticData.accentBorder,
-                                            "border",
-                                          )
-                                    }
-                                    idleBgClass={
-                                      isSelected
-                                        ? undefined
-                                        : cn(staticData.accentBg)
-                                    }
-                                  />
-                                </div>
-                              </div>
-
-                              {/* Description */}
-                              {plan.description?.trim() && (
-                                <p
-                                  className={cn(
-                                    "mb-5 min-h-[44px] text-[13px] leading-relaxed font-light",
-                                    isSelected
-                                      ? "text-white/70"
-                                      : "text-gray-500",
-                                  )}
-                                >
-                                  {plan.description.trim()}
-                                </p>
-                              )}
-
-                              {/* Divider */}
-                              <div
-                                className={cn(
-                                  "mb-5 h-[1px] bg-gradient-to-r from-transparent to-transparent",
-                                  isSelected ? "via-white/10" : "via-gray-200",
-                                )}
-                              />
-
-                              {/* Features */}
-                              <ul className="flex-grow space-y-2.5">
-                                {staticData.features.map((feature, idx) => (
-                                  <li
-                                    key={idx}
-                                    className="flex items-center gap-2.5"
-                                  >
-                                    {feature.included ? (
-                                      <div
-                                        className={cn(
-                                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors",
-                                          feature.highlight
-                                            ? isSelected
-                                              ? "border-white/20 bg-white/15"
-                                              : cn(
-                                                  staticData.accentBg,
-                                                  staticData.accentBorder,
-                                                )
-                                            : isSelected
-                                              ? "border-white/10 bg-white/10"
-                                              : "border-gray-200 bg-gray-50",
-                                        )}
-                                      >
-                                        <Check
-                                          className={cn(
-                                            "h-3 w-3",
-                                            feature.highlight
-                                              ? isSelected
-                                                ? "text-white"
-                                                : staticData.accentColor
-                                              : isSelected
-                                                ? "text-white/70"
-                                                : "text-gray-400",
-                                          )}
-                                          strokeWidth={2.5}
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div
-                                        className={cn(
-                                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
-                                          isSelected
-                                            ? "border-white/10 bg-white/5"
-                                            : "border-gray-100 bg-gray-50",
-                                        )}
-                                      >
-                                        <X
-                                          className={cn(
-                                            "h-3 w-3",
-                                            isSelected
-                                              ? "text-white/30"
-                                              : "text-gray-300",
-                                          )}
-                                          strokeWidth={2}
-                                        />
-                                      </div>
-                                    )}
-                                    <span
-                                      className={cn(
-                                        "text-[13px] leading-snug",
-                                        feature.included
-                                          ? feature.highlight
-                                            ? isSelected
-                                              ? "font-semibold text-white"
-                                              : cn("font-semibold", staticData.accentColor)
-                                            : isSelected
-                                              ? "font-light text-white/80"
-                                              : "font-light text-gray-600"
-                                          : isSelected
-                                            ? "font-light text-white/25"
-                                            : "font-light text-gray-300",
-                                      )}
-                                    >
-                                      {feature.text}
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </motion.button>
-                          );
-                        })}
-
-                        {/* Empresa — card estático full-width (não vem da API) */}
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: displayPlans.length * 0.08 }}
-                          className="group relative col-span-full overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-emerald-50/90 via-emerald-50/50 to-teal-50/60 p-7 shadow-[0_4px_24px_-4px_rgba(16,185,129,0.14)] transition-all duration-300 hover:shadow-[0_10px_36px_-6px_rgba(16,185,129,0.20)] sm:p-8"
-                        >
-                          {/* Decorative blobs */}
-                          <div className="pointer-events-none absolute top-0 right-0 h-[200px] w-[200px] rounded-full bg-emerald-200/25 blur-[70px]" />
-                          <div className="pointer-events-none absolute bottom-0 left-0 h-[140px] w-[140px] rounded-full bg-teal-200/20 blur-[60px]" />
-                          {/* Top accent line */}
-                          <div className="absolute top-0 right-0 left-0 h-[2px] bg-gradient-to-r from-emerald-400/40 via-teal-400/60 to-emerald-400/40" />
-
-                          <div className="relative z-10">
-                            {/* ── Badge ── */}
-                            <div className="mb-5">
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-1 text-[10px] font-bold tracking-[0.15em] text-white uppercase shadow-md shadow-emerald-200/50">
-                                <Users className="h-2.5 w-2.5" />
-                                Para equipes
-                              </span>
-                            </div>
-
-                            {/* ── Identity + price ── */}
-                            <div className="mb-4">
-                              <h3 className="text-base font-bold uppercase tracking-[0.1em] text-emerald-700">
-                                Empresa
-                              </h3>
-                              <p className="mt-0.5 text-xs font-medium text-gray-400">
-                                Corporativo
-                              </p>
-                              <div className="mt-3 flex items-baseline gap-2">
-                                <span className="text-3xl font-semibold tracking-tight text-gray-900">
-                                  Sob consulta
-                                </span>
-                              </div>
-                              <p className="mt-0.5 text-[11px] text-gray-400">
-                                Base do plano Pro por usuário
-                              </p>
-                            </div>
-
-                            {/* ── Description ── */}
-                            <p className="mb-6 text-[13px] leading-relaxed font-light text-gray-500">
-                              O poder do Pool de Horas: as horas diárias de cada
-                              colaborador somam-se em um banco único da empresa,
-                              garantindo que grandes reuniões nunca travem a
-                              produtividade de ninguém.
-                            </p>
-
-                            {/* ── Divider ── */}
-                            <div className="mb-6 h-[1px] bg-gradient-to-r from-transparent via-emerald-200/60 to-transparent" />
-
-                            {/* ── Features: 2-column grid ── */}
-                            <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-emerald-600">
-                              O que está incluído
-                            </p>
-                            <ul className="mb-6 grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2">
-                              {PLAN_STATIC_DATA[2].features.map(
-                                (feature, idx) => {
-                                  const empresaStatic = PLAN_STATIC_DATA[2];
-                                  return (
-                                    <li
-                                      key={idx}
-                                      className="flex items-center gap-2.5"
-                                    >
-                                      {feature.included ? (
-                                        <div
-                                          className={cn(
-                                            "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors",
-                                            feature.highlight
-                                              ? cn(
-                                                  empresaStatic.accentBg,
-                                                  empresaStatic.accentBorder,
-                                                )
-                                              : "border-gray-200 bg-gray-50",
-                                          )}
-                                        >
-                                          <Check
-                                            className={cn(
-                                              "h-3 w-3",
-                                              feature.highlight
-                                                ? empresaStatic.accentColor
-                                                : "text-gray-400",
-                                            )}
-                                            strokeWidth={2.5}
-                                          />
-                                        </div>
-                                      ) : (
-                                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-100 bg-gray-50">
-                                          <X
-                                            className="h-3 w-3 text-gray-300"
-                                            strokeWidth={2}
-                                          />
-                                        </div>
-                                      )}
-                                      <span
-                                        className={cn(
-                                          "text-[13px] leading-snug",
-                                          feature.included
-                                            ? feature.highlight
-                                              ? cn(
-                                                  "font-semibold",
-                                                  empresaStatic.accentColor,
-                                                )
-                                              : "font-light text-gray-600"
-                                            : "font-light text-gray-300",
-                                        )}
-                                      >
-                                        {feature.text}
-                                      </span>
-                                    </li>
-                                  );
-                                },
-                              )}
-                            </ul>
-
-                            {/* ── CTA ── */}
-                            <a
-                              href="https://api.whatsapp.com/send/?phone=5541997819114&text=Ola%2C+desejo+conhecer+o+plano+Empresa+da+ExVoice&type=phone_number&app_absent=0"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group/btn flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-300 bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-md shadow-emerald-200/60 transition-all duration-300 hover:bg-emerald-700 hover:shadow-lg sm:w-auto sm:px-10"
-                            >
-                              Falar com Especialista
-                              <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
-                            </a>
-                          </div>
-                        </motion.div>
-                      </div>
-                    )}
-
-                    {/* Pool de Horas */}
-                    {!loadingPlans && displayPlans.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="w-full"
-                      >
-                        <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-8 shadow-sm">
-                          <div className="pointer-events-none absolute top-0 right-0 h-[200px] w-[200px] rounded-full bg-emerald-100/40 blur-[80px]" />
-                          <div className="pointer-events-none absolute bottom-0 left-0 h-[150px] w-[150px] rounded-full bg-blue-100/30 blur-[60px]" />
-
-                          <div className="relative z-10">
-                            <div className="mb-6 flex items-center gap-3">
-                              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50">
-                                <Users
-                                  className="h-5 w-5 text-emerald-600"
-                                  strokeWidth={1.8}
-                                />
-                              </div>
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                  Como funciona o Pool de Horas?
-                                </h3>
-                                <p className="text-xs text-gray-400">
-                                  Exclusivo do plano Empresa
-                                </p>
-                              </div>
-                            </div>
-
-                            <p className="mb-7 text-sm leading-relaxed font-light text-gray-500">
-                              No plano Empresa, cada colaborador recebe{" "}
-                              <span className="font-medium text-gray-900">
-                                5 horas diárias de transcrição
-                              </span>
-                              . Essas horas são somadas em um{" "}
-                              <span className="font-medium text-emerald-600">
-                                banco compartilhado da empresa
-                              </span>
-                              . Se alguém esgota suas horas individuais, pode
-                              consumir do saldo geral — garantindo que grandes
-                              reuniões nunca travem a produtividade de ninguém.
-                            </p>
-
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                              {[
-                                {
-                                  users: 5,
-                                  hours: 25,
-                                  label: "Equipe pequena",
-                                },
-                                {
-                                  users: 10,
-                                  hours: 50,
-                                  label: "Empresa média",
-                                },
-                                {
-                                  users: 50,
-                                  hours: 250,
-                                  label: "Grande corporação",
-                                },
-                              ].map((example, idx) => (
-                                <div
-                                  key={idx}
-                                  className="rounded-2xl border border-gray-100 bg-gray-50 p-5 transition-all duration-300 hover:border-emerald-200 hover:bg-emerald-50/30"
-                                >
-                                  <div className="mb-3 flex items-center gap-2.5">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50">
-                                      <Users className="h-4 w-4 text-emerald-600" />
-                                    </div>
-                                    <span className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
-                                      {example.label}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-baseline gap-1.5">
-                                    <span className="text-2xl font-semibold text-gray-900">
-                                      {example.users}
-                                    </span>
-                                    <span className="text-xs text-gray-400">
-                                      usuários
-                                    </span>
-                                  </div>
-                                  <div className="mt-1.5 flex items-center gap-1.5">
-                                    <Clock className="h-3.5 w-3.5 text-emerald-500" />
-                                    <span className="text-sm font-medium text-emerald-600">
-                                      {example.hours}h/dia
-                                    </span>
-                                    <span className="text-[10px] text-gray-400">
-                                      disponíveis
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Comparison table */}
-                    {!loadingPlans && displayPlans.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.35 }}
-                        className="hidden w-full md:block"
-                      >
-                        <div className="mb-6 text-center">
-                          <span className="mb-2 block text-xs font-bold tracking-[0.2em] text-blue-600 uppercase">
-                            Visão Geral
-                          </span>
-                          <h3 className="mb-1 text-xl font-semibold tracking-tight text-gray-900">
-                            Comparação completa
-                          </h3>
-                          <p className="text-sm font-light text-gray-400">
-                            Veja lado a lado o que cada plano oferece.
-                          </p>
-                        </div>
-
-                        <div className="overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-sm">
-                          <table className="w-full">
-                            <thead>
-                              <tr className="border-b border-gray-100">
-                                <th className="w-[30%] p-5 text-left align-bottom text-xs font-bold tracking-widest text-gray-400 uppercase">
-                                  Recurso
-                                </th>
-                                {displayPlans.slice(0, 4).map((p, idx) => {
-                                  const colSelected = selectedPlan === p.id;
-                                  const sd = PLAN_STATIC_DATA[idx];
-                                  const isAnySelected = selectedPlan !== null;
-                                  return (
-                                    <th
-                                      key={p.id}
-                                      className={cn(
-                                        "p-0 text-center align-bottom transition-all duration-300",
-                                        colSelected
-                                          ? sd?.accentBg
-                                          : isAnySelected
-                                            ? "opacity-40"
-                                            : idx === 2
-                                              ? "bg-amber-50/50"
-                                              : "",
-                                      )}
-                                    >
-                                      <button
-                                        type="button"
-                                        onClick={() => setSelectedPlan(p.id)}
-                                        aria-pressed={colSelected}
-                                        className={cn(
-                                          "flex w-full flex-col items-center gap-2 rounded-t-xl p-5 text-center transition-all duration-300",
-                                          colSelected
-                                            ? ""
-                                            : isAnySelected
-                                              ? "hover:opacity-100"
-                                              : idx === 2
-                                                ? "bg-amber-50/50 hover:bg-amber-50/80"
-                                                : "hover:bg-gray-50/90",
-                                        )}
-                                      >
-                                        <PlanSelectDot
-                                          selected={colSelected}
-                                          idleBorderClass="border-gray-300"
-                                          idleBgClass="bg-white"
-                                          size="sm"
-                                        />
-                                        <span
-                                          className={cn(
-                                            "block text-sm font-bold tracking-widest uppercase transition-colors duration-300",
-                                            colSelected
-                                              ? sd?.accentColor
-                                              : isAnySelected
-                                                ? "text-gray-300"
-                                                : (sd?.accentColor ?? "text-gray-500"),
-                                          )}
-                                        >
-                                          {PLAN_STATIC_DATA[idx]?.displayName ?? p.name}
-                                        </span>
-                                        <span
-                                          className={cn(
-                                            "block text-[10px] font-medium transition-colors duration-300",
-                                            colSelected
-                                              ? "text-gray-500"
-                                              : isAnySelected
-                                                ? "text-gray-300"
-                                                : "text-gray-400",
-                                          )}
-                                        >
-                                          {sd?.subtitle ?? ""}
-                                        </span>
-                                      </button>
-                                    </th>
-                                  );
-                                })}
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                              {[
-                                {
-                                  feature: "Gravação",
-                                  values: [
-                                    "Ilimitada",
-                                    "100% ilimitada",
-                                  ],
-                                },
-                                {
-                                  feature: "Transcrição",
-                                  values: [
-                                    "150h/mês · 5h/dia",
-                                    "Ilimitada",
-                                  ],
-                                },
-                                {
-                                  feature: "Resumos por IA",
-                                  values: [
-                                    "Básico",
-                                    "Básico",
-                                  ],
-                                },
-                                {
-                                  feature: "Insights avançados",
-                                  values: [false, true],
-                                },
-                                {
-                                  feature: "Diarização de falantes",
-                                  values: [false, true],
-                                },
-                                {
-                                  feature: "Personalizar ou treinar IA",
-                                  values: [false, true],
-                                },
-                                {
-                                  feature: "Pool de horas",
-                                  values: [false, false],
-                                },
-                                {
-                                  feature: "Suporte",
-                                  values: [
-                                    "Comunitário",
-                                    "Prioritário",
-                                  ],
-                                },
-                                {
-                                  feature: "Exportação avançada",
-                                  values: [false, true],
-                                },
-                              ].map((row, rowIdx) => (
-                                <tr
-                                  key={rowIdx}
-                                  className="transition-colors duration-200"
-                                >
-                                  <td className="p-4 pl-5 text-sm font-medium text-gray-700">
-                                    {row.feature}
-                                  </td>
-                                  {row.values
-                                    .slice(0, displayPlans.length)
-                                    .map((val, vIdx) => {
-                                      const colPlanId = displayPlans[vIdx]?.id;
-                                      const isColSelected =
-                                        colPlanId === selectedPlan;
-                                      const sd = PLAN_STATIC_DATA[vIdx];
-                                      const isAnySelected =
-                                        selectedPlan !== null;
-                                      return (
-                                        <td
-                                          key={vIdx}
-                                          className={cn(
-                                            "p-4 text-center transition-all duration-300",
-                                            isColSelected
-                                              ? sd?.accentBg
-                                              : isAnySelected
-                                                ? "opacity-40"
-                                                : vIdx === 2
-                                                  ? "bg-amber-50/30"
-                                                  : "",
-                                          )}
-                                        >
-                                          {typeof val === "boolean" ? (
-                                            val ? (
-                                              <div
-                                                className={cn(
-                                                  "inline-flex h-6 w-6 items-center justify-center rounded-lg border transition-colors duration-300",
-                                                  isColSelected
-                                                    ? cn(
-                                                        sd?.accentBg,
-                                                        sd?.accentBorder,
-                                                      )
-                                                    : "border-blue-200 bg-blue-50",
-                                                )}
-                                              >
-                                                <Check
-                                                  className={cn(
-                                                    "h-3 w-3 transition-colors duration-300",
-                                                    isColSelected
-                                                      ? sd?.accentColor
-                                                      : "text-blue-600",
-                                                  )}
-                                                  strokeWidth={2.5}
-                                                />
-                                              </div>
-                                            ) : (
-                                              <div className="inline-flex h-6 w-6 items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
-                                                <X className="h-3 w-3 text-gray-300" />
-                                              </div>
-                                            )
-                                          ) : (
-                                            <span
-                                              className={cn(
-                                                "text-xs transition-colors duration-300",
-                                                isColSelected
-                                                  ? cn(
-                                                      "font-semibold",
-                                                      sd?.accentColor,
-                                                    )
-                                                  : "font-light text-gray-500",
-                                              )}
-                                            >
-                                              {val}
-                                            </span>
-                                          )}
-                                        </td>
-                                      );
-                                    })}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-gray-400">
-                      <span className="flex items-center gap-1.5">
-                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100">
-                          <Shield className="h-3 w-3 text-gray-500" />
-                        </div>
-                        Pagamento seguro
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100">
-                          <Zap className="h-3 w-3 text-gray-500" />
-                        </div>
-                        Ativação imediata
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100">
-                          <Clock className="h-3 w-3 text-gray-500" />
-                        </div>
-                        Cancele quando quiser
-                      </span>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* ═══ CHECKOUT ═══ */}
-                {viewState === "checkout" && selectedPlanData && (
-                  <motion.div
-                    key="checkout"
-                    initial={{ opacity: 0, x: 40, scale: 0.97 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 40 }}
-                    transition={{ duration: 0.45, ease: EASE }}
-                    className="flex flex-col justify-start space-y-0 pt-4"
-                  >
-                    {/* Header */}
-                    <div className="mb-5">
-                      <div className="flex flex-row justify-between gap-2">
-                        <h2 className="text-2xl font-bold text-black">
-                          Finalizar assinatura
-                        </h2>
-                        {isCheckout && (
-                          <motion.div
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="hidden items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] font-semibold tracking-wider text-gray-500 uppercase shadow-sm sm:flex"
-                          >
-                            <Shield className="h-3 w-3" /> Checkout seguro
-                          </motion.div>
-                        )}
-                      </div>
-                      <p className="mt-1.5 text-sm text-gray-500">
-                        Plano{" "}
-                        <span className="font-semibold text-gray-700">
-                          {selectedPlanData.name}
-                        </span>{" "}
-                        — {billingCycle === "YEARLY" ? "Anual" : "Mensal"}
-                      </p>
-                    </div>
-
-                    {/* Payment method tabs */}
-                    {!isFree && (
-                      <PaymentMethodTabs
-                        selected={paymentMethod}
-                        onChange={handleChangePaymentMethod}
-                      />
-                    )}
-
-                    {/* PIX Generated view */}
-                    {pixGenerated && paymentMethod === "pix" ? (
-                      <PixGeneratedView
-                        price={fmtBRL(finalPrice)}
-                        pixCode={pixPayload}
-                        pixEncodedImage={pixEncodedImage}
-                        copied={pixCopied}
-                        onCopy={handleCopyPixCode}
-                        onAlreadyPaid={() => setViewState("success")}
-                      />
-                    ) : (
-                      <>
-                        {/* Card preview */}
-                        {paymentMethod === "card" && !isFree && (
-                          <CardPreview
-                            holder={holder}
-                            cardNumber={cardNumber}
-                            exp={exp}
-                          />
-                        )}
-
-                        {/* Free plan banner */}
-                        {isFree && <FreePlanBanner />}
-
-                        {/* Personal info */}
-                        <SectionCard
-                          title="Informações Pessoais"
-                          icon={<User className="h-4 w-4" />}
-                        >
-                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <Field
-                              label="CPF / CNPJ"
-                              placeholder="000.000.000-00"
-                              value={maskCpfCnpj(cpf)}
-                              onChange={(t) => setCpf(onlyDigits(t))}
-                              maxLength={18}
-                            />
-                            <Field
-                              label="Nome Completo"
-                              placeholder="Nome do titular"
-                              value={holder}
-                              onChange={setHolder}
-                            />
-                            <Field
-                              label="E-mail"
-                              placeholder="seu@email.com"
-                              value={email}
-                              onChange={setEmail}
-                              type="email"
-                            />
-                            <Field
-                              label="Telefone"
-                              placeholder="(00) 00000-0000"
-                              value={maskPhoneBR(phone)}
-                              onChange={(t) => setPhone(onlyDigits(t))}
-                              maxLength={16}
-                            />
-                          </div>
-                        </SectionCard>
-
-                        {/* Billing address */}
-                        {!isFree && (
-                          <SectionCard
-                            title="Endereço de Cobrança"
-                            icon={<MapPin className="h-4 w-4" />}
-                          >
-                            <div className="mb-3 grid grid-cols-3 gap-3">
-                              <Field
-                                label="CEP"
-                                placeholder="00000-000"
-                                value={maskCep(cep)}
-                                onChange={(t) => setCep(onlyDigits(t))}
-                                maxLength={9}
-                                className="col-span-2"
-                              />
-                              <Field
-                                label="Número"
-                                placeholder="123"
-                                value={house}
-                                onChange={setHouse}
-                              />
-                            </div>
-                            <Field
-                              label="Endereço"
-                              placeholder="Rua, bairro, cidade"
-                              value={address}
-                              onChange={setAddress}
-                            />
-                          </SectionCard>
-                        )}
-
-                        {/* Card data */}
-                        {paymentMethod === "card" && !isFree && (
-                          <SectionCard
-                            title="Dados do Cartão"
-                            icon={<CreditCard className="h-4 w-4" />}
-                          >
-                            <div className="flex flex-col gap-3">
-                              <Field
-                                label="Número do Cartão"
-                                placeholder="0000 0000 0000 0000"
-                                value={maskCardNumber(cardNumber)}
-                                onChange={setCardNumber}
-                                maxLength={19}
-                              />
-                              <div className="grid grid-cols-2 gap-3">
-                                <Field
-                                  label="Validade"
-                                  placeholder="MM/AA"
-                                  value={maskExpiry(exp)}
-                                  onChange={setExp}
-                                  maxLength={5}
-                                />
-                                <Field
-                                  label="CVV"
-                                  placeholder="123"
-                                  value={onlyDigits(cvv).slice(0, 4)}
-                                  onChange={setCvv}
-                                  type="tel"
-                                  maxLength={4}
-                                />
-                              </div>
-                            </div>
-                          </SectionCard>
-                        )}
-
-                        {/* Coupon */}
-                        <SectionCard
-                          title="Cupom de Desconto"
-                          icon={<Ticket className="h-4 w-4" />}
-                        >
-                          <Field
-                            placeholder="CÓDIGO DO CUPOM"
-                            value={coupon}
-                            onChange={(t) =>
-                              !discountPercent && setCoupon(t.toUpperCase())
-                            }
-                            disabled={!!discountPercent}
-                            rightElement={
-                              <button
-                                type="button"
-                                onClick={handleCheckCoupon}
-                                disabled={
-                                  isValidatingCoupon ||
-                                  !!discountPercent ||
-                                  !coupon.trim()
-                                }
-                                className={cn(
-                                  "ml-1 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase transition-all",
-                                  discountPercent
-                                    ? "border border-emerald-200 bg-emerald-50 text-emerald-600"
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                                  (isValidatingCoupon ||
-                                    !!discountPercent ||
-                                    !coupon.trim()) &&
-                                    "cursor-not-allowed opacity-60",
-                                )}
-                              >
-                                {isValidatingCoupon ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : discountPercent ? (
-                                  <>
-                                    <Check className="h-3 w-3" /> Aplicado
-                                  </>
-                                ) : (
-                                  "Aplicar"
-                                )}
-                              </button>
-                            }
-                          />
-                          {discountPercent > 0 && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -8 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5"
-                            >
-                              <Ticket className="h-4 w-4 shrink-0 text-emerald-500" />
-                              <span className="text-sm font-medium text-emerald-700">
-                                {isFree
-                                  ? "100% de desconto — Assinatura Gratuita!"
-                                  : `${discountPercent}% de desconto aplicado`}
-                              </span>
-                            </motion.div>
-                          )}
-                        </SectionCard>
-
-                        {/* Espaço para o botão flutuante não cobrir o último campo */}
-                      </>
-                    )}
-                  </motion.div>
-                )}
-
-                {/* ═══ SUCCESS ═══ */}
-                {viewState === "success" && (
-                  <SuccessView
-                    onGoHome={() => router.push("/")}
-                    onCommunity={() =>
-                      window.open(
-                        "https://chat.whatsapp.com/Bo0Wgc0Wzc4CvwT5hrhT2Q",
-                        "_blank",
+      <section>
+        {isLoading ? (
+          <SkeletonGrid />
+        ) : orderedPlans.length === 0 ? (
+          <EmptyState />
+        ) : orderedPlans.length === 2 ? (
+          <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.15fr)_minmax(0,1.15fr)] lg:gap-6">
+            <ValuePanel cycle={cycle} yearlySavings={yearlySavings} />
+            <AnimatePresence mode="popLayout">
+              {orderedPlans.map((plan, i) => {
+                const preset = getPresetFor(plan, i);
+                return (
+                  <PlanCard
+                    key={plan.id}
+                    plan={plan}
+                    preset={preset}
+                    cycle={cycle}
+                    method={method}
+                    index={i}
+                    onSelect={() =>
+                      router.push(
+                        `/plans/checkout?planId=${plan.id}&cycle=${cycle}&method=${method}`,
                       )
                     }
                   />
-                )}
-              </AnimatePresence>
-            </div>
+                );
+              })}
+            </AnimatePresence>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+            <AnimatePresence mode="popLayout">
+              {orderedPlans.map((plan, i) => {
+                const preset = getPresetFor(plan, i);
+                return (
+                  <PlanCard
+                    key={plan.id}
+                    plan={plan}
+                    preset={preset}
+                    cycle={cycle}
+                    method={method}
+                    index={i}
+                    onSelect={() =>
+                      router.push(
+                        `/plans/checkout?planId=${plan.id}&cycle=${cycle}&method=${method}`,
+                      )
+                    }
+                  />
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+      </section>
 
-          {/* ═══ Footer fixo (checkout) — portal no body para sempre fixo na tela ═══ */}
-          {typeof document !== "undefined" &&
-            createPortal(
-              <AnimatePresence>
-                {isCheckout && !(pixGenerated && paymentMethod === "pix") && (
+      <TrustStrip />
+
+      <ComparisonTable />
+
+      <Testimonials />
+
+      <FaqSection />
+
+      <SecurityFooter />
+    </div>
+  );
+}
+
+function Hero() {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="flex flex-col gap-2"
+    >
+      <div className="flex items-center gap-2">
+        <p className="text-xs font-medium tracking-[0.18em] text-gray-400 uppercase">
+          Assinatura
+        </p>
+        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-emerald-700 uppercase">
+          <ShieldCheck size={10} />7 dias de garantia
+        </span>
+      </div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold text-balance text-gray-900 md:text-4xl">
+            Escolha o plano que{" "}
+            <span className="bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 bg-clip-text text-transparent">
+              trabalha por você
+            </span>
+            .
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-500">
+            Ative recursos de IA, desbloqueie horas de transcrição e transforme
+            cada reunião em conhecimento que fica. Cancele quando quiser.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 text-[11px] text-gray-500">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="flex -space-x-1">
+              {["MA", "RC", "FL"].map((s) => (
+                <span
+                  key={s}
+                  className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-gray-900 to-gray-600 text-[9px] font-semibold text-white"
+                >
+                  {s}
+                </span>
+              ))}
+            </span>
+            <span>
+              <span className="font-semibold text-gray-800">10.000+</span>{" "}
+              profissionais ativos
+            </span>
+          </span>
+          <span className="inline-flex items-center gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                size={11}
+                className="fill-amber-400 text-amber-400"
+              />
+            ))}
+            <span className="ml-1 font-semibold text-gray-800">4.9</span>
+            <span>/ 5</span>
+          </span>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+function BillingBar({
+  cycle,
+  method,
+  onCycleChange,
+  onMethodChange,
+  yearlySavings,
+}: {
+  cycle: BillingCycle;
+  method: PaymentMethod;
+  onCycleChange: (c: BillingCycle) => void;
+  onMethodChange: (m: PaymentMethod) => void;
+  yearlySavings: number;
+}) {
+  return (
+    <section className="flex flex-col gap-3 rounded-3xl border border-gray-200/70 bg-white/70 p-4 backdrop-blur-sm md:flex-row md:items-center md:justify-between md:gap-6 md:px-6">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-5">
+        <p className="text-[10px] font-semibold tracking-[0.3em] text-gray-400 uppercase">
+          Ciclo
+        </p>
+        <div className="inline-flex items-center gap-1 rounded-full border border-gray-200/70 bg-gray-50/80 p-1">
+          {(["MONTHLY", "YEARLY"] as BillingCycle[]).map((c) => {
+            const active = cycle === c;
+            return (
+              <button
+                key={c}
+                onClick={() => onCycleChange(c)}
+                className={cn(
+                  "relative rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
+                  active ? "text-white" : "text-gray-600 hover:text-gray-900",
+                )}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="cycle-pill"
+                    className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span className="relative inline-flex items-center gap-1.5">
+                  {c === "MONTHLY" ? "Mensal" : "Anual"}
+                  {c === "YEARLY" && yearlySavings > 0 && (
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                        active
+                          ? "bg-white/20 text-white"
+                          : "bg-emerald-100 text-emerald-700",
+                      )}
+                    >
+                      -{yearlySavings}%
+                    </span>
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-5">
+        <p className="text-[10px] font-semibold tracking-[0.3em] text-gray-400 uppercase">
+          Pagamento
+        </p>
+        <div className="inline-flex items-center gap-1 rounded-full border border-gray-200/70 bg-gray-50/80 p-1">
+          {(["PIX", "CREDIT"] as PaymentMethod[]).map((m) => {
+            const active = method === m;
+            return (
+              <button
+                key={m}
+                onClick={() => onMethodChange(m)}
+                className={cn(
+                  "relative rounded-full px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
+                  active ? "text-white" : "text-gray-600 hover:text-gray-900",
+                )}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="method-pill"
+                    className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span className="relative">
+                  {m === "PIX" ? "PIX" : "Cartão"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PlanCard({
+  plan,
+  preset,
+  cycle,
+  method,
+  index,
+  onSelect,
+}: {
+  plan: Plan;
+  preset: PlanPreset;
+  cycle: BillingCycle;
+  method: PaymentMethod;
+  index: number;
+  onSelect: () => void;
+}) {
+  const Icon = preset.icon;
+  const price = getPlanPrice(plan, cycle, method);
+  const monthlyEquivalent = cycle === "YEARLY" ? price / 12 : price;
+  const monthlyReference = getPlanPrice(plan, "MONTHLY", method);
+  const showStrike =
+    cycle === "YEARLY" && monthlyReference > 0 && monthlyEquivalent > 0;
+  const recordLabel = getRecordLabel(plan);
+  const featured = preset.featured;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.4, delay: Math.min(index * 0.06, 0.3) }}
+      whileHover={{ y: -3 }}
+      className={cn(
+        "group relative flex flex-col gap-5 overflow-hidden rounded-3xl border p-6 text-left transition",
+        featured
+          ? "border-transparent bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white shadow-[0_24px_60px_-24px_rgba(17,24,39,0.7)] lg:-translate-y-2 lg:scale-[1.02]"
+          : "border-gray-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-gray-300 hover:shadow-[0_14px_40px_-20px_rgba(15,23,42,0.3)]",
+      )}
+    >
+      {featured && (
+        <>
+          <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full bg-gradient-to-br from-amber-400/30 via-orange-500/20 to-transparent blur-3xl" />
+          <div className="absolute -bottom-24 -left-10 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-transparent blur-3xl" />
+        </>
+      )}
+      {!featured && (
+        <div className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
+      )}
+
+      <div className="relative flex items-start justify-between">
+        <div
+          className={cn(
+            "flex h-11 w-11 items-center justify-center rounded-2xl",
+            featured
+              ? "bg-white/10 text-white ring-1 ring-white/20"
+              : "bg-gradient-to-br from-gray-900 to-gray-700 text-white",
+          )}
+        >
+          <Icon size={18} />
+        </div>
+        {preset.tag && (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase",
+              featured
+                ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-[0_4px_14px_-4px_rgba(245,158,11,0.65)]"
+                : "bg-gray-900 text-white",
+            )}
+          >
+            <Sparkles size={10} />
+            {preset.tag}
+          </span>
+        )}
+      </div>
+
+      <div className="relative">
+        <h3
+          className={cn(
+            "text-xl font-semibold",
+            featured ? "text-white" : "text-gray-900",
+          )}
+        >
+          {preset.displayName}
+        </h3>
+        <p
+          className={cn(
+            "mt-1 text-sm",
+            featured ? "text-white/60" : "text-gray-500",
+          )}
+        >
+          {preset.subtitle}
+        </p>
+        <p
+          className={cn(
+            "mt-2 text-[11px] italic",
+            featured ? "text-white/50" : "text-gray-400",
+          )}
+        >
+          “{preset.tagline}”
+        </p>
+      </div>
+
+      <div className="relative">
+        <div className="flex items-baseline gap-1.5">
+          <span
+            className={cn(
+              "text-4xl font-semibold tracking-tight",
+              featured ? "text-white" : "text-gray-900",
+            )}
+          >
+            {price ? fmtBRL(monthlyEquivalent) : "—"}
+          </span>
+          <span
+            className={cn(
+              "text-sm",
+              featured ? "text-white/50" : "text-gray-400",
+            )}
+          >
+            /mês
+          </span>
+          {showStrike && monthlyReference > monthlyEquivalent && (
+            <span
+              className={cn(
+                "ml-1 text-xs line-through",
+                featured ? "text-white/40" : "text-gray-400",
+              )}
+            >
+              {fmtBRL(monthlyReference)}
+            </span>
+          )}
+        </div>
+        <p
+          className={cn(
+            "mt-1 text-xs",
+            featured ? "text-white/50" : "text-gray-500",
+          )}
+        >
+          {cycle === "YEARLY"
+            ? `${fmtBRL(price)} cobrado anualmente`
+            : method === "PIX"
+              ? "via PIX, cobrado mensalmente"
+              : "no cartão, cobrado mensalmente"}
+        </p>
+      </div>
+
+      <div
+        className={cn(
+          "relative h-px w-full",
+          featured ? "bg-white/10" : "bg-gray-100",
+        )}
+      />
+
+      <div className="relative flex items-center gap-2">
+        <Zap
+          size={14}
+          className={featured ? "text-amber-300" : "text-gray-700"}
+        />
+        <span
+          className={cn(
+            "text-xs font-semibold tracking-wide uppercase",
+            featured ? "text-white/80" : "text-gray-700",
+          )}
+        >
+          {recordLabel}
+        </span>
+      </div>
+
+      <ul className="relative flex flex-col gap-2.5">
+        {preset.features.map((f, i) => (
+          <li key={i} className="flex items-start gap-2.5">
+            <span
+              className={cn(
+                "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full",
+                featured
+                  ? f.highlight
+                    ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white"
+                    : "bg-white/10 text-white"
+                  : f.highlight
+                    ? "bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+                    : "bg-gray-100 text-gray-700",
+              )}
+            >
+              <Check size={10} strokeWidth={3} />
+            </span>
+            <span
+              className={cn(
+                "text-sm leading-relaxed",
+                featured
+                  ? f.highlight
+                    ? "font-medium text-white"
+                    : "text-white/70"
+                  : f.highlight
+                    ? "font-medium text-gray-900"
+                    : "text-gray-600",
+              )}
+            >
+              {f.text}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={onSelect}
+        className={cn(
+          "relative mt-auto inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold transition",
+          featured
+            ? "bg-white text-gray-900 shadow-lg shadow-black/20 hover:scale-[1.02]"
+            : "bg-gradient-to-r from-gray-900 to-gray-700 text-white shadow-lg shadow-gray-900/20 hover:scale-[1.02]",
+        )}
+      >
+        Assinar {preset.displayName}
+        <ArrowRight size={14} />
+      </button>
+    </motion.div>
+  );
+}
+
+function ValuePanel({
+  cycle,
+  yearlySavings,
+}: {
+  cycle: BillingCycle;
+  yearlySavings: number;
+}) {
+  const benefits = [
+    { icon: Sparkles, text: "IA que resume e aponta decisões de cada reunião" },
+    { icon: ShieldCheck, text: "Criptografia ponta a ponta, total LGPD" },
+    { icon: Zap, text: "Ativação em segundos, sem setup" },
+  ];
+
+  return (
+    <motion.aside
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="relative flex flex-col gap-5 py-1 lg:border-l lg:border-dashed lg:border-gray-200 lg:pl-6"
+    >
+      <div className="flex items-center gap-2">
+        <span className="h-px w-6 bg-gray-300" />
+        <p className="text-[10px] font-semibold tracking-[0.3em] text-gray-400 uppercase">
+          Por que assinar
+        </p>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold text-balance text-gray-900 md:text-xl">
+          Mais tempo pensando.{" "}
+          <span className="bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 bg-clip-text text-transparent">
+            Menos tempo anotando.
+          </span>
+        </h3>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-gray-500">
+          Qualquer plano já inclui o essencial — escolha pelo volume de uso.
+        </p>
+      </div>
+
+      <ul className="flex flex-col gap-2.5">
+        {benefits.map((b) => {
+          const Icon = b.icon;
+          return (
+            <li key={b.text} className="flex items-start gap-2.5">
+              <Icon size={13} className="mt-1 shrink-0 text-gray-500" />
+              <span className="text-[13px] leading-relaxed text-gray-700">
+                {b.text}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="h-px w-full bg-gradient-to-r from-gray-200 to-transparent" />
+
+      <figure className="flex flex-col gap-2">
+        <div className="flex items-center gap-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
+          ))}
+          <span className="ml-1 text-[11px] font-semibold text-gray-800">
+            4.9
+          </span>
+          <span className="text-[11px] text-gray-400">· +2.400 reviews</span>
+        </div>
+        <blockquote className="text-[13px] leading-relaxed text-gray-700 italic">
+          “Economizei 8 horas por mês só em anotações.”
+        </blockquote>
+        <figcaption className="text-[11px] text-gray-400">
+          Mariana · Psicóloga clínica
+        </figcaption>
+      </figure>
+
+      <div className="mt-auto inline-flex items-center gap-2 self-start rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-800 ring-1 ring-emerald-200/80">
+        <ShieldCheck size={12} />
+        {cycle === "YEARLY" && yearlySavings > 0
+          ? `Garantia 7 dias · até -${yearlySavings}% no anual`
+          : "Garantia 7 dias · cancele em 1 clique"}
+      </div>
+    </motion.aside>
+  );
+}
+
+function TrustStrip() {
+  const items = [
+    {
+      label: "Garantia 7 dias",
+      value: "100%",
+      hint: "satisfação ou reembolso",
+    },
+    { label: "Ativação", value: "Instantânea", hint: "em segundos após pagar" },
+    { label: "Segurança", value: "LGPD", hint: "criptografia ponta a ponta" },
+    { label: "Suporte", value: "Rápido", hint: "especialista de verdade" },
+  ];
+  return (
+    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {items.map((it) => (
+        <div
+          key={it.label}
+          className="flex flex-col rounded-2xl border border-gray-200/70 bg-white/70 px-4 py-3 backdrop-blur-sm"
+        >
+          <p className="text-[10px] font-semibold tracking-[0.28em] text-gray-400 uppercase">
+            {it.label}
+          </p>
+          <p className="mt-1 text-base font-semibold text-gray-900">
+            {it.value}
+          </p>
+          <p className="text-[11px] text-gray-500">{it.hint}</p>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function ComparisonTable() {
+  const planNames = PLAN_PRESETS.map((p) => p.displayName) as [
+    string,
+    string,
+    string,
+  ];
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <p className="text-[10px] font-semibold tracking-[0.3em] text-gray-400 uppercase">
+          Compare
+        </p>
+        <h2 className="text-xl font-semibold text-balance text-gray-900 md:text-2xl">
+          Todos os recursos, lado a lado.
+        </h2>
+        <p className="max-w-xl text-sm leading-relaxed text-gray-500">
+          Uma tabela simples para você decidir em segundos. Sem letra miúda.
+        </p>
+      </div>
+
+      <div className="overflow-hidden rounded-3xl border border-gray-200/70 bg-white/80 backdrop-blur-sm">
+        <div className="grid grid-cols-[1.4fr_repeat(3,1fr)] border-b border-gray-100 bg-gray-50/70 text-[11px] font-semibold tracking-wider text-gray-500 uppercase">
+          <div className="px-5 py-3">Recurso</div>
+          {planNames.map((name, i) => (
+            <div
+              key={name}
+              className={cn(
+                "px-4 py-3 text-center",
+                i === 1 && "bg-gray-900 text-white",
+              )}
+            >
+              {name}
+              {i === 1 && (
+                <Sparkles
+                  size={11}
+                  className="ml-1 inline-block text-amber-300"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {COMPARISON_ROWS.map((row, idx) => (
+          <div
+            key={row.label}
+            className={cn(
+              "grid grid-cols-[1.4fr_repeat(3,1fr)] text-sm transition",
+              idx % 2 === 1 ? "bg-white" : "bg-gray-50/40",
+              "hover:bg-gray-50",
+            )}
+          >
+            <div className="px-5 py-3 font-medium text-gray-800">
+              {row.label}
+            </div>
+            {row.values.map((v, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "flex items-center justify-center px-4 py-3",
+                  i === 1 && "bg-gray-900/[0.03]",
+                )}
+              >
+                {typeof v === "boolean" ? (
+                  v ? (
+                    <span
+                      className={cn(
+                        "flex h-5 w-5 items-center justify-center rounded-full",
+                        i === 1
+                          ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white"
+                          : "bg-gradient-to-br from-gray-900 to-gray-700 text-white",
+                      )}
+                    >
+                      <Check size={11} strokeWidth={3} />
+                    </span>
+                  ) : (
+                    <Minus size={14} className="text-gray-300" />
+                  )
+                ) : (
+                  <span className="text-xs font-semibold text-gray-700">
+                    {v}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  return (
+    <section className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <p className="text-[10px] font-semibold tracking-[0.3em] text-gray-400 uppercase">
+          Depoimentos
+        </p>
+        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+          <h2 className="text-xl font-semibold text-balance text-gray-900 md:text-2xl">
+            Profissionais que já ganharam horas de volta.
+          </h2>
+          <div className="inline-flex items-center gap-1 text-[12px] text-gray-500">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                size={12}
+                className="fill-amber-400 text-amber-400"
+              />
+            ))}
+            <span className="ml-1 font-semibold text-gray-800">4.9/5</span>
+            <span>· +2.400 avaliações</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {TESTIMONIALS.map((t, i) => (
+          <motion.article
+            key={t.author}
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.4, delay: Math.min(i * 0.08, 0.24) }}
+            whileHover={{ y: -2 }}
+            className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-gray-200/70 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-gray-300 hover:shadow-[0_14px_40px_-20px_rgba(15,23,42,0.25)]"
+          >
+            <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
+            <Quote
+              size={22}
+              className="absolute top-5 right-5 text-gray-200"
+              aria-hidden
+            />
+            <div className="flex items-center gap-1">
+              {Array.from({ length: t.rating }).map((_, si) => (
+                <Star
+                  key={si}
+                  size={13}
+                  className="fill-amber-400 text-amber-400"
+                />
+              ))}
+            </div>
+            <p className="text-sm leading-relaxed text-gray-700">“{t.quote}”</p>
+            <div className="mt-auto flex items-center gap-3 border-t border-gray-100 pt-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-xs font-semibold text-white">
+                {getInitials(t.author)}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-gray-900">
+                  {t.author}
+                </p>
+                <p className="truncate text-xs text-gray-500">{t.role}</p>
+              </div>
+            </div>
+          </motion.article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FaqSection() {
+  const [open, setOpen] = useState<number | null>(0);
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <p className="text-[10px] font-semibold tracking-[0.3em] text-gray-400 uppercase">
+          Perguntas frequentes
+        </p>
+        <h2 className="text-xl font-semibold text-balance text-gray-900 md:text-2xl">
+          Ainda com dúvida? Bora resolver.
+        </h2>
+      </div>
+      <div className="flex flex-col gap-2">
+        {FAQ_ITEMS.map((item, i) => {
+          const isOpen = open === i;
+          return (
+            <div
+              key={item.q}
+              className={cn(
+                "overflow-hidden rounded-2xl border bg-white/80 backdrop-blur-sm transition",
+                isOpen
+                  ? "border-gray-300 shadow-[0_8px_24px_-16px_rgba(15,23,42,0.25)]"
+                  : "border-gray-200/70 hover:border-gray-300",
+              )}
+            >
+              <button
+                onClick={() => setOpen(isOpen ? null : i)}
+                className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
+              >
+                <span className="text-sm font-semibold text-gray-900">
+                  {item.q}
+                </span>
+                <ChevronDown
+                  size={16}
+                  className={cn(
+                    "shrink-0 text-gray-500 transition-transform",
+                    isOpen && "rotate-180 text-gray-900",
+                  )}
+                />
+              </button>
+              <AnimatePresence initial={false}>
+                {isOpen && (
                   <motion.div
-                    key="floating-bar"
-                    initial={{ y: 80, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 80, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: EASE }}
-                    className="fixed inset-x-0 bottom-0 z-[9999] border-t border-gray-100 bg-white/95 px-6 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md sm:px-8 lg:left-1/2"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden"
                   >
-                    <div className="mx-auto flex max-w-2xl items-center gap-4">
-                      {/* Resumo de preço */}
-                      <div className="min-w-0 flex-1">
-                        {priceLabel() && (
-                          <p className="mb-0.5 truncate text-[11px] text-gray-400">
-                            {priceLabel()}
-                          </p>
-                        )}
-                        {discountPercent > 0 ? (
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-sm text-gray-300 line-through">
-                              {fmtBRL(basePrice)}
-                            </span>
-                            <span className="text-lg font-bold text-black">
-                              {isFree ? "GRÁTIS" : fmtBRL(finalPrice)}
-                            </span>
-                          </div>
-                        ) : (
-                          <p className="text-lg font-bold text-black">
-                            {billingCycle === "YEARLY" &&
-                            paymentMethod === "card"
-                              ? `12x de ${fmtBRL(basePrice / 12)}`
-                              : fmtBRL(basePrice)}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Botão de ação */}
-                      <button
-                        type="button"
-                        onClick={onSubmit}
-                        disabled={submitLoading || !canSubmit}
-                        className={cn(
-                          "flex shrink-0 items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold whitespace-nowrap shadow-lg transition-all",
-                          canSubmit && !submitLoading
-                            ? "bg-black text-white shadow-black/20 hover:bg-gray-800 hover:shadow-xl"
-                            : "cursor-not-allowed bg-gray-100 text-gray-400 shadow-none",
-                        )}
-                      >
-                        {submitLoading ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                            Processando...
-                          </>
-                        ) : (
-                          <>
-                            {submitLabel()}{" "}
-                            {!isFree && <ArrowRight className="h-4 w-4" />}
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    <p className="mt-2 text-center text-[11px] text-gray-400">
-                      Deseja planos corporativos?{" "}
-                      <a
-                        href="https://wa.me/5511999999999?text=Olá,%20tenho%20interesse%20em%20planos%20corporativos."
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-gray-600 underline transition-colors hover:text-black"
-                      >
-                        Fale conosco
-                      </a>
+                    <p className="px-5 pb-5 text-sm leading-relaxed text-gray-600">
+                      {item.a}
                     </p>
                   </motion.div>
                 )}
-              </AnimatePresence>,
-              document.body,
-            )}
-
-          {/* ═══ Floating CTA (plans) — portal no body para fixar na tela durante scroll ═══ */}
-          {typeof document !== "undefined" &&
-            createPortal(
-              <AnimatePresence>
-                {viewState === "plans" && (
-                  <motion.div
-                    key="floating-plans-cta"
-                    initial={{ y: 80, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 80, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: EASE }}
-                    className="fixed inset-x-0 bottom-0 z-[9999] border-t border-gray-100 bg-white/95 px-6 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md sm:px-8 lg:left-[33.333%] lg:right-0"
-                  >
-                    <div className="mx-auto flex w-full max-w-6xl items-center gap-4">
-                      <div className="min-w-0 flex-1">
-                        {selectedPlanData ? (
-                          <>
-                            <p className="mb-0.5 truncate text-[11px] text-gray-400">
-                              {selectedPlanData.name}
-                            </p>
-                            <p className="text-lg font-bold text-black">
-                              {fmtBRL(
-                                getPlanPixPrice(selectedPlanData, billingCycle),
-                              )}
-                            </p>
-                          </>
-                        ) : (
-                          <p className="text-sm text-gray-400">
-                            Selecione um plano para continuar
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          selectedPlan && setViewState("checkout")
-                        }
-                        disabled={!selectedPlan || loadingPlans}
-                        className={cn(
-                          "flex shrink-0 items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold whitespace-nowrap shadow-lg transition-all",
-                          selectedPlan && !loadingPlans
-                            ? "bg-black text-white shadow-black/20 hover:bg-gray-800 hover:shadow-xl"
-                            : "cursor-not-allowed bg-gray-100 text-gray-400 shadow-none",
-                        )}
-                      >
-                        Continuar para pagamento
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>,
-              document.body,
-            )}
-
-          {/* Loading overlay */}
-          {submitLoading && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
-              <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-8 shadow-2xl">
-                <Loader2 className="h-8 w-8 animate-spin text-black" />
-                <p className="text-sm font-semibold text-gray-700">
-                  Processando pagamento...
-                </p>
-              </div>
+              </AnimatePresence>
             </div>
-          )}
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function SecurityFooter() {
+  return (
+    <section className="flex flex-col items-start gap-5 rounded-3xl border border-gray-900 bg-gradient-to-br from-gray-900 via-[#111318] to-[#1a1d24] px-6 py-8 text-white md:flex-row md:items-center md:justify-between md:px-10">
+      <div className="flex items-center gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/20">
+          <Shield size={20} />
+        </div>
+        <div>
+          <p className="text-sm font-semibold">
+            Pagamento seguro e cancelamento a qualquer momento
+          </p>
+          <p className="mt-0.5 text-xs text-white/60">
+            Troque ou cancele sem burocracia. Sem contratos longos, sem
+            pegadinhas.
+          </p>
         </div>
       </div>
+      <a
+        href="https://wa.me/5541997819114"
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-xs font-semibold text-gray-900 shadow-lg shadow-black/20 transition hover:scale-[1.02]"
+      >
+        Falar com um especialista
+        <ArrowRight size={12} />
+      </a>
+    </section>
+  );
+}
+
+function SkeletonGrid() {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div
+          key={i}
+          className={cn(
+            "flex h-[560px] animate-pulse flex-col gap-4 rounded-3xl border border-gray-200/60 bg-white/60 p-6",
+            i === 1 && "lg:-translate-y-2 lg:scale-[1.02]",
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <div className="h-11 w-11 rounded-2xl bg-gray-100" />
+            <div className="h-5 w-20 rounded-full bg-gray-100" />
+          </div>
+          <div className="h-5 w-2/3 rounded-full bg-gray-100" />
+          <div className="h-3 w-1/2 rounded-full bg-gray-100" />
+          <div className="mt-2 h-10 w-1/2 rounded-full bg-gray-100" />
+          <div className="mt-2 flex flex-col gap-2">
+            {Array.from({ length: 5 }).map((_, j) => (
+              <div key={j} className="h-3 w-full rounded-full bg-gray-100" />
+            ))}
+          </div>
+          <div className="mt-auto h-10 w-full rounded-full bg-gray-100" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-16 text-center backdrop-blur-sm">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
+        <Sparkles size={26} />
+      </div>
+      <h3 className="mt-6 text-lg font-semibold text-gray-900">
+        Nenhum plano disponível
+      </h3>
+      <p className="mt-2 max-w-sm text-sm text-gray-500">
+        Tivemos um problema para carregar os planos. Tente novamente em alguns
+        instantes.
+      </p>
     </div>
   );
 }
