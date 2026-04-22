@@ -2,7 +2,6 @@ import { ACCESS_TOKEN_KEY } from "@/lib/auth-cookies";
 import { NextRequest, NextResponse } from "next/server";
 // Rotas de autenticação (usuários logados são redirecionados para home)
 const AUTH_PATHS = ["/login", "/register", "/reset-password"];
-
 // Rotas totalmente públicas (acessíveis independentemente do estado de autenticação)
 const PUBLIC_PATHS = ["/privacy", "/terms"];
 
@@ -23,9 +22,7 @@ export function middleware(request: NextRequest) {
   }
 
   const matchesPath = (paths: string[]) =>
-    paths.some(
-      (path) => pathname === path || pathname.startsWith(path + "/"),
-    );
+    paths.some((path) => pathname === path || pathname.startsWith(path + "/"));
 
   const isAuthPath = matchesPath(AUTH_PATHS);
   const isPublicPath = matchesPath(PUBLIC_PATHS);
