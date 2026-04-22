@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/mayco/OneDRoute/Documentos/Projetos/ex-voice-web/src/context/**)"
+      "Read(//c/Users/mayco/OneDRoute/Documentos/Projetos/ex-voice-web/src/context/**)",
+      "Bash(mv \"Política de Privacidade da Extensão _Voice_.pdf\" /tmp/privacy.pdf)",
+      "Bash(mv \"TERMOS DE USO DA EXTENSÃO _VOICE_.pdf\" /tmp/terms.pdf)",
+      "Read(//c/tmp/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\mayco\\OneDrive\\Documentos\\Projetos\\ex-voice-web"
     ]
   }
 }

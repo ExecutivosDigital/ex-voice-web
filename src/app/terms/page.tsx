@@ -1,287 +1,314 @@
 "use client";
-import { ChevronLeft } from "lucide-react";
+
+import { motion } from "framer-motion";
+import {
+  ArrowLeft,
+  FileText,
+  Gavel,
+  Globe,
+  Mail,
+  ShieldCheck,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+const sections = [
+  {
+    number: "1",
+    title: "Aceitação dos Termos",
+    paragraphs: [
+      "Estes Termos de Uso constituem um acordo legal entre você, o usuário final, e Executivos Digital Software House, doravante denominado \"Nós\" ou \"Desenvolvedor\". Ao utilizar a extensão \"Voice\", você declara ter lido, compreendido e aceitado integralmente estes Termos, bem como nossa Política de Privacidade.",
+    ],
+  },
+  {
+    number: "2",
+    title: "Descrição do Serviço",
+    paragraphs: [
+      "A extensão \"Voice\" oferece funcionalidades para gravação de áudio e/ou vídeo (tela) diretamente no seu navegador, armazenando as informações localmente em seu próprio dispositivo. O principal objetivo é permitir que você capture suas próprias interações online para revisão pessoal, anotações, e outras finalidades de uso individual e não comercial. A extensão foi desenvolvida com foco na privacidade e segurança dos seus dados, conforme detalhado em nossa Política de Privacidade.",
+    ],
+  },
+  {
+    number: "3",
+    title: "Licença de Uso",
+    paragraphs: [
+      "Concedemos a você uma licença limitada, não exclusiva, não transferível e revogável para instalar e usar a extensão \"Voice\" em seu navegador Google Chrome, estritamente para seu uso pessoal e não comercial, de acordo com estes Termos de Uso. Esta licença não concede a você nenhum direito de propriedade intelectual sobre a extensão ou qualquer de seus componentes.",
+    ],
+  },
+  {
+    number: "4",
+    title: "Restrições de Uso",
+    paragraphs: ["Ao utilizar a extensão \"Voice\", você concorda em não:"],
+    list: [
+      "Usar a extensão para qualquer finalidade ilegal ou não autorizada.",
+      "Violar leis, regulamentos ou direitos de terceiros, incluindo, mas não se limitando a, direitos autorais, direitos de imagem e privacidade.",
+      "Gravar ou capturar informações de terceiros sem o consentimento explícito e adequado destes. Você é o único responsável pela obtenção de quaisquer permissões necessárias para gravar dados de terceiros, se aplicável, e por garantir que seu uso da extensão esteja em conformidade com todas as leis e regulamentos aplicáveis.",
+      "Modificar, adaptar, traduzir, fazer engenharia reversa, descompilar, desmontar ou tentar descobrir o código-fonte da extensão.",
+      "Remover, ocultar ou alterar quaisquer avisos de direitos autorais, marcas registradas ou outros avisos de propriedade contidos na extensão.",
+      "Distribuir, vender, sublicenciar ou de outra forma transferir a extensão ou seus direitos de uso a terceiros.",
+      "Utilizar a extensão de forma que possa danificar, desabilitar, sobrecarregar ou prejudicar qualquer servidor ou rede associada aos serviços do Desenvolvedor.",
+    ],
+  },
+  {
+    number: "5",
+    title: "Propriedade Intelectual",
+    paragraphs: [
+      "Todos os direitos autorais, marcas registradas e outros direitos de propriedade intelectual da extensão \"Voice\" (incluindo seu código-fonte, design, interface de usuário e funcionalidades) são de propriedade exclusiva da Executivos Digital Software House ou de seus licenciadores. Estes Termos de Uso não lhe concedem nenhum direito ou interesse sobre a propriedade intelectual da extensão, exceto a licença de uso limitada explicitamente concedida no item 3.",
+    ],
+  },
+  {
+    number: "6",
+    title: "Isenção de Garantias",
+    paragraphs: [
+      "A extensão \"Voice\" é fornecida \"como está\" e \"conforme disponível\", sem garantias de qualquer tipo, expressas ou implícitas. O Desenvolvedor não garante que a extensão será ininterrupta, livre de erros, segura ou que qualquer defeito será corrigido. Embora nos esforcemos para garantir a segurança e a funcionalidade, o uso da extensão é por sua conta e risco.",
+    ],
+  },
+  {
+    number: "7",
+    title: "Limitação de Responsabilidade",
+    paragraphs: [
+      "Na extensão máxima permitida pela lei aplicável, o Desenvolvedor não será responsável por quaisquer danos diretos, indiretos, incidentais, especiais, consequenciais ou exemplares, incluindo, mas não se limitando a, danos por perda de lucros, dados ou outras perdas intangíveis, resultantes do uso ou da incapacidade de usar a extensão \"Voice\".",
+    ],
+  },
+  {
+    number: "8",
+    title: "Indenização",
+    paragraphs: [
+      "Você concorda em indenizar e isentar o Desenvolvedor, seus diretores, funcionários e agentes de qualquer e toda reivindicação, responsabilidade, dano, perda e despesa (incluindo honorários advocatícios) decorrentes de ou relacionados ao seu uso da extensão \"Voice\" em violação a estes Termos de Uso ou em violação a quaisquer leis ou regulamentos aplicáveis.",
+    ],
+  },
+  {
+    number: "9",
+    title: "Modificações dos Termos",
+    paragraphs: [
+      "O Desenvolvedor reserva-se o direito de modificar estes Termos de Uso a qualquer momento, a seu exclusivo critério. Quaisquer alterações entrarão em vigor imediatamente após a sua publicação na página da extensão na Chrome Web Store. Seu uso continuado da extensão após a publicação das alterações constitui sua aceitação dos Termos modificados.",
+    ],
+  },
+  {
+    number: "10",
+    title: "Rescisão",
+    paragraphs: [
+      "Estes Termos de Uso permanecerão em pleno vigor e efeito enquanto você utilizar a extensão \"Voice\". O Desenvolvedor pode rescindir estes Termos de Uso e sua licença a qualquer momento, sem aviso prévio, se você violar qualquer disposição destes Termos. Você pode rescindir sua aceitação a estes Termos a qualquer momento, desinstalando a extensão.",
+    ],
+  },
+  {
+    number: "11",
+    title: "Disposições Gerais",
+    groups: [
+      {
+        title: "Lei Aplicável e Foro",
+        text: "Estes Termos de Uso serão regidos e interpretados de acordo com as leis da República Federativa do Brasil. Fica eleito o foro da comarca de Sinop - MT para dirimir quaisquer dúvidas ou litígios decorrentes destes Termos, renunciando a qualquer outro, por mais privilegiado que seja.",
+      },
+      {
+        title: "Integralidade do Acordo",
+        text: "Estes Termos de Uso, juntamente com a Política de Privacidade da extensão \"Voice\", constituem o acordo integral entre você e o Desenvolvedor em relação ao uso da extensão.",
+      },
+      {
+        title: "Divisibilidade",
+        text: "Se qualquer disposição destes Termos for considerada inválida ou inexequível por um tribunal de jurisdição competente, as demais disposições destes Termos permanecerão em pleno vigor e efeito.",
+      },
+    ],
+  },
+];
 
 export default function Terms() {
+  const router = useRouter();
+
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1280px] flex-col gap-2 p-2 pb-8 text-sm text-black">
-      <div className="bg-bg-1 relative flex w-full items-center justify-center">
-        <ChevronLeft
-          onClick={() => window.history.back()}
-          className="absolute top-1/2 left-2 -translate-y-1/2 cursor-pointer text-white"
-        />
-        <Image
-          src="/logos/logo-dark.png"
-          alt=""
-          width={1000}
-          height={500}
-          className="h-max w-80 object-contain"
-        />
-      </div>
-      <span className="mx-auto w-max text-lg font-bold">
-        Termos de Uso - {process.env.PROJECT_VOICE || "EX Voice"}
-      </span>
-      <span>
-        Estes Termos de Uso ({"'"}Termos{"'"}) regem o acesso e a utilização do
-        aplicativo {"'"}
-        {process.env.PROJECT_VOICE || "EX Voice"}
-        {"'"} ({"'"}Aplicativo{"'"}), desenvolvido pela Executivo{"'"}s Digital,
-        disponível para dispositivos móveis. Ao acessar, instalar, utilizar ou
-        se cadastrar no Aplicativo, o usuário ({"'"}Usuário{"'"}) DECLARA TER
-        LIDO, ENTENDIDO E CONCORDADO COM ESTES TERMOS DE USO. Caso não concorde
-        com qualquer disposição destes Termos, o Usuário não deverá utilizar o
-        Aplicativo.
-      </span>
-      <span className="font-semibold">
-        1. SOBRE O {process.env.PROJECT_VOICE || "EX VOICE"}
-      </span>
-      <span>
-        1.1. O {process.env.PROJECT_VOICE || "EX Voice"} é um aplicativo
-        desenvolvido para auxiliar médicos e outros profissionais da área de
-        saúde na gravação, transcrição e gestão de informações provenientes de
-        reuniões e interações profissionais. Sua principal funcionalidade é a
-        gravação de áudios com identificação dos interlocutores (limitado a 2
-        pessoas para a IA proprietária, conforme o plano contratado),
-        transcrição automática do conteúdo falado e organização dessas
-        informações.
-      </span>
-      <span>
-        1.2. Além das funcionalidades de gravação e transcrição, o Aplicativo
-        permite ao Usuário:
-      </span>
-      <span className="pl-4">
-        a{")"} Registrar lembretes e anotações diversas (incluindo anotações de
-        estudo);
-      </span>
-      <span className="pl-4">
-        b{")"} Receber notificações de lembretes em horários previamente
-        definidos.
-      </span>
-      <span>
-        1.3. O {process.env.PROJECT_VOICE || "EX Voice"} é uma ferramenta de
-        apoio administrativo, visando otimizar a organização e a gestão da
-        informação, não substituindo, em hipótese alguma, o prontuário médico ou
-        qualquer outro registro oficial, nem o discernimento profissional do
-        Usuário.
-      </span>
-      <span className="font-semibold">2. CADASTRO E ACESSO AO APLICATIVO</span>
-      <span>
-        2.1. Para utilizar o Aplicativo e suas funcionalidades, o Usuário deverá
-        realizar um cadastro, fornecendo informações verdadeiras, precisas,
-        completas e atualizadas, conforme solicitado.
-      </span>
-      <span>
-        2.2. O Usuário é o único responsável pela guarda e sigilo de seu login e
-        senha, e deverá notificar imediatamente a Executivo{"'"}s Digital em
-        caso de qualquer uso não autorizado de sua conta ou quebra de segurança.
-      </span>
-      <span>
-        2.3. A Executivo{"'"}s Digital não se responsabiliza por perdas e danos
-        decorrentes do não cumprimento do disposto nesta seção.
-      </span>
-      <span className="font-semibold">3. PLANOS DE SERVIÇO E COBRANÇA</span>
-      <span>
-        3.1. O {process.env.PROJECT_VOICE || "EX Voice"} oferece diferentes
-        planos de serviço, que podem incluir funcionalidades e limites de uso
-        distintos. Os planos atualmente disponíveis são:
-      </span>
-      <span>
-        3.2. As condições específicas de cada plano, incluindo preços, período
-        de cobrança, métodos de pagamento e políticas de renovação, serão
-        detalhadas no momento da contratação ou por meio de comunicações
-        específicas realizadas pela Executivo{"'"}s Digital.
-      </span>
-      <span>
-        3.3. O cancelamento de qualquer plano deverá seguir o procedimento
-        informado no próprio Aplicativo ou em nosso canal de suporte. O
-        cancelamento poderá acarretar na perda de acesso às funcionalidades
-        pagas e/ou redução dos limites de uso, ao final do período de cobrança
-        pago.
-      </span>
-      <span>
-        3.4. A Executivo{"'"}s Digital reserva-se o direito de alterar os preços
-        dos planos ou introduzir novas cobranças, mediante comunicação prévia
-        aos Usuários, com antecedência mínima de 30 (trinta) dias. O uso
-        contínuo do serviço após essa comunicação implicará na aceitação dos
-        novos valores.
-      </span>
-      <span className="font-semibold">
-        4. USO ADEQUADO DO APLICATIVO E RESPONSABILIDADES DO USUÁRIO
-      </span>
-      <span>
-        4.1. O Usuário compromete-se a utilizar o{" "}
-        {process.env.PROJECT_VOICE || "EX Voice"} de forma ética e em
-        conformidade com a legislação brasileira, especialmente a Lei Geral de
-        Proteção de Dados Pessoais (LGPD), o Código de Ética Médica e quaisquer
-        outras normas aplicáveis à sua profissão.
-      </span>
-      <span>
-        4.2. Responsabilidade pela Obtenção de Consentimento: O Usuário é o
-        ÚNICO E EXCLUSIVO RESPONSÁVEL pela obtenção do consentimento de todos os
-        interlocutores para a gravação, armazenamento e transcrição de áudios
-        por meio do Aplicativo. A Executivo{"'"}s Digital NÃO SE RESPONSABILIZA
-        por qualquer uso indevido do Aplicativo ou pela falha do Usuário em
-        coletar os consentimentos necessários, sendo o Usuário o único
-        responsável por eventuais sanções legais ou éticas decorrentes de tal
-        conduta.
-      </span>
-      <span>4.3. O Usuário se compromete a não:</span>
-      <span className="pl-4">
-        a{")"} Utilizar o Aplicativo para fins ilegais, fraudulentos ou não
-        autorizados;
-      </span>
-      <span className="pl-4">
-        b{")"} Compartilhar, distribuir, replicar ou comercializar o conteúdo
-        gerado pelo Aplicativo sem a devida autorização e/ou consentimento das
-        partes envolvidas;
-      </span>
-      <span className="pl-4">
-        c{")"} Violar ou tentar violar a segurança do Aplicativo, incluindo, mas
-        não se limitando a, acesso não autorizado a sistemas, dados ou contas;
-      </span>
-      <span className="pl-4">
-        d{")"} Modificar, adaptar, traduzir, fazer engenharia reversa,
-        descompilar, desmontar ou tentar extrair o código-fonte do Aplicativo;
-      </span>
-      <span className="pl-4">
-        e{")"} Inserir vírus, cavalos de Troia, worms ou qualquer outro código
-        malicioso que possa danificar, interferir, interceptar ou expropriar
-        qualquer sistema, dado ou informação.
-      </span>
-      <span className="font-semibold">5. PROPRIEDADE INTELECTUAL</span>
-      <span>
-        5.1. Todos os direitos de propriedade intelectual relativos ao
-        Aplicativo {process.env.PROJECT_VOICE || "EX Voice"}, incluindo, mas
-        não se limitando a, software, código-fonte, design, logotipos, marcas,
-        imagens e textos, são de propriedade exclusiva da Executivo{"'"}s
-        Digital.
-      </span>
-      <span>
-        5.2. Estes Termos concedem ao Usuário uma licença limitada, não
-        exclusiva, intransferível e revogável para acessar e utilizar o
-        Aplicativo para fins profissionais e pessoais, nos termos aqui
-        estabelecidos. Nenhuma outra licença ou direito é concedido
-        implicitamente.
-      </span>
-      <span>
-        5.3. O conteúdo gerado pelo Usuário (áudios, transcrições, anotações) é
-        de sua propriedade, sendo de sua exclusiva responsabilidade o
-        armazenamento, uso e gestão desses dados.
-      </span>
-      <span className="font-semibold">
-        6. PROTEÇÃO DE DADOS PESSOAIS E PRIVACIDADE (LGPD)
-      </span>
-      <span>
-        6.1. A Executivo{"'"}s Digital está comprometida com a proteção da
-        privacidade e dos dados pessoais de seus Usuários, em conformidade com a
-        Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018 – LGPD).
-      </span>
-      <span>
-        6.2. NÃO HÁ ARMAZENAMENTO OU USO PARA TREINAMENTO: A Executivo{"'"}s
-        Digital ESCLARECE E GARANTE que os dados de áudio e as transcrições
-        geradas pelo Usuário DENTRO DO APLICATIVO{" "}
-        {process.env.PROJECT_VOICE || "EX VOICE"} NÃO SÃO SALVOS em seus
-        servidores para fins de treinamento da IA, comercialização ou qualquer
-        outra finalidade que não seja o uso exclusivo do próprio Usuário, dentro
-        do ambiente do aplicativo. O processamento dos dados para transcrição
-        ocorre de forma segura e efêutica, sem retenção permanente pela
-        Executivo{"'"}s Digital.
-      </span>
-      <span>
-        6.3. As informações pessoais coletadas no cadastro do Usuário (nome,
-        e-mail, etc.) são utilizadas exclusivamente para a gestão da conta,
-        comunicação sobre o serviço, suporte técnico e cumprimento de obrigações
-        legais, conforme detalhado em nossa Política de Privacidade.
-      </span>
-      <span>
-        6.4. Os dados sensíveis (informações de saúde) contidos nos áudios e
-        transcrições são processados exclusivamente no ambiente do Usuário e sob
-        a sua gestão, sendo o Usuário o Controlador de Dados responsável por sua
-        coleta, tratamento e guarda, nos termos da LGPD. A Executivo{"'"}s
-        Digital atua como Operador, fornecendo a ferramenta de processamento,
-        mas sem acesso ou armazenamento permanente desses dados.
-      </span>
-      <span>
-        6.5. A Executivo{"'"}s Digital implementa medidas de segurança técnicas
-        e administrativas para proteger os dados pessoais contra acesso,
-        alteração, divulgação ou destruição não autorizados.
-      </span>
-      <span className="font-semibold">7. LIMITAÇÃO DE RESPONSABILIDADE</span>
-      <span>
-        7.1. O {process.env.PROJECT_VOICE || "EX Voice"} é fornecido {"'"}no
-        estado em que se encontra{"'"} e{"'"}conforme disponível{"'"}. A
-        Executivo{"'"}s Digital não oferece garantias de qualquer tipo,
-        expressas ou implícitas, sobre a adequação, confiabilidade,
-        disponibilidade, atualidade, precisão ou ausência de erros do Aplicativo
-        ou de seus conteúdos.
-      </span>
-      <span>
-        7.2. A Executivo{"'"}s Digital não será responsável por quaisquer perdas
-        ou danos diretos, indiretos, incidentais, especiais, punitivos ou
-        consequenciais, incluindo, mas não se limitando a, lucros cessantes,
-        perda de dados ou interrupção de negócios, decorrentes do uso ou da
-        incapacidade de usar o Aplicativo, mesmo que tenha sido avisada da
-        possibilidade de tais danos.
-      </span>
-      <span>
-        7.3. Em nenhum caso a responsabilidade total da Executivo{"'"}s Digital,
-        por todos os danos, perdas e causas de ação, excederá o valor total pago
-        pelo Usuário pelo uso do Aplicativo nos últimos 12 (doze) meses
-        anteriores à data do evento danoso.
-      </span>
-      <span>
-        7.4. O Usuário assume total responsabilidade por quaisquer resultados
-        obtidos a partir do uso do Aplicativo, incluindo decisões profissionais
-        tomadas com base nas informações geradas, sendo sua a obrigação de
-        verificação e validação de todo e qualquer dado.
-      </span>
-      <span className="font-semibold">8. RESCISÃO</span>
-      <span>
-        8.1. A Executivo{"'"}s Digital poderá, a seu exclusivo critério,
-        suspender ou encerrar o acesso do Usuário ao Aplicativo, total ou
-        parcialmente, a qualquer momento e por qualquer motivo, com ou sem aviso
-        prévio, caso identifique violação destes Termos de Uso ou suspeita de
-        atividades fraudulentas ou ilegais.
-      </span>
-      <span>
-        8.2. O Usuário poderá rescindir sua conta a qualquer momento, seguindo
-        as instruções fornecidas no Aplicativo.
-      </span>
-      <span>
-        8.3. Em caso de rescisão, as disposições destes Termos que, por sua
-        natureza, deverão sobreviver, permanecerão em pleno vigor e efeito.
-      </span>
-      <span className="font-semibold">9. DISPOSIÇÕES GERAIS</span>
-      <span>
-        9.1. Modificações: A Executivo{"'"}s Digital reserva-se o direito de
-        modificar estes Termos a qualquer momento. As modificações entrarão em
-        vigor imediatamente após sua publicação no Aplicativo ou no site
-        oficial. O uso contínuo do Aplicativo após a publicação das alterações
-        constituirá aceitação dos Termos revisados.
-      </span>
-      <span>
-        9.2. Cessão: O Usuário não poderá ceder ou transferir estes Termos, no
-        todo ou em parte, sem o consentimento prévio por escrito da Executivo
-        {"'"}s Digital.
-      </span>
-      <span>
-        9.3. Comunicação: Todas as comunicações relacionadas a estes Termos ou
-        ao Aplicativo deverão ser realizadas através dos canais de suporte
-        indicados no Aplicativo ou no site da Executivo{"'"}s Digital.
-      </span>
-      <span>
-        9.4. Legislação Aplicável e Foro: Estes Termos serão regidos e
-        interpretados de acordo com a legislação brasileira. As partes elegem o
-        foro da Comarca Sinop - MT para dirimir quaisquer controvérsias
-        decorrentes destes Termos, renunciando a qualquer outro, por mais
-        privilegiado que seja.
-      </span>
-      <span className="font-semibold">10. CONTATO</span>
-      <span>
-        Em caso de dúvidas sobre estes Termos de Uso, entre em contato com a
-        Executivo{"'"}s Digital através do e-mail eX.voiceofc@gmail.com ou
-        pelo canal de suporte disponível no Aplicativo.
-      </span>
+    <div className="min-h-screen w-full bg-gradient-to-b from-neutral-50 via-white to-neutral-100">
+      {/* Hero */}
+      <section className="from-primary relative overflow-hidden bg-gradient-to-br to-black">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-[-20%] -left-[10%] h-[30rem] w-[30rem] rounded-full bg-white/10 blur-[120px]" />
+          <div className="absolute -right-[10%] bottom-[-30%] h-[30rem] w-[30rem] rounded-full bg-black/40 blur-[120px]" />
+        </div>
+
+        <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-8 px-6 pt-8 pb-16 sm:px-8 md:pb-24">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => router.back()}
+              className="flex cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/20"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Voltar
+            </button>
+            <Image
+              src="/logos/logo-dark.png"
+              alt="EX Voice"
+              width={600}
+              height={200}
+              className="h-10 w-auto object-contain sm:h-12"
+              priority
+            />
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center gap-4 text-center"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10 backdrop-blur-sm">
+              <Gavel className="h-8 w-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white sm:text-4xl md:text-5xl">
+              Termos de Uso
+            </h1>
+            <p className="max-w-2xl text-sm text-gray-200 sm:text-base">
+              Bem-vindo(a) à extensão &quot;Voice&quot;. Ao instalar, acessar
+              ou utilizar a extensão, você concorda em cumprir e estar
+              vinculado(a) aos Termos de Uso aqui apresentados.
+            </p>
+            <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs text-gray-100 backdrop-blur-sm">
+              <span className="font-semibold">Última atualização:</span>
+              <span>20 de abril de 2026</span>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Conteúdo */}
+      <section className="relative z-10 -mt-10 pb-20">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-xl shadow-black/5 sm:p-10 md:p-14"
+          >
+            <p className="text-base leading-relaxed text-neutral-700 italic">
+              Bem-vindo(a) à extensão &quot;Voice&quot;, uma ferramenta
+              projetada para auxiliar na sua produtividade e organização
+              pessoal no navegador Google Chrome. Ao instalar, acessar ou
+              utilizar a extensão &quot;Voice&quot;, você concorda em cumprir
+              e estar vinculado(a) aos Termos de Uso aqui apresentados. Caso
+              não concorde com estes Termos, por favor, não instale ou utilize
+              a extensão.
+            </p>
+
+            <div className="mt-10 flex flex-col gap-10">
+              {sections.map((section) => (
+                <div key={section.number} className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="from-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br to-black text-sm font-bold text-white">
+                      {section.number}
+                    </div>
+                    <h2 className="text-lg font-bold text-neutral-900 sm:text-xl">
+                      {section.title}
+                    </h2>
+                  </div>
+
+                  {section.paragraphs?.map((p, i) => (
+                    <p
+                      key={i}
+                      className="text-sm leading-relaxed text-neutral-700 sm:text-base"
+                    >
+                      {p}
+                    </p>
+                  ))}
+
+                  {section.list && (
+                    <ul className="flex list-disc flex-col gap-2 pl-6 text-sm text-neutral-700 sm:text-base">
+                      {section.list.map((item, idx) => (
+                        <li key={idx} className="leading-relaxed">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {section.groups && (
+                    <div className="flex flex-col gap-3 pl-2 sm:pl-4">
+                      {section.groups.map((group) => (
+                        <div
+                          key={group.title}
+                          className="border-primary/40 rounded-xl border-l-2 bg-neutral-50/80 px-4 py-3"
+                        >
+                          <h3 className="text-sm font-semibold text-neutral-900 sm:text-base">
+                            {group.title}
+                          </h3>
+                          <p className="mt-1 text-sm leading-relaxed text-neutral-700">
+                            {group.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* 12. Contato */}
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="from-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br to-black text-sm font-bold text-white">
+                    12
+                  </div>
+                  <h2 className="text-lg font-bold text-neutral-900 sm:text-xl">
+                    Contato
+                  </h2>
+                </div>
+                <p className="text-sm leading-relaxed text-neutral-700 sm:text-base">
+                  Para quaisquer dúvidas ou preocupações relacionadas a estes
+                  Termos de Uso, entre em contato conosco através dos
+                  seguintes canais:
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <a
+                    href="mailto:suporte@executivosdigital.com.br"
+                    className="hover:border-primary/40 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 transition"
+                  >
+                    <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-neutral-500">E-mail</span>
+                      <span className="text-sm font-semibold text-neutral-900">
+                        suporte.executivosdigital.com.br
+                      </span>
+                    </div>
+                  </a>
+                  <a
+                    href="https://www.executivosdigital.com.br"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:border-primary/40 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 transition"
+                  >
+                    <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
+                      <Globe className="h-5 w-5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-neutral-500">Website</span>
+                      <span className="text-sm font-semibold text-neutral-900">
+                        executivosdigital.com.br
+                      </span>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Rodapé de navegação */}
+            <div className="mt-12 flex flex-col items-center gap-4 border-t border-neutral-200 pt-8 sm:flex-row sm:justify-between">
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Acordo entre você e o Desenvolvedor.
+              </div>
+              <Link
+                href="/privacy"
+                className="text-primary hover:text-primary/80 inline-flex items-center gap-2 text-sm font-semibold transition"
+              >
+                <FileText className="h-4 w-4" />
+                Ver Política de Privacidade
+              </Link>
+            </div>
+          </motion.div>
+
+          <p className="mt-8 text-center text-xs text-neutral-500">
+            © {new Date().getFullYear()} Executivos Digital Software House.
+            Todos os direitos reservados.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
