@@ -8,6 +8,7 @@ import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { handleApiError } from "@/utils/error-handler";
 import { AnimatePresence, motion } from "framer-motion";
+import debounce from "lodash.debounce";
 import {
   AlertCircle,
   Check,
@@ -179,9 +180,17 @@ export function ImmersiveRecorder({
   preSelectedClientIds,
 }: ImmersiveRecorderProps) {
   const router = useRouter();
-  const { PostAPI } = useApiContext();
+  const { PostAPI, GetAPI } = useApiContext();
   const { handleGetAvailableRecording } = useSession();
-  const { GetRecordings, GetClients, clients, setClients } = useGeneralContext();
+  const {
+    GetRecordings,
+    clients,
+    setClients,
+    clientsFilters,
+    setClientsFilters,
+    clientsTotalPages,
+    isGettingClients,
+  } = useGeneralContext();
   const { uploadMedia, formatDurationForAPI } = useRecordingUpload();
 
   const mediaType: "audio" | "video" = mode === "online" ? "video" : "audio";
@@ -342,11 +351,72 @@ export function ImmersiveRecorder({
     }
   }, [stage, recorder.mediaBlob, recorder.isRecording, buildDefaultTitle]);
 
-  const filteredContacts = useMemo(() => {
-    const query = contactSearch.trim().toLowerCase();
-    if (!query) return clients;
-    return clients.filter((c) => c.name.toLowerCase().includes(query));
-  }, [clients, contactSearch]);
+  const [loadedPage, setLoadedPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setLoadedPage(1);
+        setClientsFilters((prev) => ({
+          ...prev,
+          query: value || undefined,
+          page: 1,
+        }));
+      }, 500),
+    [setClientsFilters],
+  );
+
+  const handleContactSearchChange = useCallback(
+    (value: string) => {
+      setContactSearch(value);
+      debouncedSearch(value);
+    },
+    [debouncedSearch],
+  );
+
+  useEffect(() => {
+    setContactSearch("");
+    setLoadedPage(1);
+    setClientsFilters({ page: 1 });
+    return () => {
+      debouncedSearch.cancel();
+      setClientsFilters({ page: 1 });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleLoadMoreContacts = useCallback(async () => {
+    const nextPage = loadedPage + 1;
+    setIsLoadingMore(true);
+    try {
+      const params = new URLSearchParams();
+      params.append("page", nextPage.toString());
+      const currentQuery = clientsFilters.query?.trim();
+      if (currentQuery) params.append("query", currentQuery);
+      const response = await GetAPI(`/client?${params.toString()}`, true);
+      if (response?.status === 200) {
+        const newClients = response.body?.clients || [];
+        setClients((prev) => {
+          const existingIds = new Set(prev.map((c) => c.id));
+          const merged = newClients.filter(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (c: any) => c?.id && !existingIds.has(c.id),
+          );
+          return [...prev, ...merged];
+        });
+        setLoadedPage(nextPage);
+      } else {
+        toast.error(
+          handleApiError(response, "Não foi possível carregar mais contatos."),
+        );
+      }
+    } catch {
+      toast.error("Erro ao carregar mais contatos.");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [GetAPI, clientsFilters.query, loadedPage, setClients]);
 
   const toggleContact = useCallback((id: string) => {
     setSelectedContactIds((prev) =>
@@ -378,15 +448,17 @@ export function ImmersiveRecorder({
         }
         setPendingClientName(name);
         setNewContactName("");
+        setContactSearch("");
         toast.success(`${name} adicionado.`);
-        await GetClients();
+        setLoadedPage(1);
+        setClientsFilters({ page: 1, query: undefined });
       } else {
         toast.error(handleApiError(data, "Falha ao criar contato."));
       }
     } finally {
       setCreatingContact(false);
     }
-  }, [PostAPI, newContactName, setClients, GetClients]);
+  }, [PostAPI, newContactName, setClients, setClientsFilters]);
 
   const handleConfirmSave = useCallback(() => {
     if (!recorder.mediaBlob) {
@@ -861,53 +933,91 @@ export function ImmersiveRecorder({
                         <input
                           type="text"
                           value={contactSearch}
-                          onChange={(e) => setContactSearch(e.target.value)}
+                          onChange={(e) =>
+                            handleContactSearchChange(e.target.value)
+                          }
                           placeholder="Buscar contato"
                           className="w-full min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
                         />
+                        {isGettingClients && (
+                          <Loader2
+                            size={14}
+                            className="animate-spin text-white/40"
+                          />
+                        )}
                       </div>
                       <div className="max-h-44 overflow-y-auto p-1">
-                        {filteredContacts.length === 0 ? (
+                        {isGettingClients && clients.length === 0 ? (
+                          <div className="flex items-center justify-center px-3 py-6 text-xs text-white/40">
+                            <Loader2
+                              size={14}
+                              className="mr-2 animate-spin"
+                            />
+                            Buscando contatos...
+                          </div>
+                        ) : clients.length === 0 ? (
                           <p className="px-3 py-6 text-center text-xs text-white/40">
                             {contactSearch
                               ? "Nenhum contato encontrado."
                               : "Nenhum contato cadastrado ainda."}
                           </p>
                         ) : (
-                          filteredContacts.map((c) => {
-                            const checked = selectedContactIds.includes(c.id);
-                            return (
-                              <button
-                                key={c.id}
-                                type="button"
-                                onClick={() => toggleContact(c.id)}
-                                className={cn(
-                                  "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-white/85 transition hover:bg-white/10",
-                                  checked && "bg-white/10 text-white",
-                                )}
-                              >
-                                <span className="flex min-w-0 items-center gap-2">
-                                  <span
-                                    className={cn(
-                                      "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition",
-                                      checked
-                                        ? "border-emerald-300 bg-emerald-300/20"
-                                        : "border-white/20 bg-transparent",
-                                    )}
-                                  >
-                                    {checked && (
-                                      <Check
-                                        size={11}
-                                        className="text-emerald-300"
-                                        strokeWidth={3}
-                                      />
-                                    )}
+                          <>
+                            {clients.map((c) => {
+                              const checked = selectedContactIds.includes(c.id);
+                              return (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  onClick={() => toggleContact(c.id)}
+                                  className={cn(
+                                    "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-white/85 transition hover:bg-white/10",
+                                    checked && "bg-white/10 text-white",
+                                  )}
+                                >
+                                  <span className="flex min-w-0 items-center gap-2">
+                                    <span
+                                      className={cn(
+                                        "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition",
+                                        checked
+                                          ? "border-emerald-300 bg-emerald-300/20"
+                                          : "border-white/20 bg-transparent",
+                                      )}
+                                    >
+                                      {checked && (
+                                        <Check
+                                          size={11}
+                                          className="text-emerald-300"
+                                          strokeWidth={3}
+                                        />
+                                      )}
+                                    </span>
+                                    <span className="truncate">{c.name}</span>
                                   </span>
-                                  <span className="truncate">{c.name}</span>
-                                </span>
+                                </button>
+                              );
+                            })}
+                            {loadedPage < clientsTotalPages && (
+                              <button
+                                type="button"
+                                onClick={handleLoadMoreContacts}
+                                disabled={isLoadingMore}
+                                className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/10 px-3 py-2 text-xs font-medium text-white/60 transition hover:border-white/25 hover:bg-white/5 hover:text-white disabled:opacity-60"
+                              >
+                                {isLoadingMore ? (
+                                  <>
+                                    <Loader2
+                                      size={12}
+                                      className="animate-spin"
+                                    />
+                                    Carregando...
+                                  </>
+                                ) : (
+                                  <>Carregar mais</>
+                                )}
                               </button>
-                            );
-                          })
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
