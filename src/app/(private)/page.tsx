@@ -8,6 +8,7 @@ import { ImmersiveRecorder } from "./_components/immersive-recorder";
 import { ModeCards, RecordMode } from "./_components/mode-cards";
 import { RecentRecordings } from "./_components/recent-recordings";
 import { UpcomingMeetings } from "./_components/upcoming-meetings";
+import { UploadRecordingCta } from "./_components/upload-recording-dialog";
 
 const WEEKDAYS = [
   "domingo",
@@ -85,7 +86,10 @@ export default function NewHome() {
         </p>
       </motion.section>
 
-      <ModeCards onSelect={(mode) => setActiveMode(mode)} />
+      <div className="flex flex-col gap-3">
+        <ModeCards onSelect={(mode) => setActiveMode(mode)} />
+        <UploadRecordingCta />
+      </div>
 
       <UpcomingMeetings />
 
