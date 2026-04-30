@@ -62,7 +62,13 @@ export interface RecordingDetailsProps {
   duration: string;
   audioUrl: string;
   userId: string;
-  transcriptionStatus: "PENDING" | "DONE" | "NOT_REQUESTED" | "TRANSCRIBING";
+  transcriptionStatus:
+    | "PENDING"
+    | "DONE"
+    | "NOT_REQUESTED"
+    | "TRANSCRIBING"
+    | "TRANSCRIBING_SUMMARIZING" // Speeches no DB, aguardando 3 LLMs
+    | "DONE_NO_SUMMARY"; // Pipeline OK + speeches, mas LLMs falharam
   type: "CLIENT" | "REMINDER" | "OTHER" | "STUDY"; // Nota: O tipo da gravação ainda usa 'CLIENT' e 'REMINDER'
   transcription?: string | null;
   summary?: string | null;

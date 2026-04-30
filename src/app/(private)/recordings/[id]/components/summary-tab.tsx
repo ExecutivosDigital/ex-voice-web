@@ -3,7 +3,7 @@
 import { RecordingDetailsProps } from "@/@types/general-client";
 import { RequestTranscription } from "@/components/ui/request-transcription";
 import { motion } from "framer-motion";
-import { FileText, Loader2, Sparkles } from "lucide-react";
+import { AlertTriangle, FileText, Loader2, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Placeholder } from "./placeholder";
@@ -26,17 +26,29 @@ export function SummaryTab({
 
   if (
     recording.transcriptionStatus === "TRANSCRIBING" ||
-    recording.transcriptionStatus === "PENDING"
+    recording.transcriptionStatus === "PENDING" ||
+    recording.transcriptionStatus === "TRANSCRIBING_SUMMARIZING"
   ) {
+    const titleMap: Record<string, string> = {
+      PENDING: "Na fila de processamento",
+      TRANSCRIBING: "Transcrevendo sua gravação",
+      TRANSCRIBING_SUMMARIZING: "Gerando análise inteligente",
+    };
     return (
       <Placeholder
         icon={<Loader2 size={22} className="animate-spin" />}
-        title={
-          recording.transcriptionStatus === "TRANSCRIBING"
-            ? "Transcrevendo sua gravação"
-            : "Na fila de processamento"
-        }
+        title={titleMap[recording.transcriptionStatus]}
         description="Em alguns minutos seu resumo aparece aqui."
+      />
+    );
+  }
+
+  if (recording.transcriptionStatus === "DONE_NO_SUMMARY") {
+    return (
+      <Placeholder
+        icon={<AlertTriangle size={22} />}
+        title="A IA está com instabilidade"
+        description="A transcrição foi concluída, mas a geração de resumo falhou. Veja a aba Transcrição enquanto isso. Tente novamente em alguns minutos."
       />
     );
   }
