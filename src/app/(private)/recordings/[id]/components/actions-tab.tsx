@@ -3,7 +3,7 @@
 import { RecordingDetailsProps } from "@/@types/general-client";
 import { RequestTranscription } from "@/components/ui/request-transcription";
 import { motion } from "framer-motion";
-import { ListChecks, Loader2 } from "lucide-react";
+import { AlertTriangle, ListChecks, Loader2 } from "lucide-react";
 import { Placeholder } from "./placeholder";
 import { MedicalRecord } from "@/app/(private)/clients/2/(selected-appointment)/[id]/components/medical-record";
 
@@ -25,17 +25,29 @@ export function ActionsTab({
 
   if (
     recording.transcriptionStatus === "TRANSCRIBING" ||
-    recording.transcriptionStatus === "PENDING"
+    recording.transcriptionStatus === "PENDING" ||
+    recording.transcriptionStatus === "TRANSCRIBING_SUMMARIZING"
   ) {
+    const titleMap: Record<string, string> = {
+      PENDING: "Aguardando processamento",
+      TRANSCRIBING: "Transcrevendo sua gravação",
+      TRANSCRIBING_SUMMARIZING: "Extraindo ações com IA",
+    };
     return (
       <Placeholder
         icon={<Loader2 size={22} className="animate-spin" />}
-        title={
-          recording.transcriptionStatus === "TRANSCRIBING"
-            ? "Transcrevendo sua gravação"
-            : "Aguardando processamento"
-        }
+        title={titleMap[recording.transcriptionStatus]}
         description="Assim que finalizar, as ações extraídas aparecem aqui."
+      />
+    );
+  }
+
+  if (recording.transcriptionStatus === "DONE_NO_SUMMARY") {
+    return (
+      <Placeholder
+        icon={<AlertTriangle size={22} />}
+        title="A IA está com instabilidade"
+        description="A transcrição foi concluída, mas a extração de ações falhou. Veja a aba Transcrição enquanto isso. Tente novamente em alguns minutos."
       />
     );
   }

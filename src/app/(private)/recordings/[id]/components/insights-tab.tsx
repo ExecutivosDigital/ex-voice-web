@@ -3,7 +3,7 @@
 import { RecordingDetailsProps } from "@/@types/general-client";
 import { RequestTranscription } from "@/components/ui/request-transcription";
 import { motion } from "framer-motion";
-import { Brain, Loader2 } from "lucide-react";
+import { AlertTriangle, Brain, Loader2 } from "lucide-react";
 import { Placeholder } from "./placeholder";
 import { Overview } from "@/app/(private)/clients/2/(selected-appointment)/[id]/components/overview";
 
@@ -25,17 +25,29 @@ export function InsightsTab({
 
   if (
     recording.transcriptionStatus === "TRANSCRIBING" ||
-    recording.transcriptionStatus === "PENDING"
+    recording.transcriptionStatus === "PENDING" ||
+    recording.transcriptionStatus === "TRANSCRIBING_SUMMARIZING"
   ) {
+    const titleMap: Record<string, string> = {
+      PENDING: "Aguardando processamento",
+      TRANSCRIBING: "Gerando sua análise",
+      TRANSCRIBING_SUMMARIZING: "Estruturando insights com IA",
+    };
     return (
       <Placeholder
         icon={<Loader2 size={22} className="animate-spin" />}
-        title={
-          recording.transcriptionStatus === "TRANSCRIBING"
-            ? "Gerando sua análise"
-            : "Aguardando processamento"
-        }
+        title={titleMap[recording.transcriptionStatus]}
         description="Em alguns minutos sua análise inteligente aparece aqui."
+      />
+    );
+  }
+
+  if (recording.transcriptionStatus === "DONE_NO_SUMMARY") {
+    return (
+      <Placeholder
+        icon={<AlertTriangle size={22} />}
+        title="A IA está com instabilidade"
+        description="A transcrição foi concluída, mas a análise estruturada falhou. Veja a aba Transcrição enquanto isso. Tente novamente em alguns minutos."
       />
     );
   }
