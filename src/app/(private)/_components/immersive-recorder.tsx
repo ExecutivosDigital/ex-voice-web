@@ -946,7 +946,10 @@ export function ImmersiveRecorder({
                           />
                         )}
                       </div>
-                      <div className="max-h-44 overflow-y-auto p-1">
+                      <div
+                        className="max-h-44 overflow-y-auto overscroll-contain p-1"
+                        onWheel={(e) => e.stopPropagation()}
+                      >
                         {isGettingClients && clients.length === 0 ? (
                           <div className="flex items-center justify-center px-3 py-6 text-xs text-white/40">
                             <Loader2
