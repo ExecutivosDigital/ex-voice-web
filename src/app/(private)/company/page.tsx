@@ -16,6 +16,10 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import {
+  BusinessContextCard,
+  GlossarySection,
+} from "./components/context-sections";
+import {
   BranchManagersModal,
   CompanyUser,
   DepartmentMembersModal,
@@ -236,6 +240,9 @@ export default function CompanyPage() {
           <Plus size={16} /> Novo departamento
         </button>
       </div>
+
+      {/* Business Analytics da empresa (Fase 2.4) */}
+      <BusinessContextCard />
 
       {/* Filiais */}
       <section className="flex flex-col gap-3">
@@ -468,9 +475,14 @@ export default function CompanyPage() {
         )}
       </section>
 
+      {/* Glossário (Fase 2.4) */}
+      <GlossarySection
+        departments={departments.map((d) => ({ id: d.id, name: d.name }))}
+      />
+
       <p className="text-xs text-gray-400">
-        Business Analytics da empresa, glossário e IAs por departamento chegam
-        nas próximas entregas (Fase 2.4/2.5).
+        IAs por departamento no fluxo de gravação chegam na próxima entrega
+        (Fase 2.5).
       </p>
 
       <DepartmentMembersModal
