@@ -8,6 +8,7 @@ import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
+import { PreMeetingModal } from "./components/pre-meeting-modal";
 import { RecordingModeModal } from "./components/recording-mode-modal";
 import {
   ActivitySquare,
@@ -150,6 +151,7 @@ function MinimalHeader({
   onBack: () => void;
   onNewRecording: () => void;
 }) {
+  const [preMeetingOpen, setPreMeetingOpen] = useState(false);
   return (
     <div className="flex flex-col gap-4">
       <button
@@ -173,15 +175,32 @@ function MinimalHeader({
           </h1>
         </div>
 
-        <button
-          type="button"
-          onClick={onNewRecording}
-          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-4 text-xs font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
-        >
-          <Plus size={16} />
-          Nova gravação
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPreMeetingOpen(true)}
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-4 text-xs font-semibold text-gray-700 backdrop-blur-sm transition hover:border-gray-300 hover:bg-white"
+          >
+            <Sparkles size={14} />
+            Preparar reunião
+          </button>
+          <button
+            type="button"
+            onClick={onNewRecording}
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-4 text-xs font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+          >
+            <Plus size={16} />
+            Nova gravação
+          </button>
+        </div>
       </div>
+
+      <PreMeetingModal
+        clientId={client.id}
+        clientName={client.name}
+        open={preMeetingOpen}
+        onClose={() => setPreMeetingOpen(false)}
+      />
     </div>
   );
 }
