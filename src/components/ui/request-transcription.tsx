@@ -1,12 +1,14 @@
 "use client";
 
 import { useApiContext } from "@/context/ApiContext";
+import { useCorporate } from "@/context/corporateContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
 import { handleApiError } from "@/utils/error-handler";
 import { PromptIcon } from "@/utils/prompt-icon";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowLeft,
   ArrowRight,
   Building2,
   Check,
@@ -26,13 +28,16 @@ interface PromptOption {
   name: string;
   content: string;
   type: string;
-  source: "USER" | "COMPANY" | "GLOBAL";
+  source: "USER" | "DEPARTMENT" | "COMPANY" | "GLOBAL";
   icon?: string;
+  /** Fase 2.5: IA de departamento (a gravação cai neste depto). */
+  departmentId?: string;
 }
 
 export function RequestTranscription() {
   const { selectedRecording, setSelectedRecording } = useGeneralContext();
   const { PutAPI, GetAPI } = useApiContext();
+  const { departments: myDepartments } = useCorporate();
   const [isRequesting, setIsRequesting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [prompts, setPrompts] = useState<PromptOption[]>([]);
@@ -40,6 +45,11 @@ export function RequestTranscription() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPrompt, setSelectedPrompt] = useState<
     PromptOption | "default" | null
+  >(null);
+  // Fase 2.5: usuário multi-departamento + IA geral → escolher o depto da gravação
+  const [step, setStep] = useState<"prompt" | "department">("prompt");
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<
+    string | null
   >(null);
 
   useEffect(() => {
@@ -50,6 +60,8 @@ export function RequestTranscription() {
     } else {
       setSearchQuery("");
       setSelectedPrompt(null);
+      setStep("prompt");
+      setSelectedDepartmentId(null);
     }
   }, [isModalOpen]);
 
@@ -92,7 +104,14 @@ export function RequestTranscription() {
         (p: PromptOption) => p.type === selectedRecording.type,
       );
       if (filtered.length === 0) {
-        await HandleRequestTranscription();
+        if (myDepartments.length > 1) {
+          // Sem IAs, mas multi-departamento: ainda precisa escolher o depto
+          setSelectedPrompt("default");
+          setStep("department");
+          setIsModalOpen(true);
+        } else {
+          await HandleRequestTranscription();
+        }
       } else {
         setPrompts(filtered);
         setIsModalOpen(true);
@@ -106,7 +125,10 @@ export function RequestTranscription() {
     }
   }
 
-  async function HandleRequestTranscription(promptId?: string) {
+  async function HandleRequestTranscription(
+    promptId?: string,
+    departmentId?: string,
+  ) {
     if (!selectedRecording) {
       return;
     }
@@ -116,6 +138,7 @@ export function RequestTranscription() {
       {
         status: "PENDING",
         ...(promptId && { promptId }),
+        ...(departmentId && { departmentId }),
       },
       true,
     );
@@ -147,23 +170,43 @@ export function RequestTranscription() {
   }
 
   function handleConfirmSelection() {
-    if (selectedPrompt === "default") {
-      HandleRequestTranscription(undefined);
-    } else if (selectedPrompt) {
-      HandleRequestTranscription(selectedPrompt.id);
+    if (!selectedPrompt) return;
+    const promptId =
+      selectedPrompt === "default" ? undefined : selectedPrompt.id;
+    const promptDepartmentId =
+      selectedPrompt === "default" ? undefined : selectedPrompt.departmentId;
+
+    // IA de departamento já define o destino; IA geral + multi-departamento
+    // pergunta em qual departamento a gravação cai (Fase 2.5)
+    if (!promptDepartmentId && myDepartments.length > 1) {
+      setStep("department");
+      return;
     }
+    HandleRequestTranscription(promptId);
   }
 
-  function getSourceLabel(source: string) {
-    switch (source) {
+  function handleConfirmDepartment() {
+    if (!selectedPrompt || !selectedDepartmentId) return;
+    const promptId =
+      selectedPrompt === "default" ? undefined : selectedPrompt.id;
+    HandleRequestTranscription(promptId, selectedDepartmentId);
+  }
+
+  function getSourceLabel(prompt: PromptOption) {
+    switch (prompt.source) {
       case "USER":
         return "Pessoal";
+      case "DEPARTMENT":
+        return (
+          myDepartments.find((d) => d.id === prompt.departmentId)?.name ??
+          "Departamento"
+        );
       case "COMPANY":
         return "Empresa";
       case "GLOBAL":
         return "Global";
       default:
-        return source;
+        return prompt.source;
     }
   }
 
@@ -171,6 +214,8 @@ export function RequestTranscription() {
     switch (source) {
       case "USER":
         return "bg-indigo-50 text-indigo-700 ring-indigo-100";
+      case "DEPARTMENT":
+        return "bg-sky-50 text-sky-700 ring-sky-100";
       case "COMPANY":
         return "bg-gray-100 text-gray-700 ring-gray-200";
       case "GLOBAL":
@@ -184,6 +229,8 @@ export function RequestTranscription() {
     switch (source) {
       case "USER":
         return UserRound;
+      case "DEPARTMENT":
+        return Building2;
       case "COMPANY":
         return Building2;
       case "GLOBAL":
@@ -322,38 +369,68 @@ export function RequestTranscription() {
 
                     <div className="relative mt-5">
                       <h2 className="text-balance text-xl leading-tight font-semibold text-white md:text-[22px]">
-                        Escolha a IA que vai transcrever.
+                        {step === "prompt"
+                          ? "Escolha a IA que vai transcrever."
+                          : "Em qual departamento essa gravação entra?"}
                       </h2>
                       <p className="mt-1.5 max-w-xl text-[12px] leading-relaxed text-white/60">
-                        Selecione um prompt personalizado ou use a IA padrão. A
-                        escolha afeta resumos, insights e tom do resultado.
+                        {step === "prompt"
+                          ? "Selecione um prompt personalizado ou use a IA padrão. A escolha afeta resumos, insights e tom do resultado."
+                          : "Você participa de mais de um departamento — escolha onde a gravação fica visível e qual contexto a IA usa."}
                       </p>
                     </div>
                   </div>
 
                   {/* Search */}
-                  <div className="shrink-0 border-b border-gray-100 bg-white px-5 py-4 md:px-10">
-                    <div className="relative">
-                      <Search
-                        size={15}
-                        className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Buscar IA por nome..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="h-11 w-full rounded-full border border-gray-200 bg-white/70 pr-4 pl-11 text-sm text-gray-800 shadow-sm backdrop-blur-sm outline-none transition focus:border-gray-400 focus:bg-white focus:shadow-md"
-                      />
+                  {step === "prompt" && (
+                    <div className="shrink-0 border-b border-gray-100 bg-white px-5 py-4 md:px-10">
+                      <div className="relative">
+                        <Search
+                          size={15}
+                          className="absolute top-1/2 left-4 -translate-y-1/2 text-gray-400"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Buscar IA por nome..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="h-11 w-full rounded-full border border-gray-200 bg-white/70 pr-4 pl-11 text-sm text-gray-800 shadow-sm backdrop-blur-sm outline-none transition focus:border-gray-400 focus:bg-white focus:shadow-md"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Lista */}
                   <div
                     className="flex-1 overflow-y-auto overscroll-contain px-5 py-5 md:px-10"
                     data-lenis-prevent
                   >
-                    {isLoadingPrompts ? (
+                    {step === "department" ? (
+                      <div className="flex flex-col gap-2.5">
+                        {myDepartments.map((dept, i) => (
+                          <PromptRow
+                            key={dept.id}
+                            index={i}
+                            selected={selectedDepartmentId === dept.id}
+                            disabled={isRequesting}
+                            onClick={() => setSelectedDepartmentId(dept.id)}
+                            icon={
+                              <Building2 size={18} className="text-white" />
+                            }
+                            iconWrapCls="bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+                            title={dept.name}
+                            chipLabel={
+                              dept.role === "MANAGER" ? "Gestor" : "Membro"
+                            }
+                            chipCls={
+                              dept.role === "MANAGER"
+                                ? "bg-amber-50 text-amber-800 ring-amber-100"
+                                : "bg-sky-50 text-sky-700 ring-sky-100"
+                            }
+                          />
+                        ))}
+                      </div>
+                    ) : isLoadingPrompts ? (
                       <SkeletonList />
                     ) : (
                       <div className="flex flex-col gap-2.5">
@@ -397,7 +474,7 @@ export function RequestTranscription() {
                                 }
                                 iconWrapCls="bg-gradient-to-br from-gray-900 to-gray-700 text-white"
                                 title={prompt.name}
-                                chipLabel={getSourceLabel(prompt.source)}
+                                chipLabel={getSourceLabel(prompt)}
                                 chipCls={getSourceChip(prompt.source)}
                                 chipIcon={
                                   <SourceIcon
@@ -417,27 +494,57 @@ export function RequestTranscription() {
                   <div className="flex flex-col gap-3 border-t border-gray-100 bg-gray-50/70 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-10 md:py-5">
                     <p className="flex items-center gap-2 text-[11px] text-gray-500">
                       <Sparkles size={12} className="text-amber-500" />
-                      {selectedPrompt
-                        ? selectedPrompt === "default"
-                          ? "IA padrão selecionada."
-                          : `Selecionada: ${selectedPrompt.name}`
-                        : "Selecione uma IA para continuar."}
+                      {step === "department"
+                        ? selectedDepartmentId
+                          ? `Departamento: ${myDepartments.find((d) => d.id === selectedDepartmentId)?.name ?? ""}`
+                          : "Escolha o departamento da gravação."
+                        : selectedPrompt
+                          ? selectedPrompt === "default"
+                            ? "IA padrão selecionada."
+                            : `Selecionada: ${selectedPrompt.name}`
+                          : "Selecione uma IA para continuar."}
                     </p>
                     <div className="flex items-center gap-2">
+                      {step === "department" ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStep("prompt");
+                            setSelectedDepartmentId(null);
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
+                        >
+                          <ArrowLeft size={12} />
+                          Voltar
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleCloseModal}
+                          className="rounded-full px-3.5 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
+                        >
+                          Cancelar
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={handleCloseModal}
-                        className="rounded-full px-3.5 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleConfirmSelection}
-                        disabled={!selectedPrompt || isRequesting}
+                        onClick={
+                          step === "department"
+                            ? handleConfirmDepartment
+                            : handleConfirmSelection
+                        }
+                        disabled={
+                          isRequesting ||
+                          (step === "department"
+                            ? !selectedDepartmentId
+                            : !selectedPrompt)
+                        }
                         className={cn(
                           "inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold text-white shadow-lg transition",
-                          !selectedPrompt || isRequesting
+                          isRequesting ||
+                            (step === "department"
+                              ? !selectedDepartmentId
+                              : !selectedPrompt)
                             ? "cursor-not-allowed bg-gray-300 shadow-none"
                             : "bg-gradient-to-r from-gray-900 to-gray-700 shadow-gray-900/20 hover:scale-[1.02]",
                         )}
