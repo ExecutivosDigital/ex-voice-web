@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/blocks/dropdown-menu";
 import { useSession } from "@/context/auth";
+import { useCorporate } from "@/context/corporateContext";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
 import {
@@ -32,11 +33,17 @@ const NAV_ITEMS: { label: string; href: string }[] = [
 
 export function MinimalHeader() {
   const { profile, clearSession } = useSession();
+  const { isController } = useCorporate();
   const { setMobileMenu } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Fase 2 (RBAC): "Empresa" só para o Controlador
+  const navItems = isController
+    ? [...NAV_ITEMS, { label: "Empresa", href: "/company" }]
+    : NAV_ITEMS;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === href : pathname.startsWith(href);
@@ -88,7 +95,7 @@ export function MinimalHeader() {
           </div>
 
           <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200/70 bg-white/70 p-1 backdrop-blur-md md:flex">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const active = isActive(item.href);
               return (
                 <button

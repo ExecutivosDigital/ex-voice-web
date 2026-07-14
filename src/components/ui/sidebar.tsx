@@ -1,9 +1,11 @@
 "use client";
 import { useSession } from "@/context/auth";
+import { useCorporate } from "@/context/corporateContext";
 import { useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
 import {
   Bell,
+  Building2,
   Calendar,
   Mic,
   Sparkles,
@@ -38,6 +40,12 @@ export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const { clearSession } = useSession();
+  const { isController } = useCorporate();
+
+  // Fase 2 (RBAC): "Empresa" só para o Controlador
+  const navItems = isController
+    ? [...NAV_ITEMS, { label: "Empresa", href: "/company", icon: Building2 }]
+    : NAV_ITEMS;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === href : pathname.startsWith(href);
@@ -114,7 +122,7 @@ export function Sidebar() {
               className="flex flex-col gap-1"
               aria-label="Navegação principal"
             >
-              {NAV_ITEMS.map((item) => {
+              {navItems.map((item) => {
                 const active = isActive(item.href);
                 const Icon = item.icon;
                 return (

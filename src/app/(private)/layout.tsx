@@ -6,6 +6,7 @@ import { Header } from "@/components/ui/header";
 import { Sidebar } from "@/components/ui/sidebar";
 import { GeneralContextProvider } from "@/context/GeneralContext";
 import { ChatPageProvider } from "@/context/chatContext";
+import { CorporateProvider } from "@/context/corporateContext";
 import { cn } from "@/utils/cn";
 import { motion } from "framer-motion";
 import Lenis from "lenis";
@@ -90,6 +91,7 @@ export default function RootLayout({
   if (isNewHome) {
     return (
       <AuthGuard>
+        <CorporateProvider>
         <GeneralContextProvider>
           <ChatPageProvider>
             <Sidebar />
@@ -109,12 +111,14 @@ export default function RootLayout({
             <CompleteRegistrationModal />
           </ChatPageProvider>
         </GeneralContextProvider>
+        </CorporateProvider>
       </AuthGuard>
     );
   }
 
   return (
     <AuthGuard>
+      <CorporateProvider>
       <GeneralContextProvider>
         <ChatPageProvider>
           <div
@@ -142,6 +146,7 @@ export default function RootLayout({
           <CompleteRegistrationModal />
         </ChatPageProvider>
       </GeneralContextProvider>
+      </CorporateProvider>
     </AuthGuard>
   );
 }

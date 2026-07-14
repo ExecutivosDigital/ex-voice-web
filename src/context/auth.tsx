@@ -14,6 +14,8 @@ import { useApiContext } from "./ApiContext";
 
 const ACCESS_TOKEN_COOKIE = "ev_access_token";
 
+export type UserRole = "ADMIN" | "USER" | "COMPANY_ADMIN";
+
 export interface User {
   id: string;
   email: string;
@@ -23,6 +25,9 @@ export interface User {
   addressNumber?: string | null;
   postalCode?: string | null;
   mobilePhone?: string | null;
+  /** Fase 2 (RBAC): GET /user já retorna role e companyId — COMPANY_ADMIN = Controlador da empresa. */
+  role?: UserRole;
+  companyId?: string | null;
 }
 
 interface SessionContextValue {
