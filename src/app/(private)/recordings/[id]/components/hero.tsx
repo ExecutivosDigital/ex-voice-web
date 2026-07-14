@@ -14,6 +14,7 @@ import {
   Download,
   Loader2,
   Mic2,
+  RefreshCw,
   Share2,
   UserRound,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import moment from "moment";
 import "moment/locale/pt-br";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ReanalyzeModal } from "./reanalyze-modal";
 import { ShareRecordingModal } from "./share-recording-modal";
 
 moment.locale("pt-br");
@@ -71,12 +73,19 @@ export function DetailHeader({
   const { profile } = useSession();
   const { hasCompany } = useCorporate();
   const [shareOpen, setShareOpen] = useState(false);
+  const [reanalyzeOpen, setReanalyzeOpen] = useState(false);
   const status = statusMeta(recording.transcriptionStatus);
   const StatusIcon = status.icon;
 
   // Fase 2.3: só o dono compartilha; usuário B2C (sem empresa) não vê o botão
   const isOwner = !!profile?.id && recording.userId === profile.id;
   const canShare = isOwner && hasCompany;
+  // Re-análise: dono + transcrição concluída + gravação de reunião
+  const canReanalyze =
+    isOwner &&
+    recording.type === "CLIENT" &&
+    (recording.transcriptionStatus === "DONE" ||
+      recording.transcriptionStatus === "DONE_NO_SUMMARY");
 
   return (
     <motion.div
@@ -114,6 +123,15 @@ export function DetailHeader({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 self-start">
+          {canReanalyze && (
+            <button
+              onClick={() => setReanalyzeOpen(true)}
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-4 text-xs font-semibold text-gray-700 backdrop-blur-sm transition hover:border-gray-300 hover:bg-white"
+            >
+              <RefreshCw size={13} />
+              Re-analisar
+            </button>
+          )}
           {canShare && (
             <button
               onClick={() => setShareOpen(true)}
@@ -171,6 +189,16 @@ export function DetailHeader({
           recordingId={recording.id}
           open={shareOpen}
           onClose={() => setShareOpen(false)}
+        />
+      )}
+      {canReanalyze && (
+        <ReanalyzeModal
+          recordingId={recording.id}
+          currentPromptId={
+            (recording as { promptId?: string | null }).promptId
+          }
+          open={reanalyzeOpen}
+          onClose={() => setReanalyzeOpen(false)}
         />
       )}
 
