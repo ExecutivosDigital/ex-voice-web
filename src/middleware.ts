@@ -1,7 +1,7 @@
 import { ACCESS_TOKEN_KEY } from "@/lib/auth-cookies";
 import { NextRequest, NextResponse } from "next/server";
 // Rotas de autenticação (usuários logados são redirecionados para home)
-const AUTH_PATHS = ["/login", "/register", "/reset-password"];
+const AUTH_PATHS = ["/login", "/reset-password"];
 // Rotas totalmente públicas (acessíveis independentemente do estado de autenticação)
 const PUBLIC_PATHS = ["/privacy", "/terms"];
 
@@ -23,6 +23,11 @@ export function middleware(request: NextRequest) {
 
   const matchesPath = (paths: string[]) =>
     paths.some((path) => pathname === path || pathname.startsWith(path + "/"));
+
+  // Congelamento do B2C (Fase 0): registro desativado — rota antiga vai para o login
+  if (pathname === "/register" || pathname.startsWith("/register/")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
   const isAuthPath = matchesPath(AUTH_PATHS);
   const isPublicPath = matchesPath(PUBLIC_PATHS);

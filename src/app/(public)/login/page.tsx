@@ -1,7 +1,6 @@
 "use client";
 import { useSession } from "@/context/auth";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ForgotPassword from "./components/forgot";
@@ -102,17 +101,6 @@ export default function Login() {
             )}
 
             <div className="mt-8 text-center text-sm text-gray-600">
-              {!forgot && (
-                <p>
-                  Não tem uma conta?{" "}
-                  <Link
-                    href="/register"
-                    className="font-semibold text-primary hover:text-gray-700 transition-colors"
-                  >
-                    Cadastre-se
-                  </Link>
-                </p>
-              )}
               {forgot && (
                 <button
                   onClick={() => setForgot(false)}
