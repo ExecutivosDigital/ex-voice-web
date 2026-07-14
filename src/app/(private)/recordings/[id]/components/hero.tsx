@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Clock,
   Download,
+  FileDown,
   Loader2,
   Mic2,
   RefreshCw,
@@ -123,6 +124,16 @@ export function DetailHeader({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 self-start">
+          {(recording.transcriptionStatus === "DONE" ||
+            !!recording.summary) && (
+            <button
+              onClick={() => router.push(`/recordings/${recording.id}/print`)}
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-4 text-xs font-semibold text-gray-700 backdrop-blur-sm transition hover:border-gray-300 hover:bg-white"
+            >
+              <FileDown size={13} />
+              Exportar PDF
+            </button>
+          )}
           {canReanalyze && (
             <button
               onClick={() => setReanalyzeOpen(true)}
