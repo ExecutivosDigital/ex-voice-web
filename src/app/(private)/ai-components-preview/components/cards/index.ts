@@ -15,6 +15,7 @@ export { MedicalHistoryTimelineCard } from "./MedicalHistoryTimelineCard";
 export { MedicationsCard } from "./MedicationsCard";
 export { NextAppointmentsCard } from "./NextAppointmentsCard";
 export { ObservationsCard } from "./ObservationsCard";
+export { ActionItemsCard } from "./ActionItemsCard";
 export { OrientationsCard } from "./OrientationsCard";
 export { PrescriptionCard } from "./PrescriptionCard";
 export { ReferralsCard } from "./ReferralsCard";

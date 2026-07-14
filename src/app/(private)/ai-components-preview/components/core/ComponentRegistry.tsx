@@ -2,6 +2,7 @@
 
 import { ComponentType } from "../../types/component-types";
 import {
+  ActionItemsCard,
   AllergiesCard,
   BiometricsCard,
   CertificatesCard,
@@ -58,6 +59,10 @@ export const COMPONENT_REGISTRY: Record<
   ComponentType,
   React.ComponentType<CardComponentProps>
 > = {
+  // Cards de negócio (trilha IA): ações, decisões e compromissos
+  actions_card: ActionItemsCard as React.ComponentType<CardComponentProps>,
+  decisions_card: ActionItemsCard as React.ComponentType<CardComponentProps>,
+  commitments_card: ActionItemsCard as React.ComponentType<CardComponentProps>,
   prescription_card: PrescriptionCard as React.ComponentType<CardComponentProps>,
   exams_card: ExamsCard as React.ComponentType<CardComponentProps>,
   referrals_card: ReferralsCard as React.ComponentType<CardComponentProps>,

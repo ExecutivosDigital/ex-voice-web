@@ -15,6 +15,10 @@ export type Variant =
   | "neutral";
 
 export type ComponentType =
+  // Componentes de negócio (trilha IA): ações, decisões e compromissos
+  | "actions_card"
+  | "decisions_card"
+  | "commitments_card"
   | "prescription_card"
   | "exams_card"
   | "referrals_card"
@@ -333,7 +337,13 @@ export interface ObservationsCardData {
 }
 
 // Union type para todos os tipos de dados
+// Cards de negócio (actions_card / decisions_card / commitments_card)
+export interface ActionItemsCardData {
+  items?: GenericListItem[];
+}
+
 export type ComponentData =
+  | ActionItemsCardData
   | PrescriptionCardData
   | ExamsCardData
   | ReferralsCardData
