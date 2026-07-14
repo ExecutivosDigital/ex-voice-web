@@ -41,12 +41,20 @@ export interface ReminderProps {
 }
 
 // Tipos para Gravações
+export interface SpeechWord {
+  text: string;
+  start: number;
+  end: number;
+}
+
 export interface RecordingSpeakerSpeechProps {
   speakerId: string;
   transcription: string;
   recordingId: string;
   startTime: number;
   endTime: number;
+  /** Timestamps por palavra (motor Modal, trilha IA) — null em gravações antigas/Gladia. */
+  words?: SpeechWord[] | null;
 }
 export interface RecordingSpeakerProps {
   id: string;

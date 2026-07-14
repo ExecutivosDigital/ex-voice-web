@@ -107,6 +107,24 @@ export function WaveformAudioPlayer({
     };
   }, [audioUrl]);
 
+  // Trilha IA (playback clicável): a transcrição dispara "exvoice:seek" com
+  // {time} ao clicar numa palavra — o player pula até lá e toca.
+  useEffect(() => {
+    const handleSeekEvent = (event: Event) => {
+      const audio = audioRef.current;
+      const time = (event as CustomEvent<{ time?: number }>).detail?.time;
+      if (!audio || typeof time !== "number" || !Number.isFinite(time)) return;
+      audio.currentTime = Math.max(0, time);
+      setCurrentTime(audio.currentTime);
+      audio
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {});
+    };
+    window.addEventListener("exvoice:seek", handleSeekEvent);
+    return () => window.removeEventListener("exvoice:seek", handleSeekEvent);
+  }, []);
+
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;

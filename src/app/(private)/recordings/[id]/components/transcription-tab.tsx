@@ -1,6 +1,6 @@
 "use client";
 
-import { RecordingDetailsProps } from "@/@types/general-client";
+import { RecordingDetailsProps, SpeechWord } from "@/@types/general-client";
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -23,6 +23,11 @@ import {
   buildSpeakerStyleMap,
   getSpeakerInitial,
 } from "./speaker-palette";
+
+/** Trilha IA (playback clicável): pula o player de áudio para o instante dado. */
+function seekAudioTo(time: number) {
+  window.dispatchEvent(new CustomEvent("exvoice:seek", { detail: { time } }));
+}
 
 function formatTimestamp(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "";
@@ -89,7 +94,11 @@ export function TranscriptionTab({
       speakerId: string;
       startTime: number;
       endTime: number;
-      segments: { text: string; startTime: number }[];
+      segments: {
+        text: string;
+        startTime: number;
+        words?: SpeechWord[] | null;
+      }[];
     };
     const out: Group[] = [];
     for (const sp of recording.speeches) {
@@ -100,6 +109,7 @@ export function TranscriptionTab({
         last.segments.push({
           text: sp.transcription,
           startTime: sp.startTime,
+          words: sp.words,
         });
         last.endTime = sp.endTime;
       } else {
@@ -107,7 +117,13 @@ export function TranscriptionTab({
           speakerId: sp.speakerId,
           startTime: sp.startTime,
           endTime: sp.endTime,
-          segments: [{ text: sp.transcription, startTime: sp.startTime }],
+          segments: [
+            {
+              text: sp.transcription,
+              startTime: sp.startTime,
+              words: sp.words,
+            },
+          ],
         });
       }
     }
@@ -367,7 +383,7 @@ function SpeechGroup({
   isProfessional?: boolean;
   style: SpeakerStyle;
   startTime: number;
-  segments: { text: string; startTime: number }[];
+  segments: { text: string; startTime: number; words?: SpeechWord[] | null }[];
   fullText: string;
   query: string;
 }) {
@@ -418,9 +434,13 @@ function SpeechGroup({
               Pro
             </span>
           )}
-          <span className="inline-flex items-center rounded-md bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-gray-600">
+          <button
+            onClick={() => seekAudioTo(startTime)}
+            title="Ouvir a partir daqui"
+            className="inline-flex cursor-pointer items-center rounded-md bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-gray-600 transition hover:bg-gray-900 hover:text-white"
+          >
             {formatTimestamp(startTime)}
-          </span>
+          </button>
         </div>
       </div>
 
@@ -451,7 +471,32 @@ function SpeechGroup({
                 si > 0 && "mt-3",
               )}
             >
-              {highlight(seg.text, query)}
+              {seg.words && seg.words.length > 0 && !query.trim() ? (
+                // Trilha IA: palavras clicáveis → player pula para o instante
+                seg.words.map((word, wi) => (
+                  <span
+                    key={wi}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => seekAudioTo(word.start)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && seekAudioTo(word.start)
+                    }
+                    title={`Ouvir em ${formatTimestamp(word.start)}`}
+                    className={cn(
+                      "cursor-pointer rounded-sm transition-colors",
+                      isProfessional
+                        ? "hover:bg-white/25"
+                        : "hover:bg-gray-900/10",
+                    )}
+                  >
+                    {word.text}
+                    {wi < seg.words!.length - 1 ? " " : ""}
+                  </span>
+                ))
+              ) : (
+                highlight(seg.text, query)
+              )}
             </p>
           ))}
 
