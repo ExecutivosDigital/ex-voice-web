@@ -15,6 +15,11 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import {
+  BranchManagersModal,
+  CompanyUser,
+  DepartmentMembersModal,
+} from "./components/manage-people-modals";
 
 /**
  * Fase 2.1 — Área "Empresa" (só Controlador): CRUD de departamentos e filiais.
@@ -26,6 +31,10 @@ interface Branch {
   name: string;
   details: string | null;
   departments: { id: string; name: string }[];
+  managers: {
+    userId: string;
+    user: { id: string; name: string; email: string };
+  }[];
 }
 
 interface DepartmentMemberView {
@@ -66,23 +75,31 @@ export default function CompanyPage() {
 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [companyUsers, setCompanyUsers] = useState<CompanyUser[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState<DepartmentForm | null>(null);
   const [newBranchName, setNewBranchName] = useState("");
   const [showBranchForm, setShowBranchForm] = useState(false);
+  const [membersDeptId, setMembersDeptId] = useState<string | null>(null);
+  const [managersBranchId, setManagersBranchId] = useState<string | null>(null);
 
-  const loadData = useCallback(async () => {
-    setLoadingData(true);
-    const [deptRes, branchRes] = await Promise.all([
-      GetAPI("/corporate/departments", true),
-      GetAPI("/corporate/branches", true),
-    ]);
-    if (deptRes.status === 200) setDepartments(deptRes.body);
-    if (branchRes.status === 200) setBranches(branchRes.body);
-    setLoadingData(false);
-  }, [GetAPI]);
+  const loadData = useCallback(
+    async (showSkeleton = true) => {
+      if (showSkeleton) setLoadingData(true);
+      const [deptRes, branchRes, usersRes] = await Promise.all([
+        GetAPI("/corporate/departments", true),
+        GetAPI("/corporate/branches", true),
+        GetAPI("/corporate/users", true),
+      ]);
+      if (deptRes.status === 200) setDepartments(deptRes.body);
+      if (branchRes.status === 200) setBranches(branchRes.body);
+      if (usersRes.status === 200) setCompanyUsers(usersRes.body);
+      setLoadingData(false);
+    },
+    [GetAPI],
+  );
 
   useEffect(() => {
     if (loaded && isController) {
@@ -266,9 +283,16 @@ export default function CompanyPage() {
                 className="group flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-800"
               >
                 <Landmark size={14} className="text-gray-400" />
-                <span className="font-medium">{branch.name}</span>
+                <button
+                  onClick={() => setManagersBranchId(branch.id)}
+                  className="font-medium transition hover:text-gray-600"
+                  title="Gerir gestores da filial"
+                >
+                  {branch.name}
+                </button>
                 <span className="text-xs text-gray-400">
-                  {branch.departments.length} depto(s)
+                  {branch.departments.length} depto(s) ·{" "}
+                  {branch.managers.length} gestor(es)
                 </span>
                 <button
                   onClick={() => handleDeleteBranch(branch)}
@@ -423,10 +447,13 @@ export default function CompanyPage() {
                 )}
 
                 <div className="mt-auto flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                  <span className="inline-flex items-center gap-1">
+                  <button
+                    onClick={() => setMembersDeptId(department.id)}
+                    className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 font-medium text-gray-700 transition hover:bg-gray-50"
+                  >
                     <Users size={13} />
                     {department.members.length} membro(s)
-                  </span>
+                  </button>
                   <span>{department._count.promptSettings} IA(s)</span>
                   <span>{department._count.recordings} gravação(ões)</span>
                   {department.businessContext && (
@@ -442,9 +469,33 @@ export default function CompanyPage() {
       </section>
 
       <p className="text-xs text-gray-400">
-        Gestão de membros e papéis por departamento chega na próxima entrega
-        (Fase 2.2).
+        Business Analytics da empresa, glossário e IAs por departamento chegam
+        nas próximas entregas (Fase 2.4/2.5).
       </p>
+
+      <DepartmentMembersModal
+        department={
+          membersDeptId
+            ? (departments.find((d) => d.id === membersDeptId) ?? null)
+            : null
+        }
+        companyUsers={companyUsers}
+        onClose={() => setMembersDeptId(null)}
+        onChanged={() => loadData(false)}
+      />
+      <BranchManagersModal
+        branch={
+          managersBranchId
+            ? (branches.find((b) => b.id === managersBranchId) ?? null)
+            : null
+        }
+        managers={
+          branches.find((b) => b.id === managersBranchId)?.managers ?? []
+        }
+        companyUsers={companyUsers}
+        onClose={() => setManagersBranchId(null)}
+        onChanged={() => loadData(false)}
+      />
     </div>
   );
 }
