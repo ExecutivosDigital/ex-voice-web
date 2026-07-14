@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { CompanyTabs } from "./components/company-tabs";
 import {
   BusinessContextCard,
   GlossarySection,
@@ -240,6 +241,8 @@ export default function CompanyPage() {
           <Plus size={16} /> Novo departamento
         </button>
       </div>
+
+      <CompanyTabs />
 
       {/* Business Analytics da empresa (Fase 2.4) */}
       <BusinessContextCard />
