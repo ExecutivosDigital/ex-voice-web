@@ -2,20 +2,26 @@
 
 import { RecordingDetailsProps } from "@/@types/general-client";
 import { WaveformAudioPlayer } from "@/components/ui/waveform-audio-player";
+import { useSession } from "@/context/auth";
+import { useCorporate } from "@/context/corporateContext";
 import { cn } from "@/utils/cn";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
+  Building2,
   CheckCircle2,
   Clock,
   Download,
   Loader2,
   Mic2,
+  Share2,
   UserRound,
 } from "lucide-react";
 import moment from "moment";
 import "moment/locale/pt-br";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { ShareRecordingModal } from "./share-recording-modal";
 
 moment.locale("pt-br");
 
@@ -62,8 +68,15 @@ export function DetailHeader({
   recording: RecordingDetailsProps;
 }) {
   const router = useRouter();
+  const { profile } = useSession();
+  const { hasCompany } = useCorporate();
+  const [shareOpen, setShareOpen] = useState(false);
   const status = statusMeta(recording.transcriptionStatus);
   const StatusIcon = status.icon;
+
+  // Fase 2.3: só o dono compartilha; usuário B2C (sem empresa) não vê o botão
+  const isOwner = !!profile?.id && recording.userId === profile.id;
+  const canShare = isOwner && hasCompany;
 
   return (
     <motion.div
@@ -100,18 +113,29 @@ export function DetailHeader({
           </div>
         </div>
 
-        {recording.audioUrl && (
-          <a
-            href={recording.audioUrl}
-            download
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-10 shrink-0 items-center gap-2 self-start rounded-full border border-gray-200 bg-white/80 px-4 text-xs font-semibold text-gray-700 backdrop-blur-sm transition hover:border-gray-300 hover:bg-white"
-          >
-            <Download size={13} />
-            Baixar áudio
-          </a>
-        )}
+        <div className="flex shrink-0 items-center gap-2 self-start">
+          {canShare && (
+            <button
+              onClick={() => setShareOpen(true)}
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-4 text-xs font-semibold text-gray-700 backdrop-blur-sm transition hover:border-gray-300 hover:bg-white"
+            >
+              <Share2 size={13} />
+              Compartilhar
+            </button>
+          )}
+          {recording.audioUrl && (
+            <a
+              href={recording.audioUrl}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-4 text-xs font-semibold text-gray-700 backdrop-blur-sm transition hover:border-gray-300 hover:bg-white"
+            >
+              <Download size={13} />
+              Baixar áudio
+            </a>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -134,7 +158,21 @@ export function DetailHeader({
         {recording.client && (
           <InfoChip icon={UserRound} label={recording.client.name} />
         )}
+        {recording.department && (
+          <InfoChip icon={Building2} label={recording.department.name} />
+        )}
+        {!isOwner && recording.user && (
+          <InfoChip icon={UserRound} label={`por ${recording.user.name}`} />
+        )}
       </div>
+
+      {canShare && (
+        <ShareRecordingModal
+          recordingId={recording.id}
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
 
       {recording.audioUrl && (
         <div className="rounded-2xl border border-gray-200/80 bg-white/80 p-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] backdrop-blur-sm">

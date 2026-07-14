@@ -81,6 +81,9 @@ export interface RecordingDetailsProps {
   speeches: RecordingSpeakerSpeechProps[];
   speakers: RecordingSpeakerProps[];
   createdAt: Date;
+  /** Fase 2.3 (corporativo): departamento e dono, quando a API os incluir. */
+  department?: { id: string; name: string } | null;
+  user?: { id: string; name: string } | null;
 }
 
 // Tipo para os Query Params de Gravações

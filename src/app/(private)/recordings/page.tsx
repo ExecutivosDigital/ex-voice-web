@@ -3,6 +3,7 @@
 import { ClientProps, RecordingDetailsProps } from "@/@types/general-client";
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { useCorporate } from "@/context/corporateContext";
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
 import { debounce } from "lodash";
@@ -14,6 +15,7 @@ import {
   Loader2,
   Mic2,
   Search,
+  Users2,
 } from "lucide-react";
 import moment from "moment";
 import "moment/locale/pt-br";
@@ -61,6 +63,7 @@ export default function MinimalRecordingsPage() {
     setSelectedRecording,
     setSelectedClient,
   } = useGeneralContext();
+  const { hasCompany } = useCorporate();
   const router = useRouter();
 
   const [query, setQuery] = useState("");
@@ -118,7 +121,7 @@ export default function MinimalRecordingsPage() {
         </p>
       </section>
 
-      <section>
+      <section className="flex flex-wrap items-center gap-3">
         <div className="relative w-full lg:max-w-md">
           <Search
             size={16}
@@ -131,6 +134,15 @@ export default function MinimalRecordingsPage() {
             className="h-12 w-full rounded-full border border-gray-200 bg-white/70 pr-4 pl-11 text-sm text-gray-800 shadow-sm backdrop-blur-sm transition outline-none focus:border-gray-400 focus:bg-white focus:shadow-md"
           />
         </div>
+        {hasCompany && (
+          <button
+            onClick={() => router.push("/recordings/team")}
+            className="inline-flex h-12 items-center gap-2 rounded-full border border-gray-200 bg-white/70 px-5 text-sm font-semibold text-gray-700 shadow-sm backdrop-blur-sm transition hover:border-gray-300 hover:bg-white"
+          >
+            <Users2 size={15} />
+            Equipe
+          </button>
+        )}
       </section>
 
       <section>
