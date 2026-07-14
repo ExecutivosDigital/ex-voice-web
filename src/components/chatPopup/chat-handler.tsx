@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import OpenAI from "openai";
 import {
   Dispatch,
   SetStateAction,
@@ -12,24 +11,10 @@ import {
 import fixWebmDuration from "webm-duration-fix";
 import { Attachment, Message, Prompt } from "./types";
 
-/* ================= OpenRouter via OpenAI SDK ================= */
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.NEXT_PUBLIC_OPENROUTER_API_KEY!,
-  dangerouslyAllowBrowser: true, // em prod, prefira proxy/rota server-side
-  defaultHeaders: {
-    "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost",
-    "X-Title": process.env.NEXT_PUBLIC_APP_NAME || "Chat Widget",
-  },
-});
-
-/** Modelo-alvo: tente um Gemini com ÁUDIO habilitado na página de modelos.
- * Se este ID específico não aceitar audio, o fallback (Whisper) entra. */
-const MODEL =
-  process.env.NEXT_PUBLIC_OPENROUTER_MODEL || "google/gemini-2.5-flash";
-
-/** Fallback de transcrição (OpenRouter) */
-const WHISPER_MODEL = "openai/whisper-large-v3";
+/* ================= OpenRouter via rotas server-side =================
+ * A chave OpenRouter vive só no servidor (OPENROUTER_API_KEY) — o client
+ * fala com /api/openrouter/chat (streaming) e /api/openrouter/transcribe
+ * (fallback Whisper). Modelo é definido no servidor (OPENROUTER_MODEL). */
 
 /* ================= Types do payload ================= */
 type TextPart = { type: "text"; text: string };
@@ -198,14 +183,16 @@ export function useSectionChat({
     return out;
   }
 
-  /* ===== Fallback: transcrever com Whisper ===== */
+  /* ===== Fallback: transcrever com Whisper (server-side) ===== */
   async function transcribeWithWhisper(audio: File): Promise<string> {
-    const resp = await openai.audio.transcriptions.create({
-      model: WHISPER_MODEL,
-      file: audio,
-      response_format: "text",
-    } as any);
-    return typeof resp === "string" ? resp : ((resp as any)?.text ?? "");
+    const formData = new FormData();
+    formData.append("file", audio);
+    const res = await fetch("/api/openrouter/transcribe", {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new Error(`Transcrição falhou (${res.status})`);
+    return await res.text();
   }
 
   /* ===== Enviar ===== */
@@ -320,24 +307,22 @@ export function useSectionChat({
       abortControllerRef.current = controller;
       streamBufferRef.current = "";
 
-      const completion = await openai.chat.completions.create(
-        { model: MODEL, stream: true, messages: msgs as any },
-        { signal: controller.signal },
-      );
+      const res = await fetch("/api/openrouter/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: msgs }),
+        signal: controller.signal,
+      });
+      if (!res.ok || !res.body) {
+        throw new Error(`Chat falhou (${res.status})`);
+      }
 
-      for await (const chunk of completion as any) {
-        const delta = chunk?.choices?.[0]?.delta?.content;
-        if (!delta) continue;
-
-        if (typeof delta === "string") {
-          streamBufferRef.current += delta;
-        } else if (Array.isArray(delta)) {
-          for (const d of delta) {
-            if (typeof d === "string") streamBufferRef.current += d;
-            else if (typeof d?.text === "string")
-              streamBufferRef.current += d.text;
-          }
-        }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        streamBufferRef.current += decoder.decode(value, { stream: true });
         flushToUI();
       }
       flushToUI();
