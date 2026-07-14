@@ -1,6 +1,7 @@
 "use client";
 
 import { useMediaRecorder } from "@/components/audio-recorder/use-media-recorder";
+import { useRecordingWatchdog } from "@/components/audio-recorder/use-recording-watchdog";
 import { useRecordingUpload } from "@/components/audio-recorder/use-recording-upload";
 import { useApiContext } from "@/context/ApiContext";
 import { useSession } from "@/context/auth";
@@ -241,6 +242,15 @@ export function ImmersiveRecorder({
       setError(msg);
       setStage("intro");
     },
+  });
+
+  // Aviso de gravação esquecida (trilha IA): lembretes em 1h/1h30/2h com
+  // opt-out + alerta de silêncio prolongado (~7min). Nunca para sozinho.
+  useRecordingWatchdog({
+    isRecording: recorder.isRecording,
+    isPaused: recorder.isPaused,
+    duration: recorder.duration,
+    getStream: recorder.getStream,
   });
 
   useEffect(() => {
