@@ -12,9 +12,13 @@ import { useApiContext } from "@/context/ApiContext";
 import { useSession } from "@/context/auth";
 import { useCorporate } from "@/context/corporateContext";
 import { debounce } from "lodash";
+import { useConfirm } from "@/context/ConfirmContext";
+import { translateError } from "@/utils/translate-error";
 import {
   ChevronDown,
   Crown,
+  Eye,
+  EyeOff,
   Plus,
   Search,
   Trash2,
@@ -43,6 +47,7 @@ export default function CompanyUsersPage() {
   const { loaded, isController } = useCorporate();
   const { profile } = useSession();
   const { GetAPI, PostAPI, PutAPI, DeleteAPI } = useApiContext();
+  const confirm = useConfirm();
 
   const [users, setUsers] = useState<CompanyUserRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +56,7 @@ export default function CompanyUsersPage() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({
@@ -103,7 +109,7 @@ export default function CompanyUsersPage() {
       load();
     } else {
       toast.error(
-        response.body?.message || "Não foi possível criar (e-mail em uso?)",
+        translateError(response.body?.message, "Não foi possível criar o usuário"),
       );
     }
   }
@@ -128,12 +134,13 @@ export default function CompanyUsersPage() {
   }
 
   async function handleDelete(user: CompanyUserRow) {
-    if (
-      !window.confirm(
-        `Desativar o usuário "${user.name}"? Ele perde o acesso, mas as gravações dele permanecem.`,
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: `Desativar "${user.name}"?`,
+      description: "A pessoa perde o acesso, mas as gravações dela permanecem na empresa.",
+      confirmLabel: "Desativar",
+      tone: "danger",
+    });
+    if (!ok) return;
     setBusy(true);
     const response = await DeleteAPI(`/company-adm/users/${user.id}`, true);
     setBusy(false);
@@ -141,7 +148,7 @@ export default function CompanyUsersPage() {
       toast.success("Usuário desativado");
       load();
     } else {
-      toast.error(response.body?.message || "Não foi possível desativar");
+      toast.error(translateError(response.body?.message, "Não foi possível desativar"));
     }
   }
 
@@ -312,13 +319,23 @@ export default function CompanyUsersPage() {
               type="email"
               className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
             />
-            <input
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="Senha inicial"
-              type="text"
-              className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
-            />
+            <div className="relative">
+              <input
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder="Senha inicial"
+                type={showPassword ? "text" : "password"}
+                className="h-11 w-full rounded-xl border border-gray-200 bg-white px-3 pr-10 text-sm text-gray-800 outline-none focus:border-gray-400"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 transition hover:text-gray-700"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
             <div className="relative">
               <select
                 value={form.role}

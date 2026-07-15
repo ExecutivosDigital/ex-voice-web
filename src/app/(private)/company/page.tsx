@@ -1,7 +1,9 @@
 "use client";
 
 import { useApiContext } from "@/context/ApiContext";
+import { useConfirm } from "@/context/ConfirmContext";
 import { useCorporate } from "@/context/corporateContext";
+import { translateError } from "@/utils/translate-error";
 import { cn } from "@/utils/cn";
 import {
   Building2,
@@ -77,6 +79,7 @@ const EMPTY_FORM: DepartmentForm = {
 export default function CompanyPage() {
   const { loaded, isController } = useCorporate();
   const { GetAPI, PostAPI, PatchAPI, DeleteAPI } = useApiContext();
+  const confirm = useConfirm();
 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -138,12 +141,13 @@ export default function CompanyPage() {
   }
 
   async function handleDeleteDepartment(department: Department) {
-    if (
-      !window.confirm(
-        `Excluir o departamento "${department.name}"? Membros e glossário próprios serão removidos.`,
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: `Excluir o departamento "${department.name}"?`,
+      description: "Os membros e o glossário próprios deste departamento serão removidos.",
+      confirmLabel: "Excluir",
+      tone: "danger",
+    });
+    if (!ok) return;
     const response = await DeleteAPI(
       `/corporate/departments/${department.id}`,
       true,
@@ -153,8 +157,10 @@ export default function CompanyPage() {
       loadData();
     } else {
       toast.error(
-        response.body?.message ||
+        translateError(
+          response.body?.message,
           "Não foi possível excluir (há gravações ou IAs vinculadas?)",
+        ),
       );
     }
   }
@@ -180,7 +186,12 @@ export default function CompanyPage() {
   }
 
   async function handleDeleteBranch(branch: Branch) {
-    if (!window.confirm(`Excluir a filial "${branch.name}"?`)) return;
+    const ok = await confirm({
+      title: `Excluir a filial "${branch.name}"?`,
+      confirmLabel: "Excluir",
+      tone: "danger",
+    });
+    if (!ok) return;
     const response = await DeleteAPI(`/corporate/branches/${branch.id}`, true);
     if (response.status === 200) {
       toast.success("Filial excluída");

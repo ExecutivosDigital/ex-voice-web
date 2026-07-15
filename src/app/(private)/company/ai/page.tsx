@@ -1,8 +1,10 @@
 "use client";
 
 import { useApiContext } from "@/context/ApiContext";
+import { useConfirm } from "@/context/ConfirmContext";
 import { useCorporate } from "@/context/corporateContext";
 import { cn } from "@/utils/cn";
+import { translateError } from "@/utils/translate-error";
 import { Bot, Building2, Globe2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -22,6 +24,7 @@ interface Department {
 export default function CompanyAiPage() {
   const { loaded, isController } = useCorporate();
   const { GetAPI, DeleteAPI } = useApiContext();
+  const confirm = useConfirm();
 
   const [ais, setAis] = useState<CompanyAi[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -50,18 +53,20 @@ export default function CompanyAiPage() {
   }, [loaded, isController, load]);
 
   async function handleDelete(ai: CompanyAi) {
-    if (
-      !window.confirm(
-        `Excluir a IA "${ai.name}"? As gravações que a usam continuam, apenas perdem o vínculo.`,
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: `Excluir a IA "${ai.name}"?`,
+      description:
+        "As gravações que usam esta IA continuam existindo, apenas perdem o vínculo com ela.",
+      confirmLabel: "Excluir",
+      tone: "danger",
+    });
+    if (!ok) return;
     const response = await DeleteAPI(`/corporate/ai/${ai.id}`, true);
     if (response.status === 200) {
       toast.success("IA excluída");
       load();
     } else {
-      toast.error(response.body?.message || "Não foi possível excluir");
+      toast.error(translateError(response.body?.message, "Não foi possível excluir"));
     }
   }
 

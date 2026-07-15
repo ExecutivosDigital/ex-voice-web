@@ -6,6 +6,7 @@ import { Header } from "@/components/ui/header";
 import { Sidebar } from "@/components/ui/sidebar";
 import { GeneralContextProvider } from "@/context/GeneralContext";
 import { ChatPageProvider } from "@/context/chatContext";
+import { ConfirmProvider } from "@/context/ConfirmContext";
 import { CorporateProvider } from "@/context/corporateContext";
 import { cn } from "@/utils/cn";
 import { motion } from "framer-motion";
@@ -92,6 +93,7 @@ export default function RootLayout({
     return (
       <AuthGuard>
         <CorporateProvider>
+        <ConfirmProvider>
         <GeneralContextProvider>
           <ChatPageProvider>
             <Sidebar />
@@ -111,6 +113,7 @@ export default function RootLayout({
             <CompleteRegistrationModal />
           </ChatPageProvider>
         </GeneralContextProvider>
+        </ConfirmProvider>
         </CorporateProvider>
       </AuthGuard>
     );

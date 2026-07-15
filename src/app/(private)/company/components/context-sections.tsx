@@ -1,8 +1,17 @@
 "use client";
 
 import { useApiContext } from "@/context/ApiContext";
-import { BookOpenText, Brain, ChevronDown, Plus, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useConfirm } from "@/context/ConfirmContext";
+import { translateError } from "@/utils/translate-error";
+import {
+  BookOpenText,
+  Brain,
+  ChevronDown,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 /**
@@ -66,13 +75,22 @@ export function BusinessContextCard() {
           )}
         </h2>
         {dirty && (
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-4 py-1.5 text-xs font-semibold text-white shadow transition hover:scale-[1.02] disabled:opacity-60"
-          >
-            {saving ? "Salvando..." : "Salvar"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setText(savedText)}
+              disabled={saving}
+              className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-500 transition hover:bg-gray-50 disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-4 py-1.5 text-xs font-semibold text-white shadow transition hover:scale-[1.02] disabled:opacity-60"
+            >
+              {saving ? "Salvando..." : "Salvar"}
+            </button>
+          </div>
         )}
       </div>
       <textarea
@@ -101,12 +119,23 @@ export function GlossarySection({
   departments: { id: string; name: string }[];
 }) {
   const { GetAPI, PostAPI, DeleteAPI } = useApiContext();
+  const confirm = useConfirm();
   const [entries, setEntries] = useState<GlossaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [term, setTerm] = useState("");
   const [meaning, setMeaning] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [busy, setBusy] = useState(false);
+  const [filter, setFilter] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return entries;
+    return entries.filter(
+      (e) =>
+        e.term.toLowerCase().includes(q) || e.meaning.toLowerCase().includes(q),
+    );
+  }, [entries, filter]);
 
   const departmentName = useCallback(
     (id: string | null) =>
@@ -147,12 +176,18 @@ export function GlossarySection({
       load();
     } else {
       toast.error(
-        response.body?.message || "Não foi possível adicionar (termo repetido?)",
+        translateError(response.body?.message, "Não foi possível adicionar (termo repetido?)"),
       );
     }
   }
 
   async function handleDelete(entry: GlossaryEntry) {
+    const ok = await confirm({
+      title: `Remover o termo "${entry.term}"?`,
+      confirmLabel: "Remover",
+      tone: "danger",
+    });
+    if (!ok) return;
     setBusy(true);
     const response = await DeleteAPI(`/corporate/glossary/${entry.id}`, true);
     setBusy(false);
@@ -160,7 +195,7 @@ export function GlossarySection({
       toast.success("Termo removido");
       load();
     } else {
-      toast.error(response.body?.message || "Não foi possível remover");
+      toast.error(translateError(response.body?.message, "Não foi possível remover"));
     }
   }
 
@@ -216,6 +251,21 @@ export function GlossarySection({
         </button>
       </div>
 
+      {entries.length > 8 && (
+        <div className="relative w-full md:max-w-xs">
+          <Search
+            size={14}
+            className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
+          />
+          <input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filtrar termos..."
+            className="h-9 w-full rounded-full border border-gray-200 bg-white pr-3 pl-9 text-sm text-gray-800 outline-none focus:border-gray-400"
+          />
+        </div>
+      )}
+
       {loading ? (
         <div className="h-[60px] animate-pulse rounded-2xl border border-gray-200/60 bg-white/60" />
       ) : entries.length === 0 ? (
@@ -223,9 +273,11 @@ export function GlossarySection({
           Nenhum termo ainda — comece pelas siglas que mais aparecem nas
           reuniões.
         </p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-gray-400">Nenhum termo com esse filtro.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {entries.map((entry) => (
+          {filtered.map((entry) => (
             <div
               key={entry.id}
               className="group flex max-w-full items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm"
