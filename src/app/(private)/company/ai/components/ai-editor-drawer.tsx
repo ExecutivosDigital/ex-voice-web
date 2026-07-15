@@ -9,7 +9,15 @@ import {
 } from "@/components/ui/blocks/dialog";
 import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/utils/cn";
-import { ChevronDown, FlaskConical, Loader2, Save } from "lucide-react";
+import { translateError } from "@/utils/translate-error";
+import {
+  ChevronDown,
+  FlaskConical,
+  Loader2,
+  Save,
+  Sparkles,
+  Wand2,
+} from "lucide-react";
 import moment from "moment";
 import "moment/locale/pt-br";
 import { useCallback, useEffect, useState } from "react";
@@ -75,6 +83,11 @@ export function AiEditorDrawer({
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<PreviewResult | null>(null);
 
+  // Gerar com IA a partir de descrição (facilitador)
+  const [genOpen, setGenOpen] = useState(!ai); // já abre no modo criar
+  const [description, setDescription] = useState("");
+  const [genLoading, setGenLoading] = useState(false);
+
   useEffect(() => {
     (async () => {
       const res = await GetAPI("/corporate/ai/sample-recordings", true);
@@ -84,6 +97,31 @@ export function AiEditorDrawer({
       }
     })();
   }, [GetAPI]);
+
+  async function handleGenerate() {
+    if (description.trim().length < 10) {
+      toast.error("Descreva a área em pelo menos uma frase");
+      return;
+    }
+    setGenLoading(true);
+    const deptName = departments.find((d) => d.id === departmentId)?.name;
+    const res = await PostAPI(
+      "/corporate/ai/generate-from-description",
+      { description: description.trim(), departmentName: deptName },
+      true,
+    );
+    setGenLoading(false);
+    if (res.status === 200 || res.status === 201) {
+      setName(res.body.name ?? name);
+      setContent(res.body.content ?? "");
+      setStructuredPrompt(res.body.structuredPrompt ?? "");
+      setSpecificPrompt(res.body.specificPrompt ?? "");
+      setGenOpen(false);
+      toast.success("IA gerada — revise e ajuste antes de salvar");
+    } else {
+      toast.error(translateError(res.body?.message, "Não foi possível gerar"));
+    }
+  }
 
   async function handleSave() {
     if (!name.trim() || !content.trim()) {
@@ -157,6 +195,57 @@ export function AiEditorDrawer({
         <div className="grid max-h-[calc(92vh-64px)] grid-cols-1 overflow-hidden md:grid-cols-2">
           {/* Coluna esquerda: editor */}
           <div className="flex flex-col gap-4 overflow-y-auto border-r border-gray-100 p-6">
+            {/* Facilitador: gerar com IA a partir de uma descrição */}
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3">
+              {genOpen ? (
+                <div className="flex flex-col gap-2">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-indigo-800">
+                    <Wand2 size={13} /> Gerar com IA
+                  </p>
+                  <p className="text-[11px] text-indigo-700/80">
+                    Descreva a área ou etapa em poucas linhas e a IA monta as
+                    instruções pra você — depois é só revisar.
+                  </p>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    placeholder="Ex.: Reuniões de vendas de fretes dedicados. Quero acompanhar objeções de preço e prazo, e cobrar os próximos passos de cada negociação."
+                    className="rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-indigo-400"
+                  />
+                  <div className="flex justify-end gap-2">
+                    {!!ai && (
+                      <button
+                        onClick={() => setGenOpen(false)}
+                        className="rounded-full px-3 py-1.5 text-xs font-semibold text-gray-500 hover:bg-white"
+                      >
+                        Cancelar
+                      </button>
+                    )}
+                    <button
+                      onClick={handleGenerate}
+                      disabled={genLoading}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-60"
+                    >
+                      {genLoading ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <Sparkles size={13} />
+                      )}
+                      Gerar instruções
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setGenOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 hover:text-indigo-900"
+                >
+                  <Wand2 size={13} /> Gerar com IA a partir de uma descrição
+                </button>
+              )}
+            </div>
+
             <div className="grid gap-3 md:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-500">
