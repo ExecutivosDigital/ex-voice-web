@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/blocks/dialog";
 import { useApiContext } from "@/context/ApiContext";
 import { useConfirm } from "@/context/ConfirmContext";
 import { useCorporate } from "@/context/corporateContext";
@@ -328,21 +334,16 @@ export default function CompanyPage() {
         )}
       </section>
 
-      {/* Formulário de departamento (criar/editar) */}
-      {form && (
-        <section className="flex flex-col gap-3 rounded-2xl border border-gray-200/70 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">
-              {form.id ? "Editar departamento" : "Novo departamento"}
-            </h2>
-            <button
-              onClick={() => setForm(null)}
-              className="text-gray-400 transition hover:text-gray-700"
-              aria-label="Fechar formulário"
-            >
-              <X size={18} />
-            </button>
-          </div>
+      {/* Formulário de departamento (criar/editar) — modal centralizado */}
+      <Dialog open={!!form} onOpenChange={(o) => !o && !saving && setForm(null)}>
+        <DialogContent className="max-w-lg bg-white">
+          <DialogHeader>
+            <DialogTitle>
+              {form?.id ? "Editar departamento" : "Novo departamento"}
+            </DialogTitle>
+          </DialogHeader>
+          {form && (
+            <div className="flex flex-col gap-3">
           <div className="grid gap-3 md:grid-cols-2">
             <input
               value={form.name}
@@ -402,8 +403,10 @@ export default function CompanyPage() {
               {saving ? "Salvando..." : form.id ? "Salvar" : "Criar"}
             </button>
           </div>
-        </section>
-      )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Departamentos */}
       <section className="flex flex-col gap-3">
