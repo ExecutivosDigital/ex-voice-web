@@ -29,6 +29,21 @@ function seekAudioTo(time: number) {
   window.dispatchEvent(new CustomEvent("exvoice:seek", { detail: { time } }));
 }
 
+/** Agrupa palavras em frases (quebra em . ! ? …) — para o highlight de frase no hover. */
+function groupWordsIntoSentences(words: SpeechWord[]): SpeechWord[][] {
+  const sentences: SpeechWord[][] = [];
+  let current: SpeechWord[] = [];
+  for (const word of words) {
+    current.push(word);
+    if (/[.!?…]$/.test(word.text.trim())) {
+      sentences.push(current);
+      current = [];
+    }
+  }
+  if (current.length > 0) sentences.push(current);
+  return sentences;
+}
+
 function formatTimestamp(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "";
   const m = Math.floor(seconds / 60);
@@ -471,32 +486,42 @@ function SpeechGroup({
                 si > 0 && "mt-3",
               )}
             >
-              {seg.words && seg.words.length > 0 && !query.trim() ? (
-                // Trilha IA: palavras clicáveis → player pula para o instante
-                seg.words.map((word, wi) => (
-                  <span
-                    key={wi}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => seekAudioTo(word.start)}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && seekAudioTo(word.start)
-                    }
-                    title={`Ouvir em ${formatTimestamp(word.start)}`}
-                    className={cn(
-                      "cursor-pointer rounded-sm transition-colors",
-                      isProfessional
-                        ? "hover:bg-white/25"
-                        : "hover:bg-gray-900/10",
-                    )}
-                  >
-                    {word.text}
-                    {wi < seg.words!.length - 1 ? " " : ""}
-                  </span>
-                ))
-              ) : (
-                highlight(seg.text, query)
-              )}
+              {seg.words && seg.words.length > 0 && !query.trim()
+                ? // Trilha IA: agrupa em frases — hover destaca a frase inteira;
+                  // clicar numa palavra pula o áudio para o instante dela.
+                  groupWordsIntoSentences(seg.words).map((sentence, sidx) => (
+                    <span
+                      key={sidx}
+                      className={cn(
+                        "group/sent rounded-sm transition-colors",
+                        isProfessional
+                          ? "hover:bg-white/15"
+                          : "hover:bg-gray-900/5",
+                      )}
+                    >
+                      {sentence.map((word, wi) => (
+                        <span
+                          key={wi}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => seekAudioTo(word.start)}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && seekAudioTo(word.start)
+                          }
+                          title={`Ouvir em ${formatTimestamp(word.start)}`}
+                          className={cn(
+                            "cursor-pointer rounded-sm transition-colors",
+                            isProfessional
+                              ? "hover:bg-white/30"
+                              : "hover:bg-gray-900/15",
+                          )}
+                        >
+                          {word.text}{" "}
+                        </span>
+                      ))}
+                    </span>
+                  ))
+                : highlight(seg.text, query)}
             </p>
           ))}
 
