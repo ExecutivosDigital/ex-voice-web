@@ -193,6 +193,9 @@ export function DetailHeader({
         {!isOwner && recording.user && (
           <InfoChip icon={UserRound} label={`por ${recording.user.name}`} />
         )}
+        {typeof recording.transcriptionConfidence === "number" && (
+          <ConfidenceChip value={recording.transcriptionConfidence} />
+        )}
       </div>
 
       {canShare && (
@@ -223,6 +226,28 @@ export function DetailHeader({
         </div>
       )}
     </motion.div>
+  );
+}
+
+/** Chip do score de confiança da transcrição (verde/amber/vermelho). */
+function ConfidenceChip({ value }: { value: number }) {
+  const pct = Math.round(value * 100);
+  const tone =
+    pct >= 85
+      ? "bg-emerald-50 text-emerald-700"
+      : pct >= 70
+        ? "bg-amber-50 text-amber-700"
+        : "bg-rose-50 text-rose-600";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium",
+        tone,
+      )}
+      title="Confiança média da transcrição estimada pelo modelo. Valores baixos podem indicar áudio ruim."
+    >
+      Confiança {pct}%
+    </span>
   );
 }
 

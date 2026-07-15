@@ -92,6 +92,8 @@ export interface RecordingDetailsProps {
   /** Fase 2.3 (corporativo): departamento e dono, quando a API os incluir. */
   department?: { id: string; name: string } | null;
   user?: { id: string; name: string } | null;
+  /** Score de confiança da transcrição (0..1) — motor Modal novo; null no acervo antigo. */
+  transcriptionConfidence?: number | null;
 }
 
 // Tipo para os Query Params de Gravações
