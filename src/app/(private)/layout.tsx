@@ -8,11 +8,13 @@ import { GeneralContextProvider } from "@/context/GeneralContext";
 import { ChatPageProvider } from "@/context/chatContext";
 import { ConfirmProvider } from "@/context/ConfirmContext";
 import { CorporateProvider } from "@/context/corporateContext";
+import { useLayoutPrefs } from "@/store";
 import { cn } from "@/utils/cn";
 import { motion } from "framer-motion";
 import Lenis from "lenis";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { DesktopSidebar } from "./_components/desktop-sidebar";
 import { FloatingTrialWidget } from "./_components/floating-trial-widget";
 import { MinimalHeader } from "./_components/minimal-header";
 import { MobileBottomNav } from "./_components/mobile-bottom-nav";
@@ -23,6 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { navMode, sidebarCollapsed } = useLayoutPrefs();
+  const sidebarMode = navMode === "sidebar";
 
   useEffect(() => {
     // Não inicializa Lenis nas páginas de chat
@@ -97,8 +101,14 @@ export default function RootLayout({
         <GeneralContextProvider>
           <ChatPageProvider>
             <Sidebar />
-            <div className="relative min-h-screen w-full bg-[radial-gradient(1200px_600px_at_10%_-10%,rgba(156,163,175,0.18),transparent),radial-gradient(900px_500px_at_110%_10%,rgba(99,102,241,0.08),transparent)]">
-              <MinimalHeader />
+            {sidebarMode && <DesktopSidebar />}
+            <div
+              className={cn(
+                "relative min-h-screen w-full bg-[radial-gradient(1200px_600px_at_10%_-10%,rgba(156,163,175,0.18),transparent),radial-gradient(900px_500px_at_110%_10%,rgba(99,102,241,0.08),transparent)] transition-[padding] duration-200",
+                sidebarMode && (sidebarCollapsed ? "md:pl-[72px]" : "md:pl-60"),
+              )}
+            >
+              <MinimalHeader hideNav={sidebarMode} />
               <motion.main
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}

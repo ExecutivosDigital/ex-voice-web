@@ -9,13 +9,14 @@ import {
 } from "@/components/ui/blocks/dropdown-menu";
 import { useSession } from "@/context/auth";
 import { useCorporate } from "@/context/corporateContext";
-import { useSidebar } from "@/store";
+import { useLayoutPrefs, useSidebar } from "@/store";
 import { cn } from "@/utils/cn";
 import {
   ArrowUpRight,
   LogOut,
   Menu,
   MessageCircle,
+  PanelLeft,
   Sparkles,
   UserRound,
 } from "lucide-react";
@@ -31,10 +32,11 @@ const NAV_ITEMS: { label: string; href: string }[] = [
   { label: "Agenda", href: "/agenda" },
 ];
 
-export function MinimalHeader() {
+export function MinimalHeader({ hideNav = false }: { hideNav?: boolean }) {
   const { profile, clearSession } = useSession();
   const { isController } = useCorporate();
   const { setMobileMenu } = useSidebar();
+  const { setNavMode } = useLayoutPrefs();
   const router = useRouter();
   const pathname = usePathname();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -94,7 +96,12 @@ export function MinimalHeader() {
             </button>
           </div>
 
-          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200/70 bg-white/70 p-1 backdrop-blur-md md:flex">
+          <nav
+            className={cn(
+              "absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200/70 bg-white/70 p-1 backdrop-blur-md",
+              hideNav ? "md:hidden" : "md:flex",
+            )}
+          >
             {navItems.map((item) => {
               const active = isActive(item.href);
               return (
@@ -132,6 +139,15 @@ export function MinimalHeader() {
           </nav>
 
           <div className="flex items-center gap-1.5 md:gap-2">
+            {!hideNav && (
+              <button
+                onClick={() => setNavMode("sidebar")}
+                title="Usar barra lateral"
+                className="hidden h-9 w-9 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 md:flex"
+              >
+                <PanelLeft size={17} />
+              </button>
+            )}
             <MinimalNotificationBell />
 
             <DropdownMenu>
