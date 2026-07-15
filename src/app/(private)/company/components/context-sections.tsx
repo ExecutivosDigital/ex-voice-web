@@ -124,6 +124,7 @@ export function GlossarySection({
   const [loading, setLoading] = useState(true);
   const [term, setTerm] = useState("");
   const [meaning, setMeaning] = useState("");
+  const [aliases, setAliases] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState("");
@@ -164,6 +165,7 @@ export function GlossarySection({
       {
         term: term.trim(),
         meaning: meaning.trim(),
+        aliases: aliases.trim() || undefined,
         departmentId: departmentId || undefined,
       },
       true,
@@ -173,6 +175,7 @@ export function GlossarySection({
       toast.success("Termo adicionado");
       setTerm("");
       setMeaning("");
+      setAliases("");
       load();
     } else {
       toast.error(
@@ -210,7 +213,8 @@ export function GlossarySection({
         departamento somam-se aos da empresa.
       </p>
 
-      <div className="flex flex-col gap-2 rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm md:flex-row md:items-center">
+      <div className="flex flex-col gap-2 rounded-2xl border border-gray-200/70 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
         <input
           value={term}
           onChange={(e) => setTerm(e.target.value)}
@@ -249,6 +253,13 @@ export function GlossarySection({
         >
           <Plus size={15} /> Adicionar
         </button>
+        </div>
+        <input
+          value={aliases}
+          onChange={(e) => setAliases(e.target.value)}
+          placeholder="Corrigir automaticamente para o termo (opcional, separe por vírgula) — ex.: Integra, integra"
+          className="h-9 rounded-xl border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none focus:border-gray-400"
+        />
       </div>
 
       {entries.length > 8 && (
