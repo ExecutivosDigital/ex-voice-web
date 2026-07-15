@@ -19,6 +19,8 @@ export type ComponentType =
   | "actions_card"
   | "decisions_card"
   | "commitments_card"
+  | "entities_card"
+  | "sentiment_card"
   | "prescription_card"
   | "exams_card"
   | "referrals_card"

@@ -16,6 +16,8 @@ export { MedicationsCard } from "./MedicationsCard";
 export { NextAppointmentsCard } from "./NextAppointmentsCard";
 export { ObservationsCard } from "./ObservationsCard";
 export { ActionItemsCard } from "./ActionItemsCard";
+export { EntitiesCard } from "./EntitiesCard";
+export { SentimentCard } from "./SentimentCard";
 export { OrientationsCard } from "./OrientationsCard";
 export { PrescriptionCard } from "./PrescriptionCard";
 export { ReferralsCard } from "./ReferralsCard";
