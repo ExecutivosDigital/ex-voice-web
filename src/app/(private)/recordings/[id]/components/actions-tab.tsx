@@ -4,8 +4,8 @@ import { RecordingDetailsProps } from "@/@types/general-client";
 import { RequestTranscription } from "@/components/ui/request-transcription";
 import { motion } from "framer-motion";
 import { AlertTriangle, ListChecks, Loader2 } from "lucide-react";
+import { ActionsView } from "./actions-view";
 import { Placeholder } from "./placeholder";
-import { MedicalRecord } from "@/app/(private)/clients/2/(selected-appointment)/[id]/components/medical-record";
 
 export function ActionsTab({
   recording,
@@ -52,7 +52,7 @@ export function ActionsTab({
     );
   }
 
-  if (!recording.specificSummary) {
+  if (!recording.structuredSummary && !recording.specificSummary) {
     return (
       <Placeholder
         icon={<ListChecks size={22} />}
@@ -67,9 +67,11 @@ export function ActionsTab({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="rounded-3xl border border-gray-200/70 bg-white/80 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] backdrop-blur-sm md:p-7"
     >
-      <MedicalRecord />
+      <ActionsView
+        structuredSummary={recording.structuredSummary}
+        specificSummary={recording.specificSummary}
+      />
     </motion.section>
   );
 }
