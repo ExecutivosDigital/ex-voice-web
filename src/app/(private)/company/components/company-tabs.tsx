@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/utils/cn";
-import { Bot, Building2, Receipt, UsersRound } from "lucide-react";
+import { Bot, Building2, Map, Receipt, UsersRound } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 /** Fase 2.6 — navegação interna da área Empresa (só Controlador). */
@@ -9,6 +9,7 @@ import { usePathname, useRouter } from "next/navigation";
 const TABS = [
   { label: "Estrutura", href: "/company", icon: Building2 },
   { label: "IAs", href: "/company/ai", icon: Bot },
+  { label: "Mapas", href: "/company/maps", icon: Map },
   { label: "Usuários", href: "/company/users", icon: UsersRound },
   { label: "Faturas", href: "/company/billing", icon: Receipt },
 ];
