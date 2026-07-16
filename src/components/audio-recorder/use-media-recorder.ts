@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AUDIO_CHANNEL } from "./audio-channels";
 
 type MediaType = "audio" | "video";
 
@@ -224,21 +225,49 @@ export function useMediaRecorder(options: RecorderOptions) {
         console.warn("Microfone não disponível:", micError);
       }
 
-      // Mixar áudios
+      // --- Áudio em 2 canais: locutor local à esquerda, remotos à direita ---
+      //
+      // Antes os dois streams eram somados no mesmo destino (`connect(destination)`
+      // nos dois), virando um mono onde ninguém mais sabia quem era quem. Isso
+      // destruía, na origem, a única informação de locutor que chega perfeita:
+      // o microfone É o usuário, o áudio da aba/tela É todo mundo menos ele.
+      //
+      // O motor então gastava a diarização inteira tentando reconstruir por
+      // acústica o que nós tínhamos acabado de jogar fora — e não conseguia:
+      // medido em 16/07 contra referência anotada, o pipeline reportava ZERO
+      // sobreposição em 28.9s de fala cruzada real (DER 7.5%, sendo 93% do erro
+      // "não vi que alguém falou"). Ver ex/BACKLOG-MINERACAO-REUNIAO.md.
+      //
+      // Mantendo os canais separados, o locutor local vira exato (é o canal),
+      // fala simultânea passa a ser representável de graça, e o Whisper
+      // transcreve cada voz limpa (hoje ele engole os "uhum" do interlocutor
+      // porque só existe um fluxo).
+      //
+      // Limites conhecidos: só vale quando há áudio de aba/tela — em captura de
+      // JANELA o Chrome não entrega áudio e tudo vem pelo mic (canal direito
+      // fica mudo, comportamento degrada para o de antes). Se o usuário estiver
+      // no alto-falante em vez de fone, a voz remota volta pelo mic e vaza para
+      // o canal esquerdo; o canal dominante ainda indica o locutor, mas suja.
       const audioContext = new AudioContext();
       audioContextRef.current = audioContext;
       const destination = audioContext.createMediaStreamDestination();
+      destination.channelCount = 2;
+
+      // Cada entrada do merger vira UM canal do output (o merger já rebaixa
+      // entrada estéreo para mono internamente — que é o que queremos).
+      const merger = audioContext.createChannelMerger(2);
+      merger.connect(destination);
 
       const tabAudioSource =
         audioContext.createMediaStreamSource(displayStream);
-      tabAudioSource.connect(destination);
+      tabAudioSource.connect(merger, 0, AUDIO_CHANNEL.REMOTE);
 
       if (micStream) {
         const micSource = audioContext.createMediaStreamSource(micStream);
-        micSource.connect(destination);
+        micSource.connect(merger, 0, AUDIO_CHANNEL.LOCAL);
       }
 
-      // Stream final com vídeo e áudio mixado
+      // Stream final com vídeo + áudio de 2 canais
       const finalStream = new MediaStream([
         ...displayStream.getVideoTracks(),
         ...destination.stream.getAudioTracks(),
