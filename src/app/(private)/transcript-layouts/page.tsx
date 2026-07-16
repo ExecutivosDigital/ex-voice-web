@@ -2,6 +2,7 @@
 
 import { cn } from "@/utils/cn";
 import { useState } from "react";
+import { LayoutAgenda } from "./components/layout-agenda";
 import { LayoutAudacity } from "./components/layout-audacity";
 import { LayoutBadge } from "./components/layout-badge";
 import { LayoutColumns } from "./components/layout-columns";
@@ -27,7 +28,7 @@ import { waveform } from "./mock/waveform";
  * recordings/[id] e esta pasta sai.
  */
 
-type LayoutKey = "timeline" | "badge" | "columns" | "audacity";
+type LayoutKey = "timeline" | "badge" | "columns" | "audacity" | "agenda";
 
 const LAYOUTS: {
   key: LayoutKey;
@@ -56,6 +57,16 @@ const LAYOUTS: {
     aposta: "Mostra a simultaneidade no espaço, não em texto.",
     aFavor: "O único que transmite a intensidade do crosstalk.",
     contra: "Quebra a leitura linear; sofre com 3+ locutores e no celular.",
+  },
+  {
+    key: "agenda",
+    nome: "E · Agenda (ideia do João)",
+    aposta:
+      "O C com eixo do tempo: quem corta no meio aparece na ALTURA do corte, como dois compromissos no mesmo horário.",
+    aFavor:
+      "Metáfora familiar — 'a galera já vai estar mais acostumada por questão de agenda'. Resolve a crítica ao C: dá para ver quando a outra fala começou.",
+    contra:
+      "O próprio João antecipou: com 4-5 pessoas juntas as colunas apertam demais. E blocos curtos precisam de altura mínima (a altura mente onde a posição não mente).",
   },
   {
     key: "audacity",
@@ -206,6 +217,7 @@ export default function TranscriptLayoutsPage() {
         {layout === "timeline" && <LayoutTimeline segmentos={segmentos} />}
         {layout === "badge" && <LayoutBadge segmentos={segmentos} />}
         {layout === "columns" && <LayoutColumns segmentos={segmentos} />}
+        {layout === "agenda" && <LayoutAgenda segmentos={segmentos} />}
         {layout === "audacity" && (
           <LayoutAudacity
             segmentos={segmentos}
