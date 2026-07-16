@@ -4,7 +4,6 @@ import { cn } from "@/utils/cn";
 import { Minus, Plus } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import type { PreviewSegment } from "../mock/conversa-real";
-import { waveform } from "../mock/waveform";
 import { calcularMetricas, corDoLocutor, ehBackchannel, tempo } from "../lib/overlap";
 import { empilhar, faixasDeOverlap } from "../lib/stacking";
 
@@ -35,7 +34,13 @@ import { empilhar, faixasDeOverlap } from "../lib/stacking";
 const ZOOMS = [1, 2, 4, 8];
 const ALTURA_LINHA = 26;
 
-export function LayoutAudacity({ segmentos }: { segmentos: PreviewSegment[] }) {
+export function LayoutAudacity({
+  segmentos,
+  waveform,
+}: {
+  segmentos: PreviewSegment[];
+  waveform: { local: number[]; remote: number[] };
+}) {
   const m = calcularMetricas(segmentos);
   const [zoom, setZoom] = useState(1);
   const [selecionado, setSelecionado] = useState<PreviewSegment | null>(null);

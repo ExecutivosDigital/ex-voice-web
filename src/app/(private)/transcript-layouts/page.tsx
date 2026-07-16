@@ -7,7 +7,9 @@ import { LayoutBadge } from "./components/layout-badge";
 import { LayoutColumns } from "./components/layout-columns";
 import { LayoutTimeline } from "./components/layout-timeline";
 import { calcularMetricas } from "./lib/overlap";
-import { conversaReal } from "./mock/conversa-real";
+import { conversaReal, type PreviewSegment } from "./mock/conversa-real";
+import { conversaTeste3, waveformTeste3 } from "./mock/conversa-teste3";
+import { waveform } from "./mock/waveform";
 
 /**
  * Preview para DECIDIR o layout da transcrição com fala simultânea.
@@ -67,9 +69,40 @@ const LAYOUTS: {
   },
 ];
 
+/**
+ * Duas conversas reais, de propósito nos dois extremos:
+ * a de 15:xx foi crosstalk proposital (50% de sobreposição em 99s) e a de 17:56
+ * é uma reunião normal, calma. Um layout que só funciona num dos dois não serve.
+ */
+const CONVERSAS: {
+  key: string;
+  nome: string;
+  detalhe: string;
+  segmentos: PreviewSegment[];
+  waveform: { local: number[]; remote: number[] };
+}[] = [
+  {
+    key: "teste3",
+    nome: "Reunião normal",
+    detalhe: "16/07 17:56 · Victor + Gabriel + João · 10m43s",
+    segmentos: conversaTeste3,
+    waveform: waveformTeste3,
+  },
+  {
+    key: "crosstalk",
+    nome: "Crosstalk proposital",
+    detalhe: "16/07 15:xx · 3 pessoas se atropelando de propósito · 1m39s",
+    segmentos: conversaReal,
+    waveform,
+  },
+];
+
 export default function TranscriptLayoutsPage() {
-  const [layout, setLayout] = useState<LayoutKey>("timeline");
-  const m = calcularMetricas(conversaReal);
+  const [layout, setLayout] = useState<LayoutKey>("audacity");
+  const [conversaKey, setConversaKey] = useState(CONVERSAS[0].key);
+  const conversa = CONVERSAS.find((c) => c.key === conversaKey)!;
+  const segmentos = conversa.segmentos;
+  const m = calcularMetricas(segmentos);
   const atual = LAYOUTS.find((l) => l.key === layout)!;
 
   return (
@@ -79,13 +112,39 @@ export default function TranscriptLayoutsPage() {
           Como mostrar fala simultânea?
         </h1>
         <p className="max-w-3xl text-sm text-gray-600">
-          Conversa real de 16/07 — a primeira gravação com o microfone e o áudio da
-          chamada em canais separados. Antes disso o motor reportava{" "}
-          <strong>zero</strong> sobreposição, sempre; nesta gravação ele reporta{" "}
-          <strong>{m.overlapSegundos.toFixed(0)}s</strong>. É esse dado novo que o
-          layout de hoje não sabe exibir.
+          Conversas reais de 16/07 — as primeiras gravações com o microfone e o áudio
+          da chamada em canais separados. Antes disso o motor reportava{" "}
+          <strong>zero</strong> sobreposição, sempre. É esse dado novo que o layout
+          de hoje não sabe exibir.
+        </p>
+        <p className="max-w-3xl rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <strong>Os nomes dos locutores não são automáticos.</strong> Onde aparece
+          &ldquo;Locutor 0/1/2&rdquo; é o que o motor entrega hoje. Na primeira
+          conversa eu troquei por nomes reais à mão só para ler melhor — e errei
+          (chamei de &ldquo;Bruno&rdquo; quem era o Gabriel). Nomear o locutor local
+          automaticamente pelo dono da conta é o próximo item da fila; nomear os
+          remotos, um depois.
         </p>
       </header>
+
+      {/* Qual conversa */}
+      <div className="flex flex-wrap gap-2">
+        {CONVERSAS.map((c) => (
+          <button
+            key={c.key}
+            onClick={() => setConversaKey(c.key)}
+            className={cn(
+              "rounded-xl border px-3 py-2 text-left transition",
+              conversaKey === c.key
+                ? "border-gray-900 bg-white"
+                : "border-gray-200 bg-white/50 hover:border-gray-300",
+            )}
+          >
+            <div className="text-sm font-medium text-gray-800">{c.nome}</div>
+            <div className="text-[10px] text-gray-400">{c.detalhe}</div>
+          </button>
+        ))}
+      </div>
 
       {/* Números da conversa */}
       <div className="flex flex-wrap gap-2">
@@ -136,10 +195,12 @@ export default function TranscriptLayoutsPage() {
 
       {/* O layout */}
       <div className="rounded-3xl border border-gray-200 bg-white p-4 md:p-6">
-        {layout === "timeline" && <LayoutTimeline segmentos={conversaReal} />}
-        {layout === "badge" && <LayoutBadge segmentos={conversaReal} />}
-        {layout === "columns" && <LayoutColumns segmentos={conversaReal} />}
-        {layout === "audacity" && <LayoutAudacity segmentos={conversaReal} />}
+        {layout === "timeline" && <LayoutTimeline segmentos={segmentos} />}
+        {layout === "badge" && <LayoutBadge segmentos={segmentos} />}
+        {layout === "columns" && <LayoutColumns segmentos={segmentos} />}
+        {layout === "audacity" && (
+          <LayoutAudacity segmentos={segmentos} waveform={conversa.waveform} />
+        )}
       </div>
 
       <p className="text-xs text-gray-400">
