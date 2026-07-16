@@ -8,6 +8,7 @@ import {
   Copy,
   FileText,
   Loader2,
+  AudioWaveform,
   Mic2,
   Search,
   Settings2,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EditSpeakersModal } from "./edit-speakers-modal";
+import { TranscriptionTimeline } from "./transcription-timeline";
 import { Placeholder } from "./placeholder";
 import {
   PROFESSIONAL_STYLE,
@@ -79,6 +81,12 @@ export function TranscriptionTab({
   recording: RecordingDetailsProps;
 }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
+  /**
+   * Visão da aba. Padrão é a lista — decisão do Victor em 16/07: a timeline é
+   * poderosa mas "dependendo do usuário, vai parecer muito complicado de
+   * entender". Fica atrás de um botão, como o Gabriel sugeriu.
+   */
+  const [modo, setModo] = useState<"lista" | "timeline">("lista");
   const [query, setQuery] = useState("");
   const [activeSpeakerId, setActiveSpeakerId] = useState<string | null>(null);
 
@@ -208,6 +216,31 @@ export function TranscriptionTab({
               </div>
             </div>
 
+            {/*
+              Timeline: visão avançada, escolhida na reunião de 16/07 entre 4
+              propostas. Fica atrás de um botão, e a visão padrão continua sendo
+              a lista — decisão do Victor, e a preocupação dele era justa:
+              "dependendo do usuário, vai parecer muito complicado de entender".
+              O botão aparece SEMPRE (não só quando há sobreposição): botão que
+              some ensina o usuário a não procurar por ele, e mesmo sem overlap
+              a timeline serve para navegar clicando no áudio.
+            */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setModo((m) => (m === "lista" ? "timeline" : "lista"))}
+                aria-pressed={modo === "timeline"}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition",
+                  modo === "timeline"
+                    ? "border-gray-900 bg-gray-900 text-white"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50",
+                )}
+              >
+                <AudioWaveform size={13} />
+                {modo === "timeline" ? "Ver lista" : "Timeline"}
+              </button>
+
             {hasSpeakers && (
               <button
                 type="button"
@@ -218,10 +251,11 @@ export function TranscriptionTab({
                 <span className="hidden sm:inline">Editar locutores</span>
               </button>
             )}
+            </div>
           </div>
 
-          {/* Search */}
-          {hasSpeeches && (
+          {/* Search — só na lista: na timeline não há o que filtrar por texto */}
+          {hasSpeeches && modo === "lista" && (
             <div className="relative">
               <Search
                 size={15}
@@ -321,7 +355,12 @@ export function TranscriptionTab({
           data-lenis-prevent
           onWheel={(e) => e.stopPropagation()}
         >
-          {hasSpeeches ? (
+          {modo === "timeline" && hasSpeeches ? (
+            <TranscriptionTimeline
+              recording={recording}
+              speeches={recording.speeches}
+            />
+          ) : hasSpeeches ? (
             <AnimatePresence mode="popLayout">
               {grouped.length === 0 ? (
                 <motion.div

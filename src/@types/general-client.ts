@@ -94,6 +94,12 @@ export interface RecordingDetailsProps {
   user?: { id: string; name: string } | null;
   /** Score de confiança da transcrição (0..1) — motor Modal novo; null no acervo antigo. */
   transcriptionConfidence?: number | null;
+  /**
+   * ~600 picos de amplitude (0..1) para desenhar a timeline. Null/ausente no
+   * acervo antigo e quando o cálculo falhou — a timeline funciona sem a figura
+   * (blocos + marcas de sobreposição + áudio), só fica menos bonita.
+   */
+  waveform?: number[] | null;
 }
 
 // Tipo para os Query Params de Gravações
