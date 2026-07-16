@@ -2,6 +2,7 @@
 
 import { cn } from "@/utils/cn";
 import { useState } from "react";
+import { LayoutAudacity } from "./components/layout-audacity";
 import { LayoutBadge } from "./components/layout-badge";
 import { LayoutColumns } from "./components/layout-columns";
 import { LayoutTimeline } from "./components/layout-timeline";
@@ -24,7 +25,7 @@ import { conversaReal } from "./mock/conversa-real";
  * recordings/[id] e esta pasta sai.
  */
 
-type LayoutKey = "timeline" | "badge" | "columns";
+type LayoutKey = "timeline" | "badge" | "columns" | "audacity";
 
 const LAYOUTS: {
   key: LayoutKey;
@@ -53,6 +54,16 @@ const LAYOUTS: {
     aposta: "Mostra a simultaneidade no espaço, não em texto.",
     aFavor: "O único que transmite a intensidade do crosstalk.",
     contra: "Quebra a leitura linear; sofre com 3+ locutores e no celular.",
+  },
+  {
+    key: "audacity",
+    nome: "D · Timeline (tipo Audacity)",
+    aposta:
+      "Separa os dois trabalhos: a timeline serve para VER e NAVEGAR; a lista embaixo, para LER.",
+    aFavor:
+      "Eixo X é o tempo, então sobreposição é literalmente visível — e a altura das linhas mostra o caos.",
+    contra:
+      "Duas áreas para olhar; a timeline sozinha não se lê (caixa é do tamanho do tempo, não do texto).",
   },
 ];
 
@@ -128,12 +139,13 @@ export default function TranscriptLayoutsPage() {
         {layout === "timeline" && <LayoutTimeline segmentos={conversaReal} />}
         {layout === "badge" && <LayoutBadge segmentos={conversaReal} />}
         {layout === "columns" && <LayoutColumns segmentos={conversaReal} />}
+        {layout === "audacity" && <LayoutAudacity segmentos={conversaReal} />}
       </div>
 
       <p className="text-xs text-gray-400">
         Interjeição = fala curta que não toma a palavra (&ldquo;Isso.&rdquo;,
-        &ldquo;uhum&rdquo;). Os 3 layouts as tratam como chip discreto — o que muda
-        entre eles é como sinalizam turnos inteiros sobrepostos.
+        &ldquo;uhum&rdquo;). Todos os layouts as tratam como chip discreto — o que
+        muda entre eles é como sinalizam turnos inteiros sobrepostos.
       </p>
     </div>
   );
