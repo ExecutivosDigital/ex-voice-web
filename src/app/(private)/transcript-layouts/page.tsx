@@ -80,6 +80,12 @@ const CONVERSAS: {
   detalhe: string;
   segmentos: PreviewSegment[];
   waveform: { local: number[]; remote: number[] };
+  /**
+   * Áudio direto do R2 (bucket público de dev). O arquivo é o .webm da gravação
+   * — tem vídeo junto e pesa ~111MB, mas o R2 aceita range request, então o
+   * browser busca só o pedaço que precisa em vez de baixar tudo.
+   */
+  audioUrl?: string;
 }[] = [
   {
     key: "teste3",
@@ -87,6 +93,7 @@ const CONVERSAS: {
     detalhe: "16/07 17:56 · Victor + Gabriel + João · 10m43s",
     segmentos: conversaTeste3,
     waveform: waveformTeste3,
+    audioUrl: "https://pub-4ad1e999d8fc4938a4fc6ff4368ea154.r2.dev/9b8ae0e4-def5-4036-8c40-ac8b012fb1c4.webm",
   },
   {
     key: "crosstalk",
@@ -94,6 +101,7 @@ const CONVERSAS: {
     detalhe: "16/07 15:xx · 3 pessoas se atropelando de propósito · 1m39s",
     segmentos: conversaReal,
     waveform,
+    audioUrl: "https://pub-4ad1e999d8fc4938a4fc6ff4368ea154.r2.dev/fa233a2a-070d-4b8d-97c8-a05f2b9991a7.webm",
   },
 ];
 
@@ -199,7 +207,11 @@ export default function TranscriptLayoutsPage() {
         {layout === "badge" && <LayoutBadge segmentos={segmentos} />}
         {layout === "columns" && <LayoutColumns segmentos={segmentos} />}
         {layout === "audacity" && (
-          <LayoutAudacity segmentos={segmentos} waveform={conversa.waveform} />
+          <LayoutAudacity
+            segmentos={segmentos}
+            waveform={conversa.waveform}
+            audioUrl={conversa.audioUrl}
+          />
         )}
       </div>
 
