@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/blocks/select";
+
 import {
   Dialog,
   DialogContent,
@@ -154,21 +156,17 @@ export function ShareRecordingModal({
             {candidates.length > 0 ? (
               <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
                 <div className="relative flex-1">
-                  <select
+                  <Select
                     value={selectedId}
-                    onChange={(e) => setSelectedId(e.target.value)}
-                    className="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white pr-8 pl-3 text-sm text-gray-800 outline-none focus:border-gray-400"
-                  >
-                    <option value="">Compartilhar com...</option>
-                    {candidates.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.email})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={15}
-                    className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
+                    onChange={setSelectedId}
+                    placeholder="Compartilhar com..."
+                    options={[
+                      { value: "", label: "Compartilhar com..." },
+                      ...candidates.map((c) => ({
+                        value: c.id,
+                        label: `${c.name} (${c.email})`,
+                      })),
+                    ]}
                   />
                 </div>
                 <button

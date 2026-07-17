@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/blocks/select";
+
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DynamicComponentRenderer } from "./components/core/DynamicComponentRenderer";
@@ -68,18 +70,12 @@ export default function AIComponentsPreviewPage() {
         >
           Selecione um exemplo de transcrição para testar:
         </label>
-        <select
-          id="example-selector"
+        <Select
           value={selectedExample}
-          onChange={(e) => setSelectedExample(e.target.value as ExampleKey)}
-          className="w-full max-w-md rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-        >
-          {availableExamples.map((key) => (
-            <option key={key} value={key}>
-              {key}
-            </option>
-          ))}
-        </select>
+          onChange={(key) => setSelectedExample(key as ExampleKey)}
+          className="max-w-md"
+          options={availableExamples.map((key) => ({ value: key, label: key }))}
+        />
         <p className="text-xs text-gray-500">
           Use este seletor para testar diferentes modelos e estruturas de dados
           que a IA pode gerar, garantindo que os componentes se adequem a

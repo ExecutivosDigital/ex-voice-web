@@ -1,5 +1,8 @@
 "use client";
 
+import { DatePicker } from "@/components/ui/blocks/date-picker";
+import { TimeSelect } from "@/components/ui/blocks/time-select";
+
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
 import { MapPin, Monitor, Video, X } from "lucide-react";
@@ -142,31 +145,21 @@ export function MeetingFormModal({
 
               <div className="grid grid-cols-3 gap-3">
                 <Field label="Data">
-                  <input
-                    type="date"
+                  <DatePicker
                     value={form.date}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                    onChange={(date) => setForm({ ...form, date })}
                   />
                 </Field>
                 <Field label="Início">
-                  <input
-                    type="time"
+                  <TimeSelect
                     value={form.startTime}
-                    onChange={(e) =>
-                      setForm({ ...form, startTime: e.target.value })
-                    }
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                    onChange={(startTime) => setForm({ ...form, startTime })}
                   />
                 </Field>
                 <Field label="Fim">
-                  <input
-                    type="time"
+                  <TimeSelect
                     value={form.endTime}
-                    onChange={(e) =>
-                      setForm({ ...form, endTime: e.target.value })
-                    }
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                    onChange={(endTime) => setForm({ ...form, endTime })}
                   />
                 </Field>
               </div>

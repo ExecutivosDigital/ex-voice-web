@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/blocks/select";
+
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
 import { useApiContext } from "@/context/ApiContext";
 import { useCorporate } from "@/context/corporateContext";
@@ -172,27 +174,18 @@ export default function TeamRecordingsPage() {
           />
         </div>
         {departments.length > 0 && (
-          <div className="relative">
-            <select
-              value={departmentId}
-              onChange={(e) => {
-                setPage(1);
-                setDepartmentId(e.target.value);
-              }}
-              className="h-12 appearance-none rounded-full border border-gray-200 bg-white/70 pr-9 pl-4 text-sm text-gray-800 shadow-sm outline-none focus:border-gray-400"
-            >
-              <option value="">Todos os departamentos</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={15}
-              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-            />
-          </div>
+          <Select
+            value={departmentId}
+            onChange={(id) => {
+              setPage(1);
+              setDepartmentId(id);
+            }}
+            className="h-12 w-auto min-w-56 rounded-full bg-white/70 shadow-sm"
+            options={[
+              { value: "", label: "Todos os departamentos" },
+              ...departments.map((d) => ({ value: d.id, label: d.name })),
+            ]}
+          />
         )}
       </section>
 
