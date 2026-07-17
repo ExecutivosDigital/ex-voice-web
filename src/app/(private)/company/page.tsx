@@ -6,14 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/blocks/dialog";
+import { Select } from "@/components/ui/blocks/select";
 import { useApiContext } from "@/context/ApiContext";
 import { useConfirm } from "@/context/ConfirmContext";
 import { useCorporate } from "@/context/corporateContext";
 import { translateError } from "@/utils/translate-error";
-import { cn } from "@/utils/cn";
 import {
   Building2,
-  ChevronDown,
   Landmark,
   Pencil,
   Plus,
@@ -33,10 +32,17 @@ import {
   CompanyUser,
   DepartmentMembersModal,
 } from "./components/manage-people-modals";
+import { ActionButton, Section } from "./components/ui";
 
 /**
  * Fase 2.1 — Área "Empresa" (só Controlador): CRUD de departamentos e filiais.
  * Endpoints da Fase 1 (/corporate/*). Ver ex/FASE-2.md.
+ *
+ * Redesign de 17/07 a partir dos pontos do Victor:
+ *  - cada ação vive DENTRO da sua seção (o "Novo departamento" morava no topo
+ *    da página, com o contexto da empresa e as filiais entre ele e a seção);
+ *  - Departamentos ANTES de Filiais — o principal na frente do opcional;
+ *  - dois estilos de botão para a área inteira (ver components/ui.tsx).
  */
 
 interface Branch {
@@ -242,21 +248,13 @@ export default function CompanyPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 md:text-3xl">
-            Empresa
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Estrutura da sua empresa: filiais, departamentos e suas IAs.
-          </p>
-        </div>
-        <button
-          onClick={() => setForm({ ...EMPTY_FORM })}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
-        >
-          <Plus size={16} /> Novo departamento
-        </button>
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-900 md:text-3xl">
+          Empresa
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Estrutura da sua empresa: departamentos, filiais e suas IAs.
+        </p>
       </div>
 
       <CompanyTabs />
@@ -264,163 +262,27 @@ export default function CompanyPage() {
       {/* Business Analytics da empresa (Fase 2.4) */}
       <BusinessContextCard />
 
-      {/* Filiais */}
-      <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-gray-500 uppercase">
-            <Landmark size={14} /> Filiais ({branches.length})
-          </h2>
-          <button
-            onClick={() => setShowBranchForm((v) => !v)}
-            className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
-          >
-            {showBranchForm ? <X size={13} /> : <Plus size={13} />}
-            {showBranchForm ? "Cancelar" : "Nova filial"}
-          </button>
-        </div>
-
-        {showBranchForm && (
-          <div className="flex gap-2">
-            <input
-              value={newBranchName}
-              onChange={(e) => setNewBranchName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCreateBranch()}
-              placeholder="Nome da filial (ex.: Curitiba)"
-              className="h-10 flex-1 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
-            />
-            <button
-              onClick={handleCreateBranch}
-              className="rounded-xl bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-800"
-            >
-              Criar
-            </button>
-          </div>
-        )}
-
-        {branches.length === 0 && !showBranchForm ? (
-          <p className="text-sm text-gray-400">
-            Nenhuma filial — para empresas de um site só, tudo pode viver
-            direto nos departamentos.
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {branches.map((branch) => (
-              <div
-                key={branch.id}
-                className="group flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-800"
-              >
-                <Landmark size={14} className="text-gray-400" />
-                <button
-                  onClick={() => setManagersBranchId(branch.id)}
-                  className="font-medium transition hover:text-gray-600"
-                  title="Gerir gestores da filial"
-                >
-                  {branch.name}
-                </button>
-                <span className="text-xs text-gray-400">
-                  {branch.departments.length} depto(s) ·{" "}
-                  {branch.managers.length} gestor(es)
-                </span>
-                <button
-                  onClick={() => handleDeleteBranch(branch)}
-                  className="ml-1 hidden text-gray-300 transition hover:text-red-500 group-hover:block"
-                  aria-label={`Excluir filial ${branch.name}`}
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Formulário de departamento (criar/editar) — modal centralizado */}
-      <Dialog open={!!form} onOpenChange={(o) => !o && !saving && setForm(null)}>
-        <DialogContent className="max-w-lg bg-white">
-          <DialogHeader>
-            <DialogTitle>
-              {form?.id ? "Editar departamento" : "Novo departamento"}
-            </DialogTitle>
-          </DialogHeader>
-          {form && (
-            <div className="flex flex-col gap-3">
-          <div className="grid gap-3 md:grid-cols-2">
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Nome (ex.: Comercial, RH, Financeiro)"
-              className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
-            />
-            <div className="relative">
-              <select
-                value={form.branchId}
-                onChange={(e) => setForm({ ...form, branchId: e.target.value })}
-                className="h-11 w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 pr-9 text-sm text-gray-800 outline-none focus:border-gray-400"
-              >
-                <option value="">Sem filial</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    Filial: {b.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={16}
-                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-              />
-            </div>
-          </div>
-          <input
-            value={form.details}
-            onChange={(e) => setForm({ ...form, details: e.target.value })}
-            placeholder="Detalhes (opcional — ex.: time de vendas externas)"
-            className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
-          />
-          <textarea
-            value={form.businessContext}
-            onChange={(e) =>
-              setForm({ ...form, businessContext: e.target.value })
-            }
-            placeholder="Contexto de negócio do departamento (opcional) — o que este time faz, como trabalha, o que vende. Este texto é usado pela IA nos resumos das reuniões do departamento."
-            rows={3}
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-gray-400"
-          />
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => setForm(null)}
-              className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSaveDepartment}
-              disabled={saving}
-              className={cn(
-                "rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]",
-                saving && "pointer-events-none opacity-60",
-              )}
-            >
-              {saving ? "Salvando..." : form.id ? "Salvar" : "Criar"}
-            </button>
-          </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Departamentos */}
-      <section className="flex flex-col gap-3">
-        <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-gray-500 uppercase">
-          <Building2 size={14} /> Departamentos ({departments.length})
-        </h2>
-
+      {/* Departamentos — o principal vem primeiro; a ação mora na seção */}
+      <Section
+        icon={Building2}
+        title="Departamentos"
+        count={departments.length}
+        action={
+          <ActionButton onClick={() => setForm({ ...EMPTY_FORM })}>
+            <Plus size={15} /> Novo departamento
+          </ActionButton>
+        }
+      >
         {departments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-12 text-center">
-            <p className="text-sm text-gray-500">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-12 text-center">
+            <p className="max-w-md text-sm text-gray-500">
               Nenhum departamento ainda. Sem departamentos, a empresa funciona
               com um contexto único — crie o primeiro quando quiser separar
               times (Comercial, RH, Financeiro...).
             </p>
+            <ActionButton onClick={() => setForm({ ...EMPTY_FORM })}>
+              <Plus size={15} /> Criar primeiro departamento
+            </ActionButton>
           </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
@@ -490,7 +352,71 @@ export default function CompanyPage() {
             ))}
           </div>
         )}
-      </section>
+      </Section>
+
+      {/* Filiais — opcionais, vêm depois do principal */}
+      <Section
+        icon={Landmark}
+        title="Filiais"
+        count={branches.length}
+        description="Opcional — para empresas com mais de um site. Um site só? Tudo pode viver direto nos departamentos."
+        action={
+          <ActionButton
+            variant="outline"
+            onClick={() => setShowBranchForm((v) => !v)}
+          >
+            {showBranchForm ? <X size={14} /> : <Plus size={14} />}
+            {showBranchForm ? "Cancelar" : "Nova filial"}
+          </ActionButton>
+        }
+      >
+        {showBranchForm && (
+          <div className="flex gap-2">
+            <input
+              value={newBranchName}
+              onChange={(e) => setNewBranchName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreateBranch()}
+              placeholder="Nome da filial (ex.: Curitiba)"
+              autoFocus
+              className="h-10 flex-1 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
+            />
+            <ActionButton onClick={handleCreateBranch}>Criar</ActionButton>
+          </div>
+        )}
+
+        {branches.length === 0 && !showBranchForm ? (
+          <p className="text-sm text-gray-400">Nenhuma filial cadastrada.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {branches.map((branch) => (
+              <div
+                key={branch.id}
+                className="group flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-800"
+              >
+                <Landmark size={14} className="text-gray-400" />
+                <button
+                  onClick={() => setManagersBranchId(branch.id)}
+                  className="font-medium transition hover:text-gray-600"
+                  title="Gerir gestores da filial"
+                >
+                  {branch.name}
+                </button>
+                <span className="text-xs text-gray-400">
+                  {branch.departments.length} depto(s) ·{" "}
+                  {branch.managers.length} gestor(es)
+                </span>
+                <button
+                  onClick={() => handleDeleteBranch(branch)}
+                  className="ml-1 hidden text-gray-300 transition hover:text-red-500 group-hover:block"
+                  aria-label={`Excluir filial ${branch.name}`}
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
 
       {/* Glossário (Fase 2.4) */}
       <GlossarySection
@@ -501,6 +427,63 @@ export default function CompanyPage() {
         IAs por departamento no fluxo de gravação chegam na próxima entrega
         (Fase 2.5).
       </p>
+
+      {/* Formulário de departamento (criar/editar) — modal centralizado */}
+      <Dialog open={!!form} onOpenChange={(o) => !o && !saving && setForm(null)}>
+        <DialogContent className="max-w-lg bg-white">
+          <DialogHeader>
+            <DialogTitle>
+              {form?.id ? "Editar departamento" : "Novo departamento"}
+            </DialogTitle>
+          </DialogHeader>
+          {form && (
+            <div className="flex flex-col gap-3">
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Nome (ex.: Comercial, RH, Financeiro)"
+                  className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
+                />
+                <Select
+                  value={form.branchId}
+                  onChange={(branchId) => setForm({ ...form, branchId })}
+                  options={[
+                    { value: "", label: "Sem filial" },
+                    ...branches.map((b) => ({
+                      value: b.id,
+                      label: `Filial: ${b.name}`,
+                    })),
+                  ]}
+                />
+              </div>
+              <input
+                value={form.details}
+                onChange={(e) => setForm({ ...form, details: e.target.value })}
+                placeholder="Detalhes (opcional — ex.: time de vendas externas)"
+                className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
+              />
+              <textarea
+                value={form.businessContext}
+                onChange={(e) =>
+                  setForm({ ...form, businessContext: e.target.value })
+                }
+                placeholder="Contexto de negócio do departamento (opcional) — o que este time faz, como trabalha, o que vende. Este texto é usado pela IA nos resumos das reuniões do departamento."
+                rows={3}
+                className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-gray-400"
+              />
+              <div className="flex justify-end gap-2">
+                <ActionButton variant="outline" onClick={() => setForm(null)}>
+                  Cancelar
+                </ActionButton>
+                <ActionButton onClick={handleSaveDepartment} disabled={saving}>
+                  {saving ? "Salvando..." : form.id ? "Salvar" : "Criar"}
+                </ActionButton>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <DepartmentMembersModal
         department={

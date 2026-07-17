@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/blocks/select";
+
 import {
   Dialog,
   DialogContent,
@@ -15,7 +17,6 @@ import { debounce } from "lodash";
 import { useConfirm } from "@/context/ConfirmContext";
 import { translateError } from "@/utils/translate-error";
 import {
-  ChevronDown,
   Crown,
   Eye,
   EyeOff,
@@ -251,26 +252,18 @@ export default function CompanyUsersPage() {
                 </div>
                 {!isSelf && !inactive && user.role !== "ADMIN" && (
                   <div className="flex shrink-0 items-center gap-1">
-                    <div className="relative">
-                      <select
-                        value={user.role}
-                        disabled={busy}
-                        onChange={(e) =>
-                          handleRoleChange(
-                            user,
-                            e.target.value as "USER" | "COMPANY_ADMIN",
-                          )
-                        }
-                        className="h-9 appearance-none rounded-lg border border-gray-200 bg-white pr-7 pl-2 text-xs font-medium text-gray-700 outline-none"
-                      >
-                        <option value="USER">Usuário</option>
-                        <option value="COMPANY_ADMIN">Controlador</option>
-                      </select>
-                      <ChevronDown
-                        size={13}
-                        className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-gray-400"
-                      />
-                    </div>
+                    <Select
+                      value={user.role}
+                      disabled={busy}
+                      onChange={(role) =>
+                        handleRoleChange(user, role as "USER" | "COMPANY_ADMIN")
+                      }
+                      className="h-9 w-32 rounded-lg text-xs"
+                      options={[
+                        { value: "USER", label: "Usuário" },
+                        { value: "COMPANY_ADMIN", label: "Controlador" },
+                      ]}
+                    />
                     <button
                       onClick={() => handleDelete(user)}
                       disabled={busy}
@@ -336,25 +329,17 @@ export default function CompanyUsersPage() {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            <div className="relative">
-              <select
-                value={form.role}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    role: e.target.value as "USER" | "COMPANY_ADMIN",
-                  })
-                }
-                className="h-11 w-full appearance-none rounded-xl border border-gray-200 bg-white pr-9 pl-3 text-sm text-gray-800 outline-none"
-              >
-                <option value="USER">Usuário comum</option>
-                <option value="COMPANY_ADMIN">Controlador</option>
-              </select>
-              <ChevronDown
-                size={15}
-                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-              />
-            </div>
+            <Select
+              value={form.role}
+              onChange={(role) =>
+                setForm({ ...form, role: role as "USER" | "COMPANY_ADMIN" })
+              }
+              className="h-11"
+              options={[
+                { value: "USER", label: "Usuário comum" },
+                { value: "COMPANY_ADMIN", label: "Controlador" },
+              ]}
+            />
             <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={() => setCreateOpen(false)}

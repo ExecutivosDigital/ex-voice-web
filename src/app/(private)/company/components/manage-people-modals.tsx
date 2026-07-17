@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/blocks/select";
+
 import {
   Dialog,
   DialogContent,
@@ -125,26 +127,18 @@ export function DepartmentMembersModal({
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <div className="relative">
-                  <select
-                    value={member.role}
-                    disabled={busy}
-                    onChange={(e) =>
-                      setMember(
-                        member.userId,
-                        e.target.value as "MEMBER" | "MANAGER",
-                      )
-                    }
-                    className="h-8 appearance-none rounded-lg border border-gray-200 bg-white pr-7 pl-2 text-xs font-medium text-gray-700 outline-none"
-                  >
-                    <option value="MEMBER">Membro</option>
-                    <option value="MANAGER">Gestor</option>
-                  </select>
-                  <ChevronDown
-                    size={13}
-                    className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-gray-400"
-                  />
-                </div>
+                <Select
+                  value={member.role}
+                  disabled={busy}
+                  onChange={(role) =>
+                    setMember(member.userId, role as "MEMBER" | "MANAGER")
+                  }
+                  className="h-8 w-28 rounded-lg text-xs"
+                  options={[
+                    { value: "MEMBER", label: "Membro" },
+                    { value: "MANAGER", label: "Gestor" },
+                  ]}
+                />
                 <button
                   onClick={() => removeMember(member.userId)}
                   disabled={busy}
@@ -160,40 +154,28 @@ export function DepartmentMembersModal({
 
         {candidates.length > 0 ? (
           <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
-            <div className="relative flex-1">
-              <select
-                value={addingUserId}
-                onChange={(e) => setAddingUserId(e.target.value)}
-                className="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white pr-8 pl-3 text-sm text-gray-800 outline-none focus:border-gray-400"
-              >
-                <option value="">Adicionar usuário...</option>
-                {candidates.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.email})
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={15}
-                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-              />
-            </div>
-            <div className="relative">
-              <select
-                value={addingRole}
-                onChange={(e) =>
-                  setAddingRole(e.target.value as "MEMBER" | "MANAGER")
-                }
-                className="h-10 appearance-none rounded-xl border border-gray-200 bg-white pr-8 pl-3 text-sm text-gray-800 outline-none"
-              >
-                <option value="MEMBER">Membro</option>
-                <option value="MANAGER">Gestor</option>
-              </select>
-              <ChevronDown
-                size={15}
-                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-              />
-            </div>
+            <Select
+              value={addingUserId}
+              onChange={setAddingUserId}
+              className="flex-1"
+              placeholder="Adicionar usuário..."
+              options={[
+                { value: "", label: "Adicionar usuário..." },
+                ...candidates.map((u) => ({
+                  value: u.id,
+                  label: `${u.name} (${u.email})`,
+                })),
+              ]}
+            />
+            <Select
+              value={addingRole}
+              onChange={(role) => setAddingRole(role as "MEMBER" | "MANAGER")}
+              className="w-32"
+              options={[
+                { value: "MEMBER", label: "Membro" },
+                { value: "MANAGER", label: "Gestor" },
+              ]}
+            />
             <button
               onClick={() => addingUserId && setMember(addingUserId, addingRole)}
               disabled={!addingUserId || busy}
@@ -315,24 +297,18 @@ export function BranchManagersModal({
 
         {candidates.length > 0 && (
           <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
-            <div className="relative flex-1">
-              <select
-                value={addingUserId}
-                onChange={(e) => setAddingUserId(e.target.value)}
-                className="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white pr-8 pl-3 text-sm text-gray-800 outline-none focus:border-gray-400"
-              >
-                <option value="">Adicionar gestor...</option>
-                {candidates.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.email})
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={15}
-                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-              />
-            </div>
+            <Select
+              value={addingUserId}
+              onChange={setAddingUserId}
+              className="flex-1"
+              options={[
+                { value: "", label: "Adicionar gestor..." },
+                ...candidates.map((u) => ({
+                  value: u.id,
+                  label: `${u.name} (${u.email})`,
+                })),
+              ]}
+            />
             <button
               onClick={addManager}
               disabled={!addingUserId || busy}

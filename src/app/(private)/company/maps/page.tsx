@@ -3,9 +3,10 @@
 import { useApiContext } from "@/context/ApiContext";
 import { useCorporate } from "@/context/corporateContext";
 import { translateError } from "@/utils/translate-error";
+import { DatePicker } from "@/components/ui/blocks/date-picker";
+import { Select } from "@/components/ui/blocks/select";
 import {
   Check,
-  ChevronDown,
   Copy,
   FileDown,
   Loader2,
@@ -16,6 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import { CompanyTabs } from "../components/company-tabs";
+import { ActionButton } from "../components/ui";
 
 /**
  * Mapas da verdade (Fase 4) — o Controlador gera um documento analítico do
@@ -162,68 +164,39 @@ export default function CompanyMapsPage() {
             <label className="mb-1 block text-xs font-semibold text-gray-500">
               Tipo de mapa
             </label>
-            <div className="relative">
-              <select
-                value={mapType}
-                onChange={(e) => setMapType(e.target.value)}
-                className="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 pr-9 text-sm text-gray-800 outline-none focus:border-gray-400"
-              >
-                {types.map((t) => (
-                  <option key={t.key} value={t.key}>
-                    {t.titulo}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={15}
-                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-              />
-            </div>
+            <Select
+              value={mapType}
+              onChange={setMapType}
+              options={types.map((t) => ({ value: t.key, label: t.titulo }))}
+            />
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">
               Escopo
             </label>
-            <div className="relative">
-              <select
-                value={departmentId}
-                onChange={(e) => setDepartmentId(e.target.value)}
-                className="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 pr-9 text-sm text-gray-800 outline-none focus:border-gray-400"
-              >
-                <option value="">Empresa toda</option>
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    Departamento: {d.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={15}
-                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-              />
-            </div>
+            <Select
+              value={departmentId}
+              onChange={setDepartmentId}
+              options={[
+                { value: "", label: "Empresa toda" },
+                ...departments.map((d) => ({
+                  value: d.id,
+                  label: `Departamento: ${d.name}`,
+                })),
+              ]}
+            />
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">
               De
             </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="h-10 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
-            />
+            <DatePicker value={startDate} onChange={setStartDate} />
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-500">
               Até
             </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="h-10 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
-            />
+            <DatePicker value={endDate} onChange={setEndDate} />
           </div>
         </div>
         <div>
@@ -238,11 +211,7 @@ export default function CompanyMapsPage() {
           />
         </div>
         <div className="flex justify-end">
-          <button
-            onClick={generate}
-            disabled={generating}
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02] disabled:opacity-60"
-          >
+          <ActionButton onClick={generate} disabled={generating}>
             {generating ? (
               <>
                 <Loader2 size={15} className="animate-spin" /> Gerando mapa...
@@ -252,7 +221,7 @@ export default function CompanyMapsPage() {
                 <Sparkles size={15} /> Gerar mapa
               </>
             )}
-          </button>
+          </ActionButton>
         </div>
       </section>
 

@@ -3,16 +3,11 @@
 import { useApiContext } from "@/context/ApiContext";
 import { useConfirm } from "@/context/ConfirmContext";
 import { translateError } from "@/utils/translate-error";
-import {
-  BookOpenText,
-  Brain,
-  ChevronDown,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { Select } from "@/components/ui/blocks/select";
+import { BookOpenText, Brain, Plus, Search, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { ActionButton } from "./ui";
 
 /**
  * Fase 2.4 — Business Analytics da empresa + glossário pela tela (Controlador).
@@ -76,20 +71,21 @@ export function BusinessContextCard() {
         </h2>
         {dirty && (
           <div className="flex items-center gap-2">
-            <button
+            <ActionButton
+              variant="outline"
+              className="h-8 px-3 text-xs"
               onClick={() => setText(savedText)}
               disabled={saving}
-              className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-500 transition hover:bg-gray-50 disabled:opacity-60"
             >
               Cancelar
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
+              className="h-8 px-3 text-xs"
               onClick={handleSave}
               disabled={saving}
-              className="rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-4 py-1.5 text-xs font-semibold text-white shadow transition hover:scale-[1.02] disabled:opacity-60"
             >
               {saving ? "Salvando..." : "Salvar"}
-            </button>
+            </ActionButton>
           </div>
         )}
       </div>
@@ -228,31 +224,21 @@ export function GlossarySection({
           placeholder="Significado (ex.: Conhecimento de Transporte Eletrônico)"
           className="h-10 flex-1 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none focus:border-gray-400"
         />
-        <div className="relative">
-          <select
-            value={departmentId}
-            onChange={(e) => setDepartmentId(e.target.value)}
-            className="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white pr-8 pl-3 text-sm text-gray-800 outline-none md:w-44"
-          >
-            <option value="">Empresa toda</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                Depto: {d.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={14}
-            className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-          />
-        </div>
-        <button
-          onClick={handleAdd}
-          disabled={busy}
-          className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:opacity-50"
-        >
+        <Select
+          value={departmentId}
+          onChange={setDepartmentId}
+          className="md:w-44"
+          options={[
+            { value: "", label: "Empresa toda" },
+            ...departments.map((d) => ({
+              value: d.id,
+              label: `Depto: ${d.name}`,
+            })),
+          ]}
+        />
+        <ActionButton onClick={handleAdd} disabled={busy}>
           <Plus size={15} /> Adicionar
-        </button>
+        </ActionButton>
         </div>
         <input
           value={aliases}

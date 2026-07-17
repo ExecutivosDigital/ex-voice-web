@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/ui/blocks/select";
 import { SectionRenderer } from "@/app/(private)/ai-components-preview/components/core/SectionRenderer";
 import {
   Dialog,
@@ -11,7 +12,6 @@ import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/utils/cn";
 import { translateError } from "@/utils/translate-error";
 import {
-  ChevronDown,
   FlaskConical,
   Loader2,
   Save,
@@ -265,24 +265,17 @@ export function AiEditorDrawer({
                 <label className="mb-1 block text-xs font-semibold text-gray-500">
                   Escopo
                 </label>
-                <div className="relative">
-                  <select
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
-                    className="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 pr-9 text-sm text-gray-800 outline-none focus:border-gray-400"
-                  >
-                    <option value="">Empresa toda</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        Departamento: {d.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={15}
-                    className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-                  />
-                </div>
+                <Select
+                  value={departmentId}
+                  onChange={setDepartmentId}
+                  options={[
+                    { value: "", label: "Empresa toda" },
+                    ...departments.map((d) => ({
+                      value: d.id,
+                      label: `Departamento: ${d.name}`,
+                    })),
+                  ]}
+                />
               </div>
             </div>
 
@@ -351,24 +344,15 @@ export function AiEditorDrawer({
             ) : (
               <>
                 <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <select
-                      value={sampleId}
-                      onChange={(e) => setSampleId(e.target.value)}
-                      className="h-10 w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 pr-9 text-sm text-gray-800 outline-none focus:border-gray-400"
-                    >
-                      {samples.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name} · {moment(s.createdAt).format("DD/MM")}
-                          {s.department ? ` · ${s.department.name}` : ""}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={15}
-                      className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-400"
-                    />
-                  </div>
+                  <Select
+                    value={sampleId}
+                    onChange={setSampleId}
+                    className="flex-1"
+                    options={samples.map((sample) => ({
+                      value: sample.id,
+                      label: `${sample.name} · ${moment(sample.createdAt).format("DD/MM")}${sample.department ? ` · ${sample.department.name}` : ""}`,
+                    }))}
+                  />
                   <button
                     onClick={handleTest}
                     disabled={testing}
