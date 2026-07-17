@@ -15,8 +15,10 @@ import {
   Star,
   X,
 } from "lucide-react";
+import { useLayoutPrefs } from "@/store";
 import { useMemo, useState } from "react";
 import { EditSpeakersModal } from "./edit-speakers-modal";
+import { TranscriptionAgenda } from "./transcription-agenda";
 import { TranscriptionTimeline } from "./transcription-timeline";
 import { Placeholder } from "./placeholder";
 import {
@@ -86,7 +88,14 @@ export function TranscriptionTab({
    * poderosa mas "dependendo do usuário, vai parecer muito complicado de
    * entender". Fica atrás de um botão, como o Gabriel sugeriu.
    */
-  const [modo, setModo] = useState<"lista" | "timeline">("lista");
+  const [modo, setModo] = useState<"lista" | "pro">("lista");
+  /**
+   * Qual visão avançada — escolha do USUÁRIO, não nossa. As duas foram
+   * construídas e comparadas com conversa real (16/07) e são apostas
+   * diferentes: a timeline deita o tempo e separa VER de LER; a agenda põe o
+   * tempo na vertical e junta os dois. Persistida entre gravações.
+   */
+  const { proTranscriptView, setProTranscriptView } = useLayoutPrefs();
   const [query, setQuery] = useState("");
   const [activeSpeakerId, setActiveSpeakerId] = useState<string | null>(null);
 
@@ -228,18 +237,44 @@ export function TranscriptionTab({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setModo((m) => (m === "lista" ? "timeline" : "lista"))}
-                aria-pressed={modo === "timeline"}
+                onClick={() => setModo((m) => (m === "lista" ? "pro" : "lista"))}
+                aria-pressed={modo === "pro"}
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition",
-                  modo === "timeline"
+                  modo === "pro"
                     ? "border-gray-900 bg-gray-900 text-white"
                     : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50",
                 )}
               >
                 <AudioWaveform size={13} />
-                {modo === "timeline" ? "Ver lista" : "Timeline"}
+                {modo === "pro" ? "Ver lista" : "Timeline"}
               </button>
+
+              {/* Qual visão avançada: escolha do usuário (só aparece no modo pro) */}
+              {modo === "pro" && (
+                <div className="inline-flex items-center rounded-full border border-gray-200 bg-white p-0.5 shadow-sm">
+                  {(
+                    [
+                      { k: "timeline", l: "Linha do tempo" },
+                      { k: "agenda", l: "Agenda" },
+                    ] as const
+                  ).map((o) => (
+                    <button
+                      key={o.k}
+                      onClick={() => setProTranscriptView(o.k)}
+                      aria-pressed={proTranscriptView === o.k}
+                      className={cn(
+                        "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
+                        proTranscriptView === o.k
+                          ? "bg-gray-100 text-gray-900"
+                          : "text-gray-500 hover:text-gray-700",
+                      )}
+                    >
+                      {o.l}
+                    </button>
+                  ))}
+                </div>
+              )}
 
             {hasSpeakers && (
               <button
@@ -355,11 +390,12 @@ export function TranscriptionTab({
           data-lenis-prevent
           onWheel={(e) => e.stopPropagation()}
         >
-          {modo === "timeline" && hasSpeeches ? (
-            <TranscriptionTimeline
-              recording={recording}
-              speeches={recording.speeches}
-            />
+          {modo === "pro" && hasSpeeches ? (
+            proTranscriptView === "agenda" ? (
+              <TranscriptionAgenda recording={recording} speeches={recording.speeches} />
+            ) : (
+              <TranscriptionTimeline recording={recording} speeches={recording.speeches} />
+            )
           ) : hasSpeeches ? (
             <AnimatePresence mode="popLayout">
               {grouped.length === 0 ? (
