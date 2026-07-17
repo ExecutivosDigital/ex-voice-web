@@ -9,6 +9,13 @@ export interface ClientProps {
   userId: string;
   description?: string | null;
   birthDate?: string | null;
+  /**
+   * Chave que liga este contato aos convites de calendário — convite identifica
+   * pessoa por e-mail, não por nome. Null no acervo de contatos anterior a
+   * 17/07: sem ele o contato não é reconhecido sozinho numa reunião e o vínculo
+   * continua manual, como sempre foi.
+   */
+  email?: string | null;
   createdAt: Date;
 }
 

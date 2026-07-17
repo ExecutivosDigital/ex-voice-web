@@ -39,6 +39,8 @@ interface EditClientModalProps {
 
 const FormSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  /** Chave de reconhecimento nos convites de calendário — ver create-client-sheet. */
+  email: z.string().email("E-mail inválido").optional().or(z.literal("")),
   description: z.string().optional().nullable(),
 });
 
@@ -91,6 +93,7 @@ export function EditClientModal({
     mode: "onChange",
     defaultValues: {
       name: "",
+      email: "",
       description: "",
     },
   });
@@ -108,6 +111,7 @@ export function EditClientModal({
     if (isOpen && client) {
       form.reset({
         name: client.name ?? "",
+        email: client.email ?? "",
         description: client.description ?? "",
       });
       setConfirmDelete(false);
@@ -269,6 +273,38 @@ export function EditClientModal({
                             autoComplete="off"
                           />
                         </FormControl>
+                        <FormMessage className="px-0 py-0 text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-xs font-semibold tracking-wide text-gray-700 uppercase">
+                          E-mail
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex. maria@empresa.com.br"
+                            type="email"
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            className={cn(
+                              "h-11 rounded-xl border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-4 focus:ring-gray-900/5",
+                              {
+                                "border-red-400 focus:border-red-500 focus:ring-red-500/10":
+                                  form.formState.errors.email,
+                              },
+                            )}
+                            autoComplete="off"
+                          />
+                        </FormControl>
+                        <p className="text-[11px] text-gray-400">
+                          Usado para reconhecer esta pessoa nos convites de reunião
+                          da sua agenda.
+                        </p>
                         <FormMessage className="px-0 py-0 text-xs text-red-500" />
                       </FormItem>
                     )}
