@@ -18,11 +18,13 @@ import {
   RefreshCw,
   Share2,
   UserRound,
+  UserRoundPlus,
 } from "lucide-react";
 import moment from "moment";
 import "moment/locale/pt-br";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { LinkContactModal } from "./link-contact-modal";
 import { ReanalyzeModal } from "./reanalyze-modal";
 import { ShareRecordingModal } from "./share-recording-modal";
 
@@ -75,6 +77,7 @@ export function DetailHeader({
   const { hasCompany } = useCorporate();
   const [shareOpen, setShareOpen] = useState(false);
   const [reanalyzeOpen, setReanalyzeOpen] = useState(false);
+  const [linkContactOpen, setLinkContactOpen] = useState(false);
   const status = statusMeta(recording.transcriptionStatus);
   const StatusIcon = status.icon;
 
@@ -184,8 +187,34 @@ export function DetailHeader({
             "DD [de] MMM, YYYY · HH:mm",
           )}
         />
-        {recording.client && (
-          <InfoChip icon={UserRound} label={recording.client.name} />
+        {/* "Gravar sem vínculo e atribuir contato depois": o chip do contato é
+            o ponto de vínculo — clicável só para o dono da gravação. */}
+        {recording.client ? (
+          isOwner && recording.type === "CLIENT" ? (
+            <button
+              type="button"
+              onClick={() => setLinkContactOpen(true)}
+              title="Trocar ou desvincular o contato desta gravação"
+              className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white/70 px-2.5 py-1 text-[11px] font-medium text-gray-600 backdrop-blur-sm transition hover:border-gray-300 hover:bg-white"
+            >
+              <UserRound size={11} className="text-gray-400" />
+              {recording.client.name}
+            </button>
+          ) : (
+            <InfoChip icon={UserRound} label={recording.client.name} />
+          )
+        ) : (
+          isOwner &&
+          recording.type === "CLIENT" && (
+            <button
+              type="button"
+              onClick={() => setLinkContactOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-gray-300 bg-white/50 px-2.5 py-1 text-[11px] font-semibold text-gray-500 backdrop-blur-sm transition hover:border-gray-400 hover:bg-white hover:text-gray-700"
+            >
+              <UserRoundPlus size={11} />
+              Vincular contato
+            </button>
+          )
         )}
         {recording.department && (
           <InfoChip icon={Building2} label={recording.department.name} />
@@ -203,6 +232,18 @@ export function DetailHeader({
           recordingId={recording.id}
           open={shareOpen}
           onClose={() => setShareOpen(false)}
+        />
+      )}
+      {isOwner && recording.type === "CLIENT" && (
+        <LinkContactModal
+          recordingId={recording.id}
+          currentClient={
+            recording.client
+              ? { id: recording.client.id, name: recording.client.name }
+              : null
+          }
+          open={linkContactOpen}
+          onClose={() => setLinkContactOpen(false)}
         />
       )}
       {canReanalyze && (
