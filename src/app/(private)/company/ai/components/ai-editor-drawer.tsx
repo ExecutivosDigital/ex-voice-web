@@ -187,14 +187,17 @@ export function AiEditorDrawer({
 
   return (
     <Dialog open onOpenChange={(o) => !o && !saving && onClose()}>
-      <DialogContent className="max-h-[92vh] max-w-5xl overflow-hidden bg-white p-0">
-        <DialogHeader className="border-b border-gray-100 px-6 py-4">
+      {/* flex-col + min-h-0 nas colunas: sem isso o grid usa a altura do
+          conteúdo (não a da modal), a coluna não rola e o rodapé com o botão
+          Salvar fica fora da tela. Ver o print modal-nao-tem-scroll. */}
+      <DialogContent className="flex max-h-[92vh] max-w-5xl flex-col overflow-hidden bg-white p-0">
+        <DialogHeader className="shrink-0 border-b border-gray-100 px-6 py-4">
           <DialogTitle>{ai ? "Editar IA" : "Nova IA"}</DialogTitle>
         </DialogHeader>
 
-        <div className="grid max-h-[calc(92vh-64px)] grid-cols-1 overflow-hidden md:grid-cols-2">
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden md:grid-cols-2">
           {/* Coluna esquerda: editor */}
-          <div className="flex flex-col gap-4 overflow-y-auto border-r border-gray-100 p-6">
+          <div className="flex min-h-0 flex-col gap-4 overflow-y-auto border-r border-gray-100 p-6">
             {/* Facilitador: gerar com IA a partir de uma descrição */}
             <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3">
               {genOpen ? (
@@ -328,7 +331,7 @@ export function AiEditorDrawer({
           </div>
 
           {/* Coluna direita: teste */}
-          <div className="flex flex-col gap-3 overflow-y-auto bg-gray-50/50 p-6">
+          <div className="flex min-h-0 flex-col gap-3 overflow-y-auto bg-gray-50/50 p-6">
             <div className="flex items-center gap-2">
               <FlaskConical size={16} className="text-gray-500" />
               <h3 className="text-sm font-semibold text-gray-900">

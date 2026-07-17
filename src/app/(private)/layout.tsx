@@ -108,7 +108,9 @@ export default function RootLayout({
                 sidebarMode && (sidebarCollapsed ? "md:pl-[72px]" : "md:pl-60"),
               )}
             >
-              <MinimalHeader hideNav={sidebarMode} />
+              {/* No modo sidebar, a navegação toda vive na lateral — o header
+                  some (pedido do Victor). No modo navbar, o header É a navegação. */}
+              {!sidebarMode && <MinimalHeader />}
               <motion.main
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}

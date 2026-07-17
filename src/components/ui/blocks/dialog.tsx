@@ -37,7 +37,13 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] border bg-white shadow-lg duration-200 sm:rounded-2xl",
+        // Base de TODAS as modais. Duas correções que valem para todas:
+        //  - p-6: padding interno (sem ele o conteúdo cola nas bordas).
+        //  - max-h-[90vh] + overflow-y-auto: modal nunca ultrapassa a tela; se o
+        //    conteúdo for mais alto (ex.: editor de IA), rola dentro dela em vez
+        //    de cortar o rodapé e o botão de salvar.
+        // Uma modal específica pode sobrescrever (o className passado vence no cn).
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-full max-w-lg translate-x-[-50%] translate-y-[-50%] overflow-y-auto border bg-white p-6 shadow-lg duration-200 sm:rounded-2xl",
         className,
       )}
       {...props}

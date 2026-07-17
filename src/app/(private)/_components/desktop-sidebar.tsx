@@ -53,7 +53,10 @@ export function DesktopSidebar() {
   return (
     <aside
       className={cn(
-        "fixed top-0 left-0 z-40 hidden h-screen shrink-0 flex-col border-r border-gray-200 bg-white/80 backdrop-blur-md transition-all duration-200 md:flex",
+        // bg-white opaco (não /80): semi-transparente deixava o conteúdo passar
+        // por trás ao rolar a página, dando o efeito "flutuante" do print.
+        // z-50 para ficar acima do conteúdo. h-screen fixa cobre a viewport toda.
+        "fixed top-0 left-0 z-50 hidden h-screen shrink-0 flex-col border-r border-gray-200 bg-white transition-all duration-200 md:flex",
         width,
       )}
     >
