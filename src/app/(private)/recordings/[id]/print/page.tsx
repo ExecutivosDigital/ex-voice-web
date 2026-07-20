@@ -6,6 +6,7 @@ import { Loader2, Printer, X } from "lucide-react";
 import moment from "moment";
 import "moment/locale/pt-br";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 moment.locale("pt-br");
@@ -36,6 +37,13 @@ export default function RecordingPrintPage() {
   const router = useRouter();
   const { loading, error } = useRecordingData(id);
   const { selectedRecording: recording } = useGeneralContext();
+
+  // O usuário escolhe o que entra no PDF (feedback 20/07: "se ele quiser
+  // apenas transcrição, por exemplo").
+  const [incluirDetalhes, setIncluirDetalhes] = useState(true);
+  const [incluirResumo, setIncluirResumo] = useState(true);
+  const [incluirAcoes, setIncluirAcoes] = useState(true);
+  const [incluirTranscricao, setIncluirTranscricao] = useState(true);
 
   if (loading && !recording) {
     return (
@@ -76,10 +84,18 @@ export default function RecordingPrintPage() {
 
   return (
     <div className="mx-auto max-w-3xl bg-white px-2 py-4 print:max-w-none print:px-0 print:py-0">
+      <style jsx global>{`
+        @page {
+          size: A4;
+          margin: 14mm 16mm;
+        }
+      `}</style>
       {/* Barra de ações — some na impressão */}
-      <div className="mb-6 flex items-center justify-between gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 print:hidden">
+      <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-gray-600">
-          Confira o documento e clique em <strong>Imprimir / Salvar PDF</strong>.
+          Escolha o que entra no documento e clique em{" "}
+          <strong>Imprimir / Salvar PDF</strong>.
         </p>
         <div className="flex gap-2">
           <button
@@ -95,17 +111,49 @@ export default function RecordingPrintPage() {
             <Printer size={13} /> Imprimir / Salvar PDF
           </button>
         </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-4 border-t border-gray-200 pt-3">
+          {(
+            [
+              ["Detalhes da gravação", incluirDetalhes, setIncluirDetalhes],
+              ["Resumo", incluirResumo, setIncluirResumo],
+              ["Ações e próximos passos", incluirAcoes, setIncluirAcoes],
+              ["Transcrição", incluirTranscricao, setIncluirTranscricao],
+            ] as const
+          ).map(([rotulo, ativo, set]) => (
+            <label
+              key={rotulo}
+              className="flex cursor-pointer items-center gap-2 text-xs font-medium text-gray-700"
+            >
+              <input
+                type="checkbox"
+                checked={ativo}
+                onChange={(e) => set(e.target.checked)}
+                className="h-3.5 w-3.5 accent-gray-900"
+              />
+              {rotulo}
+            </label>
+          ))}
+          <span className="ml-auto text-[11px] text-gray-400">
+            Dica: na janela de impressão, desmarque «Cabeçalhos e rodapés» para
+            tirar a URL e a numeração do PDF.
+          </span>
+        </div>
       </div>
 
       {/* Cabeçalho do documento */}
       <header className="border-b-2 border-gray-900 pb-4">
+        {/* título sempre sai; os metadados respeitam o toggle */}
         <p className="text-[11px] font-semibold tracking-[0.25em] text-gray-400 uppercase">
           Executivos Voice · Registro de reunião
         </p>
         <h1 className="mt-1 text-2xl font-bold text-gray-900">
           {recording.name || "Gravação sem título"}
         </h1>
-        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-600">
+        <div
+          className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-600"
+          hidden={!incluirDetalhes}
+        >
           <span>
             <strong>Data:</strong>{" "}
             {moment(recording.createdAt).format("DD [de] MMMM [de] YYYY, HH:mm")}
@@ -130,13 +178,13 @@ export default function RecordingPrintPage() {
             </span>
           )}
         </div>
-        {recording.description && (
+        {incluirDetalhes && recording.description && (
           <p className="mt-2 text-sm text-gray-600">{recording.description}</p>
         )}
       </header>
 
       {/* Resumo */}
-      {recording.summary && (
+      {incluirResumo && recording.summary && (
         <section className="mt-6">
           <h2 className="mb-2 text-sm font-bold tracking-wide text-gray-900 uppercase">
             Resumo
@@ -148,7 +196,7 @@ export default function RecordingPrintPage() {
       )}
 
       {/* Ações / decisões / compromissos */}
-      {businessCards.length > 0 && (
+      {incluirAcoes && businessCards.length > 0 && (
         <section className="mt-6 break-inside-avoid">
           <h2 className="mb-2 text-sm font-bold tracking-wide text-gray-900 uppercase">
             Ações e Próximos Passos
@@ -184,7 +232,7 @@ export default function RecordingPrintPage() {
       )}
 
       {/* Transcrição */}
-      {(recording.speeches?.length ?? 0) > 0 && (
+      {incluirTranscricao && (recording.speeches?.length ?? 0) > 0 && (
         <section className="mt-6">
           <h2 className="mb-2 text-sm font-bold tracking-wide text-gray-900 uppercase">
             Transcrição

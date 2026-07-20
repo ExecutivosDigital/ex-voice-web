@@ -95,7 +95,7 @@ export function DepartmentMembersModal({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg bg-white">
+      <DialogContent className="max-w-2xl bg-white">
         <DialogHeader>
           <DialogTitle>Membros — {department.name}</DialogTitle>
           <DialogDescription>
@@ -113,9 +113,9 @@ export function DepartmentMembersModal({
           {department.members.map((member) => (
             <div
               key={member.userId}
-              className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2"
             >
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1 basis-48">
                 <p className="flex items-center gap-1.5 truncate text-sm font-medium text-gray-900">
                   {member.role === "MANAGER" && (
                     <Crown size={13} className="shrink-0 text-amber-500" />
@@ -254,7 +254,7 @@ export function BranchManagersModal({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-white">
+      <DialogContent className="max-w-xl bg-white">
         <DialogHeader>
           <DialogTitle>Gestores — Filial {branch.name}</DialogTitle>
           <DialogDescription>
@@ -272,9 +272,9 @@ export function BranchManagersModal({
           {managers.map((manager) => (
             <div
               key={manager.userId}
-              className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2"
             >
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1 basis-48">
                 <p className="flex items-center gap-1.5 truncate text-sm font-medium text-gray-900">
                   <Crown size={13} className="shrink-0 text-amber-500" />
                   {manager.user.name}

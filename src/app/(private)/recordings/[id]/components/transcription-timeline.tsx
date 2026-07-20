@@ -8,6 +8,7 @@ import { cn } from "@/utils/cn";
 import { Minus, Pause, Play, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildSpeakerStyleMap } from "./speaker-palette";
+import { SpeechList } from "./speech-list";
 
 /**
  * Timeline da transcrição — a visão "avançada" da aba.
@@ -341,11 +342,20 @@ export function TranscriptionTimeline({
         </div>
       </div>
 
+      {/* A leitura acompanha a navegação: a lista rola sozinha até a fala em
+          reprodução, e clicar num bloco da trilha seleciona a fala aqui. */}
+      <SpeechList
+        trechos={trechos}
+        estilos={estilos}
+        posicao={posicao}
+        selecionadoId={selecionado}
+        onSeek={tocarEm}
+      />
+
       <p className="text-[11px] text-gray-400">
-        Mostra o <strong>formato</strong> da conversa: onde as vozes se cruzam, quem
-        dominou, quem só pontuou. Clique em qualquer ponto para ouvir. Para ler a
-        transcrição, volte à visão padrão — aqui a caixa é do tamanho do tempo, não
-        do texto.
+        A trilha mostra o <strong>formato</strong> da conversa (onde as vozes se
+        cruzam, quem dominou); a lista abaixo acompanha o áudio para leitura.
+        Clique em qualquer bloco ou fala para ouvir daquele ponto.
       </p>
     </div>
   );

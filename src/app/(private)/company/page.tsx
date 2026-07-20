@@ -430,7 +430,7 @@ export default function CompanyPage() {
 
       {/* Formulário de departamento (criar/editar) — modal centralizado */}
       <Dialog open={!!form} onOpenChange={(o) => !o && !saving && setForm(null)}>
-        <DialogContent className="max-w-lg bg-white">
+        <DialogContent className="max-w-2xl bg-white">
           <DialogHeader>
             <DialogTitle>
               {form?.id ? "Editar departamento" : "Novo departamento"}

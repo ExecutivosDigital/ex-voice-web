@@ -210,7 +210,7 @@ export function WaveformAudioPlayer({
       </span>
 
       {/* Center: Waveform Bars */}
-      <div className="flex h-8 flex-1 items-center gap-[2px] overflow-hidden">
+      <div className="flex h-8 flex-1 items-center justify-between gap-[2px] overflow-hidden">
         {bars.map((height, index) => {
           // Calculate if this bar should be "active" (played past)
           const totalDur = duration > 0 ? duration : 1;
@@ -223,7 +223,10 @@ export function WaveformAudioPlayer({
               key={index}
               onClick={() => handleSeek(index)}
               className={cn(
-                "w-1 shrink-0 cursor-pointer rounded-full transition-all duration-100",
+                // flex-1 + teto de largura: as barras se repartem pela largura
+                // disponível (antes, w-1 fixo virava uma faixa curta à esquerda)
+                // sem engordar a ponto de virarem "bolinhas" em tela larga.
+                "min-w-[2px] max-w-[5px] flex-1 cursor-pointer rounded-full transition-all duration-100",
                 isActive ? "bg-gray-600" : "bg-gray-200 hover:bg-gray-400",
               )}
               style={{

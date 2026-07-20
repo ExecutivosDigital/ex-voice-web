@@ -30,6 +30,24 @@ import { ShareRecordingModal } from "./share-recording-modal";
 
 moment.locale("pt-br");
 
+/** Gravação online sai como webm de vídeo; presencial/app é áudio. */
+function isVideoMedia(url: string): boolean {
+  return /\.(webm|mp4|mkv)(\?|$)/i.test(url);
+}
+
+/** Nome de arquivo seguro a partir do título da gravação. */
+function downloadFilename(recording: RecordingDetailsProps): string {
+  const base = (recording.name || "gravacao")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-zA-Z0-9-_ ]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 60);
+  const ext = recording.audioUrl?.match(/\.([a-z0-9]{2,4})(\?|$)/i)?.[1] ?? "webm";
+  return `${base || "gravacao"}.${ext}`;
+}
+
 function statusMeta(status: RecordingDetailsProps["transcriptionStatus"]) {
   switch (status) {
     case "DONE":
@@ -78,6 +96,31 @@ export function DetailHeader({
   const [shareOpen, setShareOpen] = useState(false);
   const [reanalyzeOpen, setReanalyzeOpen] = useState(false);
   const [linkContactOpen, setLinkContactOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  // Download de verdade (fetch → blob → <a download>): o atributo download é
+  // ignorado em URL cross-origin (R2), que era o motivo de abrir noutra aba.
+  async function downloadMedia(rec: RecordingDetailsProps) {
+    if (!rec.audioUrl) return;
+    setDownloading(true);
+    try {
+      const response = await fetch(rec.audioUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = downloadFilename(rec);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      window.open(rec.audioUrl, "_blank", "noopener,noreferrer");
+    } finally {
+      setDownloading(false);
+    }
+  }
   const status = statusMeta(recording.transcriptionStatus);
   const StatusIcon = status.icon;
 
@@ -156,16 +199,19 @@ export function DetailHeader({
             </button>
           )}
           {recording.audioUrl && (
-            <a
-              href={recording.audioUrl}
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-4 text-xs font-semibold text-gray-700 backdrop-blur-sm transition hover:border-gray-300 hover:bg-white"
+            <button
+              type="button"
+              onClick={() => downloadMedia(recording)}
+              disabled={downloading}
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-4 text-xs font-semibold text-gray-700 backdrop-blur-sm transition hover:border-gray-300 hover:bg-white disabled:opacity-50"
             >
-              <Download size={13} />
-              Baixar áudio
-            </a>
+              {downloading ? (
+                <Loader2 size={13} className="animate-spin" />
+              ) : (
+                <Download size={13} />
+              )}
+              {isVideoMedia(recording.audioUrl) ? "Baixar gravação" : "Baixar áudio"}
+            </button>
           )}
         </div>
       </div>

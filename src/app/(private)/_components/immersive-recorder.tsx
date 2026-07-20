@@ -318,7 +318,9 @@ export function ImmersiveRecorder({
           duration: formatDurationForAPI(duration),
           seconds: duration,
           audioUrl,
-          type: primaryClientId ? "CLIENT" : "OTHER",
+          // Reunião é CLIENT mesmo sem contato ("gravar sem vínculo e atribuir
+          // depois"). OTHER cairia no pipeline simples do cron, SEM diarização.
+          type: "CLIENT",
           ...(primaryClientId ? { clientId: primaryClientId } : {}),
         };
         const response = await PostAPI("/recording", payload, true);
@@ -1083,7 +1085,8 @@ export function ImmersiveRecorder({
                     {selectedContactIds.length === 0 && (
                       <p className="mb-3 flex items-center gap-1.5 text-xs text-white/45">
                         <AlertCircle size={12} />
-                        Selecione pelo menos um contato para salvar.
+                        Sem contato — dá para vincular depois, na tela da
+                        gravação.
                       </p>
                     )}
                     <div className="flex items-center gap-3">
@@ -1097,12 +1100,10 @@ export function ImmersiveRecorder({
                       <button
                         type="button"
                         onClick={handleConfirmSave}
-                        disabled={
-                          !title.trim() || selectedContactIds.length === 0
-                        }
+                        disabled={!title.trim()}
                         className={cn(
                           "flex flex-[1.4] items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition",
-                          title.trim() && selectedContactIds.length > 0
+                          title.trim()
                             ? "bg-white text-gray-900 shadow-[0_10px_30px_-10px_rgba(255,255,255,0.55)] hover:bg-gray-100"
                             : "cursor-not-allowed bg-white/10 text-white/50",
                         )}

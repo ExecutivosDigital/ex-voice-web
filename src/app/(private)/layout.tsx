@@ -93,6 +93,26 @@ export default function RootLayout({
   //   );
   // }
 
+  // Rota de impressão: documento limpo, SEM chrome do app (header, sidebar,
+  // bottom nav, widget de trial) — tudo isso saía no PDF (feedback 20/07).
+  if (pathname.includes("/print")) {
+    return (
+      <AuthGuard>
+        <CorporateProvider>
+          <ConfirmProvider>
+            <GeneralContextProvider>
+              <ChatPageProvider>
+                <main className="min-h-screen w-full bg-white px-4 py-6 md:px-8">
+                  {children}
+                </main>
+              </ChatPageProvider>
+            </GeneralContextProvider>
+          </ConfirmProvider>
+        </CorporateProvider>
+      </AuthGuard>
+    );
+  }
+
   if (isNewHome) {
     return (
       <AuthGuard>

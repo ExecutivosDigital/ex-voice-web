@@ -150,9 +150,9 @@ export function ChatTab({
               ))}
             </AnimatePresence>
 
-            {engine.streamingContent && (
-              <MessageBubble role="ai" content={engine.streamingContent} />
-            )}
+            {/* O texto em stream já chega pela mensagem placeholder dentro de
+                engine.messages — renderizar engine.streamingContent aqui era a
+                causa da resposta DUPLICADA durante o stream (feedback 20/07). */}
             {engine.loading && !engine.streamingContent && <ThinkingDots />}
           </div>
         )}

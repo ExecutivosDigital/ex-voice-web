@@ -8,6 +8,7 @@ import { cn } from "@/utils/cn";
 import { Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { buildSpeakerStyleMap } from "./speaker-palette";
+import { SpeechList } from "./speech-list";
 
 /**
  * Agenda — a outra visão avançada da transcrição (ideia do João, 16/07).
@@ -42,7 +43,7 @@ const ESCALAS = [1.5, 3, 6, 12]; // pixels por segundo
  * o instante exato do corte, mente sobre a única coisa que ele existe para
  * contar. A altura é sempre o tempo; o texto aparece quando cabe.
  */
-const ALTURA_MINIMA = 8;
+const ALTURA_MINIMA = 12;
 
 function tempo(s: number): string {
   const m = Math.floor(s / 60);
@@ -292,9 +293,17 @@ export function TranscriptionAgenda({
         </div>
       </div>
 
+      <SpeechList
+        trechos={trechos}
+        estilos={estilos}
+        posicao={posicao}
+        onSeek={tocarEm}
+      />
+
       <p className="text-[11px] text-gray-400">
         Duas pessoas falando dividem a largura, como dois compromissos no mesmo
-        horário. Falas curtas viram barras sem texto — aumente a escala para lê-las.
+        horário. Falas curtas viram barras — a leitura delas fica na lista acima,
+        que acompanha o áudio.
       </p>
     </div>
   );
