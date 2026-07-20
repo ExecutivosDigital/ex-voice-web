@@ -120,7 +120,6 @@ export function GlossarySection({
   const [loading, setLoading] = useState(true);
   const [term, setTerm] = useState("");
   const [meaning, setMeaning] = useState("");
-  const [aliases, setAliases] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState("");
@@ -158,20 +157,20 @@ export function GlossarySection({
     setBusy(true);
     const response = await PostAPI(
       "/corporate/glossary",
+      // As variações de transcrição errada (aliases) são geradas
+      // automaticamente pela IA no backend — o usuário só dá o termo certo.
       {
         term: term.trim(),
         meaning: meaning.trim(),
-        aliases: aliases.trim() || undefined,
         departmentId: departmentId || undefined,
       },
       true,
     );
     setBusy(false);
     if (response.status === 200 || response.status === 201) {
-      toast.success("Termo adicionado");
+      toast.success("Termo adicionado — variações de grafia serão detectadas automaticamente");
       setTerm("");
       setMeaning("");
-      setAliases("");
       load();
     } else {
       toast.error(
@@ -240,12 +239,6 @@ export function GlossarySection({
           <Plus size={15} /> Adicionar
         </ActionButton>
         </div>
-        <input
-          value={aliases}
-          onChange={(e) => setAliases(e.target.value)}
-          placeholder="Corrigir automaticamente para o termo (opcional, separe por vírgula) — ex.: Integra, integra"
-          className="h-9 rounded-xl border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none focus:border-gray-400"
-        />
       </div>
 
       {entries.length > 8 && (

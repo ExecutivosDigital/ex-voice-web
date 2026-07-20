@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/blocks/dialog";
 import { useApiContext } from "@/context/ApiContext";
-import { Building2, Check, Globe2, Loader2, UserRound } from "lucide-react";
+import { Building2, Check, Globe2, Loader2, Sparkles, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -39,6 +39,9 @@ const SOURCE_ICON: Record<string, typeof Globe2> = {
   COMPANY: Building2,
   GLOBAL: Globe2,
 };
+
+/** Opção sentinela: re-analisar com os prompts PADRÃO do sistema (sem IA). */
+const PADRAO = "__padrao__";
 
 export function ReanalyzeModal({
   recordingId,
@@ -78,7 +81,7 @@ export function ReanalyzeModal({
     setRunning(true);
     const response = await PostAPI(
       `/recording/${recordingId}/reanalyze`,
-      { promptId: selectedId },
+      selectedId === PADRAO ? {} : { promptId: selectedId },
       true,
     );
     setRunning(false);
@@ -111,12 +114,28 @@ export function ReanalyzeModal({
               <div key={i} className="h-11 animate-pulse rounded-xl bg-gray-100" />
             ))}
           </div>
-        ) : prompts.length === 0 ? (
-          <p className="py-4 text-center text-sm text-gray-400">
-            Nenhuma IA disponível.
-          </p>
         ) : (
           <div className="flex max-h-[45vh] flex-col gap-1.5 overflow-y-auto">
+            <button
+              onClick={() => setSelectedId(PADRAO)}
+              disabled={running}
+              className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition ${
+                selectedId === PADRAO
+                  ? "border-gray-900 bg-gray-50"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+            >
+              <Sparkles size={15} className="shrink-0 text-gray-400" />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
+                IA padrão do sistema
+              </span>
+              <span className="shrink-0 rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                Sem IA própria
+              </span>
+              {selectedId === PADRAO && (
+                <Check size={14} className="shrink-0 text-gray-900" />
+              )}
+            </button>
             {prompts.map((prompt) => {
               const Icon = SOURCE_ICON[prompt.source] ?? Globe2;
               const isCurrent = prompt.id === currentPromptId;

@@ -2,7 +2,7 @@
 
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useRecordingData } from "@/hooks/useRecordingData";
-import { FileDown, Loader2, Printer, X } from "lucide-react";
+import { FileDown, Loader2, X } from "lucide-react";
 import moment from "moment";
 import "moment/locale/pt-br";
 import { useParams, useRouter } from "next/navigation";
@@ -13,10 +13,11 @@ import { gerarPdfGravacao } from "./gerar-pdf";
 moment.locale("pt-br");
 
 /**
- * Visão de impressão/PDF da gravação (trilha IA — "PDF bonito"):
- * página limpa, tipografia de documento, pronta para Ctrl+P → "Salvar como
- * PDF". Conteúdo: cabeçalho da reunião, resumo, ações estruturadas e
- * transcrição por locutor.
+ * Exportação de PDF da gravação (trilha IA — "PDF bonito"): o usuário escolhe
+ * as seções e baixa um A4 gerado por código (jsPDF, ver gerar-pdf.ts) — sem a
+ * janela de impressão do navegador, que carimbava URL/numeração no papel
+ * (fluxo de impressão removido a pedido do Victor, 20/07). A página serve de
+ * pré-visualização do conteúdo.
  */
 
 interface BusinessItem {
@@ -84,15 +85,9 @@ export default function RecordingPrintPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl bg-white px-2 py-4 print:max-w-none print:px-0 print:py-0">
-      <style jsx global>{`
-        @page {
-          size: A4;
-          margin: 14mm 16mm;
-        }
-      `}</style>
+    <div className="mx-auto max-w-3xl bg-white px-2 py-4">
       {/* Barra de ações — some na impressão */}
-      <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 print:hidden">
+      <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-gray-600">
           Escolha o que entra no documento e clique em <strong>Baixar PDF</strong>.
@@ -116,13 +111,6 @@ export default function RecordingPrintPage() {
             className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-800"
           >
             <FileDown size={13} /> Baixar PDF
-          </button>
-          <button
-            onClick={() => window.print()}
-            title="Alternativa via impressão do navegador"
-            className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
-          >
-            <Printer size={13} /> Imprimir
           </button>
         </div>
         </div>
@@ -149,8 +137,8 @@ export default function RecordingPrintPage() {
             </label>
           ))}
           <span className="ml-auto text-[11px] text-gray-400">
-            O PDF baixado já sai limpo; «Imprimir» usa o navegador (desmarque
-            «Cabeçalhos e rodapés» lá para não sair a URL).
+            A pré-visualização abaixo mostra o conteúdo; o arquivo baixado sai
+            formatado como documento.
           </span>
         </div>
       </div>
