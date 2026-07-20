@@ -1,7 +1,7 @@
 "use client";
 
-import { ActionItemsCard } from "@/app/(private)/ai-components-preview/components/cards/ActionItemsCard";
-import type { AIComponentResponse } from "@/app/(private)/ai-components-preview/types/component-types";
+import { ListCard } from "@/components/analysis";
+import type { AIComponentResponse } from "@/components/analysis";
 import { ListChecks } from "lucide-react";
 
 /**
@@ -78,8 +78,9 @@ export function ActionsView({
   return (
     <div className="flex flex-col gap-4">
       {sorted.map((card, i) => (
-        <ActionItemsCard
+        <ListCard
           key={i}
+          type={card.type as "actions_card" | "decisions_card" | "commitments_card"}
           title={card.title || GROUP_LABEL[card.type] || "Itens"}
           variant={
             (card.variant as never) ??

@@ -1,11 +1,14 @@
 "use client";
 
 import { RecordingDetailsProps } from "@/@types/general-client";
+import {
+  AnalysisView,
+  normalizeStructuredSummary,
+} from "@/components/analysis";
 import { RequestTranscription } from "@/components/ui/request-transcription";
 import { motion } from "framer-motion";
 import { AlertTriangle, Brain, Loader2 } from "lucide-react";
 import { Placeholder } from "./placeholder";
-import { Overview } from "@/app/(private)/clients/2/(selected-appointment)/[id]/components/overview";
 
 export function InsightsTab({
   recording,
@@ -52,7 +55,9 @@ export function InsightsTab({
     );
   }
 
-  if (!recording.structuredSummary) {
+  const analysis = normalizeStructuredSummary(recording.structuredSummary);
+
+  if (!analysis) {
     return (
       <Placeholder
         icon={<Brain size={22} />}
@@ -69,7 +74,7 @@ export function InsightsTab({
       transition={{ duration: 0.35 }}
       className="rounded-3xl border border-gray-200/70 bg-white/80 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] backdrop-blur-sm md:p-7"
     >
-      <Overview />
+      <AnalysisView response={analysis} />
     </motion.section>
   );
 }

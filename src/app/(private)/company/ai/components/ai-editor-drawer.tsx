@@ -1,7 +1,8 @@
 "use client";
 
 import { Select } from "@/components/ui/blocks/select";
-import { SectionRenderer } from "@/app/(private)/ai-components-preview/components/core/SectionRenderer";
+import { AnalysisView } from "@/components/analysis";
+import type { AISection } from "@/components/analysis";
 import {
   Dialog,
   DialogContent,
@@ -452,15 +453,9 @@ function PreviewSections({
       <p className="mb-1 text-[11px] font-semibold tracking-wide text-gray-500 uppercase">
         {label}
       </p>
-      <div className={cn("flex flex-col gap-3")}>
-        {(sections as { title?: string }[]).map((section, i) => (
-          <SectionRenderer
-            key={i}
-            section={section as never}
-            sectionIndex={i}
-          />
-        ))}
-      </div>
+      <AnalysisView
+        response={{ pageTitle: "", sections: sections as AISection[] }}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 // --- 1. DEFINIÇÃO DOS TIPOS ---
 
-import { AIComponentResponse } from "@/app/(private)/ai-components-preview/types/component-types";
+import { AIComponentResponse } from "@/components/analysis";
 
 // Tipos para Contatos (anteriormente Clients)
 export interface ClientProps {
