@@ -418,13 +418,14 @@ export function useChatEngine({
               fullResponse += content;
               setStreamingContent((prev) => prev + content);
               setMessages((prev) => {
-                const newArr = [...prev];
-                const lastMsg = newArr[newArr.length - 1];
-                // Verifica se a última mensagem é a da IA que estamos preenchendo
-                if (lastMsg.role === "ai" && lastMsg.id === aiMsgId) {
-                  lastMsg.content = fullResponse;
-                }
-                return newArr;
+                // Imutável de verdade: mutar lastMsg.content no mesmo objeto
+                // fazia o React pular re-renders (stream "parava no meio" na
+                // tela mesmo com o texto chegando — feedback 20/07).
+                return prev.map((msg) =>
+                  msg.role === "ai" && msg.id === aiMsgId
+                    ? { ...msg, content: fullResponse }
+                    : msg,
+                );
               });
             }
           } catch (e) {

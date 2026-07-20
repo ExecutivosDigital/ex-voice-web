@@ -27,20 +27,13 @@ type NavMode = "navbar" | "sidebar";
  * "agenda"   = tipo Google Calendar: tempo na vertical, quem corta aparece na
  * altura do corte, e quem fala junto divide a largura.
  *
- * São apostas diferentes e a escolha é pessoal — daí ser preferência do usuário
- * e não decisão nossa. As duas foram construídas e comparadas com conversa real
- * em /transcript-layouts (16/07).
  */
-export type ProTranscriptView = "timeline" | "agenda";
-
 interface LayoutPrefsState {
   navMode: NavMode;
   sidebarCollapsed: boolean;
-  proTranscriptView: ProTranscriptView;
   setNavMode: (mode: NavMode) => void;
   toggleNavMode: () => void;
   toggleSidebarCollapsed: () => void;
-  setProTranscriptView: (v: ProTranscriptView) => void;
 }
 
 export const useLayoutPrefs = create<LayoutPrefsState>()(
@@ -48,13 +41,11 @@ export const useLayoutPrefs = create<LayoutPrefsState>()(
     (set) => ({
       navMode: "navbar",
       sidebarCollapsed: false,
-      proTranscriptView: "timeline",
       setNavMode: (mode) => set({ navMode: mode }),
       toggleNavMode: () =>
         set((s) => ({ navMode: s.navMode === "navbar" ? "sidebar" : "navbar" })),
       toggleSidebarCollapsed: () =>
         set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-      setProTranscriptView: (v) => set({ proTranscriptView: v }),
     }),
     { name: "layout-prefs", storage: createJSONStorage(() => localStorage) },
   ),

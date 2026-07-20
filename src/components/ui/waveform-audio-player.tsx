@@ -9,6 +9,24 @@ interface WaveformAudioPlayerProps {
   className?: string;
   videoDuration?: string; // Format like "0h 1m 25s" or "1m 25s" or "00:01:25"
   barCount?: number;
+  /**
+   * Picos reais da gravação (Recording.waveform, gerados pelo motor). Quando
+   * presentes, a onda é a de verdade; sem eles (acervo antigo), cai nas barras
+   * sintéticas de sempre.
+   */
+  peaks?: number[] | null;
+}
+
+/** Reamostra os picos para N barras (máximo por balde preserva os picos). */
+function resamplePeaks(peaks: number[], alvo: number): number[] {
+  if (peaks.length <= alvo) return peaks;
+  const out: number[] = [];
+  for (let i = 0; i < alvo; i++) {
+    const ini = Math.floor((i / alvo) * peaks.length);
+    const fim = Math.max(ini + 1, Math.floor(((i + 1) / alvo) * peaks.length));
+    out.push(Math.max(...peaks.slice(ini, fim)));
+  }
+  return out;
 }
 
 export function WaveformAudioPlayer({
@@ -16,6 +34,7 @@ export function WaveformAudioPlayer({
   className,
   videoDuration = "00:00:00",
   barCount = 30, // Reduced default from 45 to fit better in small spaces
+  peaks,
 }: WaveformAudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -23,10 +42,16 @@ export function WaveformAudioPlayer({
   const [isReady, setIsReady] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Generate a stable set of random heights for the waveform
-  const [bars] = useState(() =>
-    Array.from({ length: barCount }, () => Math.floor(Math.random() * 60) + 20),
-  );
+  // Onda real quando o motor mandou os picos; barras sintéticas no acervo antigo
+  const [bars] = useState(() => {
+    if (peaks && peaks.length > 4) {
+      const amostra = resamplePeaks(peaks, Math.max(barCount, 90));
+      const maximo = Math.max(...amostra, 0.01);
+      // 8–100%: piso para silêncio continuar visível/clicável
+      return amostra.map((v) => Math.max(8, Math.round((v / maximo) * 100)));
+    }
+    return Array.from({ length: barCount }, () => Math.floor(Math.random() * 60) + 20);
+  });
 
   // Helper to parse "0h 1m 25s" or "1m 25s" or "00:01:25" etc. into seconds
   const parseDurationToSeconds = useCallback((durStr: string): number => {

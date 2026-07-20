@@ -2,12 +2,13 @@
 
 import { useGeneralContext } from "@/context/GeneralContext";
 import { useRecordingData } from "@/hooks/useRecordingData";
-import { Loader2, Printer, X } from "lucide-react";
+import { FileDown, Loader2, Printer, X } from "lucide-react";
 import moment from "moment";
 import "moment/locale/pt-br";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { gerarPdfGravacao } from "./gerar-pdf";
 
 moment.locale("pt-br");
 
@@ -94,8 +95,7 @@ export default function RecordingPrintPage() {
       <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-gray-600">
-          Escolha o que entra no documento e clique em{" "}
-          <strong>Imprimir / Salvar PDF</strong>.
+          Escolha o que entra no documento e clique em <strong>Baixar PDF</strong>.
         </p>
         <div className="flex gap-2">
           <button
@@ -105,10 +105,24 @@ export default function RecordingPrintPage() {
             <X size={13} /> Voltar
           </button>
           <button
-            onClick={() => window.print()}
+            onClick={() =>
+              gerarPdfGravacao(recording, businessCards, {
+                detalhes: incluirDetalhes,
+                resumo: incluirResumo,
+                acoes: incluirAcoes,
+                transcricao: incluirTranscricao,
+              })
+            }
             className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-800"
           >
-            <Printer size={13} /> Imprimir / Salvar PDF
+            <FileDown size={13} /> Baixar PDF
+          </button>
+          <button
+            onClick={() => window.print()}
+            title="Alternativa via impressão do navegador"
+            className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
+          >
+            <Printer size={13} /> Imprimir
           </button>
         </div>
         </div>
@@ -135,8 +149,8 @@ export default function RecordingPrintPage() {
             </label>
           ))}
           <span className="ml-auto text-[11px] text-gray-400">
-            Dica: na janela de impressão, desmarque «Cabeçalhos e rodapés» para
-            tirar a URL e a numeração do PDF.
+            O PDF baixado já sai limpo; «Imprimir» usa o navegador (desmarque
+            «Cabeçalhos e rodapés» lá para não sair a URL).
           </span>
         </div>
       </div>

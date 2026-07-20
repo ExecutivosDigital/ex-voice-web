@@ -308,6 +308,8 @@ export function DetailHeader({
           <WaveformAudioPlayer
             audioUrl={recording.audioUrl}
             videoDuration={recording.duration}
+            peaks={recording.waveform}
+            barCount={90}
             className="border-transparent bg-transparent shadow-none"
           />
         </div>

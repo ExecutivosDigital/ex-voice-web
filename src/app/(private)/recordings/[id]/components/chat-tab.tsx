@@ -116,8 +116,13 @@ export function ChatTab({
     setInput("");
   };
 
-  const visibleMessages = engine.messages.filter((m) => m.role !== "system");
-  const isEmpty = visibleMessages.length === 0;
+  // Esconde o system e o placeholder "..." da IA (enquanto o stream não trouxe
+  // o primeiro token, quem sinaliza espera é o ThinkingDots — senão ficavam
+  // DOIS balões de "...": um estático e um animado; feedback 20/07).
+  const visibleMessages = engine.messages.filter(
+    (m) => m.role !== "system" && !(m.role === "ai" && m.content === "..."),
+  );
+  const isEmpty = visibleMessages.length === 0 && !engine.loading;
 
   return (
     <motion.section
@@ -150,9 +155,9 @@ export function ChatTab({
               ))}
             </AnimatePresence>
 
-            {/* O texto em stream já chega pela mensagem placeholder dentro de
-                engine.messages — renderizar engine.streamingContent aqui era a
-                causa da resposta DUPLICADA durante o stream (feedback 20/07). */}
+            {/* O texto em stream chega pela mensagem placeholder dentro de
+                engine.messages (imutável, ver useChatEngine). Enquanto o
+                primeiro token não vem, o ThinkingDots é o único "..." na tela. */}
             {engine.loading && !engine.streamingContent && <ThinkingDots />}
           </div>
         )}
