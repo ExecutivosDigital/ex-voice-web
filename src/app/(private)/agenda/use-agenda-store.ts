@@ -118,22 +118,16 @@ export interface MeetingPrepContext {
 
 interface AgendaState {
   meetings: Meeting[];
-  googleConnected: boolean;
-  googleEmail: string | null;
   prepContexts: Record<string, MeetingPrepContext>;
   addMeeting: (meeting: Omit<Meeting, "id" | "source"> & { source?: MeetingSource }) => void;
   updateMeeting: (id: string, patch: Partial<Meeting>) => void;
   removeMeeting: (id: string) => void;
-  connectGoogle: (email: string) => void;
-  disconnectGoogle: () => void;
   setPrepContext: (meetingId: string, patch: Partial<MeetingPrepContext>) => void;
   clearPrepContext: (meetingId: string) => void;
 }
 
 export const useAgendaStore = create<AgendaState>((set) => ({
   meetings: INITIAL,
-  googleConnected: false,
-  googleEmail: null,
   prepContexts: {},
   addMeeting: (meeting) =>
     set((state) => ({
@@ -156,10 +150,6 @@ export const useAgendaStore = create<AgendaState>((set) => ({
     set((state) => ({
       meetings: state.meetings.filter((m) => m.id !== id),
     })),
-  connectGoogle: (email) =>
-    set({ googleConnected: true, googleEmail: email }),
-  disconnectGoogle: () =>
-    set({ googleConnected: false, googleEmail: null }),
   setPrepContext: (meetingId, patch) =>
     set((state) => ({
       prepContexts: {

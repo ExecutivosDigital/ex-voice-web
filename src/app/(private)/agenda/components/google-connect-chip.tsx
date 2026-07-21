@@ -4,26 +4,42 @@ import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Loader2, RefreshCw, X } from "lucide-react";
 import { useState } from "react";
-import { useAgendaStore } from "../../agenda/use-agenda-store";
 
-export function GoogleConnectChip() {
-  const googleConnected = useAgendaStore((s) => s.googleConnected);
-  const googleEmail = useAgendaStore((s) => s.googleEmail);
-  const connectGoogle = useAgendaStore((s) => s.connectGoogle);
-  const disconnectGoogle = useAgendaStore((s) => s.disconnectGoogle);
+interface Props {
+  carregando: boolean;
+  conectado: boolean;
+  email: string | null;
+  onConectar: () => void;
+  onDesconectar: () => void;
+}
 
-  const [loading, setLoading] = useState(false);
+export function GoogleConnectChip({
+  carregando,
+  conectado,
+  email,
+  onConectar,
+  onDesconectar,
+}: Props) {
   const [infoOpen, setInfoOpen] = useState(false);
+  const [redirecionando, setRedirecionando] = useState(false);
 
   const handleConnect = () => {
-    setLoading(true);
-    setTimeout(() => {
-      connectGoogle("voce@gmail.com");
-      setLoading(false);
-    }, 800);
+    setRedirecionando(true);
+    onConectar();
   };
 
-  if (googleConnected) {
+  if (carregando) {
+    return (
+      <div className="flex h-9 items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3">
+        <Loader2 size={12} className="animate-spin text-gray-400" />
+        <span className="text-[11px] font-medium text-gray-400">
+          Google Agenda
+        </span>
+      </div>
+    );
+  }
+
+  if (conectado) {
     return (
       <div className="group flex h-9 items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-50/60 pr-1 pl-3 transition">
         <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
@@ -32,12 +48,14 @@ export function GoogleConnectChip() {
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
           </span>
           Google Agenda
-          <span className="hidden text-emerald-600/70 md:inline">
-            · {googleEmail}
-          </span>
+          {email && (
+            <span className="hidden text-emerald-600/70 md:inline">
+              · {email}
+            </span>
+          )}
         </span>
         <button
-          onClick={disconnectGoogle}
+          onClick={onDesconectar}
           className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-emerald-700/60 opacity-0 transition group-hover:opacity-100 hover:bg-emerald-100 hover:text-emerald-800 focus-visible:opacity-100"
           aria-label="Desconectar"
         >
@@ -62,13 +80,13 @@ export function GoogleConnectChip() {
         </button>
         <button
           onClick={handleConnect}
-          disabled={loading}
+          disabled={redirecionando}
           className={cn(
             "inline-flex h-6 items-center gap-1 rounded-full bg-gray-900 px-2.5 text-[10px] font-semibold text-white transition",
-            loading ? "cursor-wait opacity-80" : "hover:bg-gray-700",
+            redirecionando ? "cursor-wait opacity-80" : "hover:bg-gray-700",
           )}
         >
-          {loading ? (
+          {redirecionando ? (
             <Loader2 size={10} className="animate-spin" />
           ) : (
             <RefreshCw size={10} />
@@ -117,15 +135,15 @@ export function GoogleConnectChip() {
               </div>
 
               <p className="mt-4 text-sm leading-relaxed text-gray-600">
-                Ao vincular, sua agenda daqui e o Google Agenda passam a
-                conversar automaticamente:
+                Ao vincular sua conta Google, os compromissos da sua agenda
+                aparecem aqui:
               </p>
 
               <ul className="mt-4 flex flex-col gap-2">
                 {[
-                  "Reuniões criadas aqui aparecem no seu Google Agenda",
-                  "Compromissos do Google Agenda aparecem aqui prontos pra gravar",
-                  "Alterações de data, horário ou cancelamento sincronizam dos dois lados",
+                  "Seus próximos compromissos do Google Agenda aparecem aqui, prontos pra gravar",
+                  "Convidados são reconhecidos automaticamente pelos e-mails dos seus contatos",
+                  "Acesso somente leitura — nada é criado ou alterado no seu Google Agenda",
                 ].map((line) => (
                   <li
                     key={line}

@@ -46,7 +46,6 @@ export function MeetingFormModal({
 }: MeetingFormModalProps) {
   const addMeeting = useAgendaStore((s) => s.addMeeting);
   const updateMeeting = useAgendaStore((s) => s.updateMeeting);
-  const googleConnected = useAgendaStore((s) => s.googleConnected);
 
   const [form, setForm] = useState(emptyForm(defaultDate));
 
@@ -215,9 +214,7 @@ export function MeetingFormModal({
 
             <div className="flex items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/60 px-6 py-4">
               <p className="text-[11px] text-gray-500">
-                {googleConnected
-                  ? "Será sincronizado com o seu Google Agenda."
-                  : "Conecte o Google Agenda para sincronizar automaticamente."}
+                Reunião registrada apenas aqui no Voice.
               </p>
               <div className="flex items-center gap-2">
                 <button

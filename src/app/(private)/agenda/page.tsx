@@ -12,9 +12,11 @@ import {
   Sparkles,
   Video,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import { DayView } from "./components/day-view";
 import { GoogleConnectChip } from "./components/google-connect-chip";
+import { GoogleEventsPanel } from "./components/google-events-panel";
 import { MeetingFormModal } from "./components/meeting-form-modal";
 import { MonthCalendar } from "./components/month-calendar";
 import { PreMeetingModal } from "./components/pre-meeting-modal";
@@ -27,6 +29,7 @@ import {
   sortMeetings,
   useAgendaStore,
 } from "./use-agenda-store";
+import { useGoogleCalendar } from "./use-google-calendar";
 
 const typeAccent: Record<
   MeetingType,
@@ -76,6 +79,23 @@ function minutesBetween(iso: string, time: string) {
 
 export default function AgendaPage() {
   const meetings = useAgendaStore((s) => s.meetings);
+  const google = useGoogleCalendar();
+
+  // Resultado do OAuth chega em ?google=ok|erro|cancelado|sem-sessao
+  useEffect(() => {
+    const resultado = new URLSearchParams(window.location.search).get("google");
+    if (!resultado) return;
+    window.history.replaceState(null, "", "/agenda");
+    if (resultado === "ok") {
+      toast.success("Google Agenda conectada!");
+    } else if (resultado === "cancelado") {
+      toast("Conexão com o Google cancelada");
+    } else if (resultado === "sem-sessao") {
+      toast.error("Sessão expirada — faça login e tente conectar de novo");
+    } else {
+      toast.error("Não foi possível conectar o Google Agenda — tente novamente");
+    }
+  }, []);
 
   const todayISO = toISO(new Date());
   const [selectedDate, setSelectedDate] = useState(todayISO);
@@ -150,7 +170,16 @@ export default function AgendaPage() {
         totalCount={meetings.length}
         nextMeeting={nextMeeting}
         onOpenNext={() => nextMeeting && setPreMeeting(nextMeeting)}
+        google={google}
       />
+
+      {google.conectado && (
+        <GoogleEventsPanel
+          eventos={google.eventos}
+          carregando={google.eventosCarregando}
+          onRecarregar={google.recarregarEventos}
+        />
+      )}
 
       <ComingSoonOverlay>
       <ViewToolbar view={view} onViewChange={setView} />
@@ -276,12 +305,14 @@ function CockpitHeader({
   totalCount,
   nextMeeting,
   onOpenNext,
+  google,
 }: {
   todayCount: number;
   weekCount: number;
   totalCount: number;
   nextMeeting: Meeting | null;
   onOpenNext: () => void;
+  google: ReturnType<typeof useGoogleCalendar>;
 }) {
   const nextMins = useMemo(
     () =>
@@ -310,9 +341,13 @@ function CockpitHeader({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <ComingSoonOverlay badge>
-              <GoogleConnectChip />
-            </ComingSoonOverlay>
+            <GoogleConnectChip
+              carregando={google.carregando}
+              conectado={google.conectado}
+              email={google.email}
+              onConectar={google.conectar}
+              onDesconectar={google.desconectar}
+            />
           </div>
         </div>
       </div>
