@@ -19,11 +19,35 @@ import toast from "react-hot-toast";
  * NUNCA para a gravação sozinho (decisão da reunião: avisar, não parar).
  */
 
-const FIRST_REMINDER_S = 3600; // 1h
-const REMINDER_EVERY_S = 1800; // depois, a cada 30 min
-const SILENCE_WINDOW_MS = 5 * 60 * 1000; // ~5 min sem áudio audível
+// Padrões (em minutos) — sobrescrevíveis por localStorage para teste/ajuste
+// sem rebuild, ex.: localStorage.setItem('voice.watchdog.firstReminderMin','5')
+const FIRST_REMINDER_MIN_PADRAO = 60;
+const REMINDER_EVERY_MIN_PADRAO = 30;
+const SILENCE_MIN_PADRAO = 5;
 const SILENCE_CHECK_INTERVAL_MS = 5000;
 const SILENCE_RMS_THRESHOLD = 0.01; // abaixo disso = silêncio (0..1)
+
+function configMin(chave: string, padrao: number): number {
+  try {
+    const bruto = localStorage.getItem(chave);
+    if (!bruto) return padrao;
+    const n = Number(bruto);
+    return Number.isFinite(n) && n > 0 ? n : padrao;
+  } catch {
+    return padrao;
+  }
+}
+
+function lerTimings() {
+  return {
+    firstReminderS:
+      configMin("voice.watchdog.firstReminderMin", FIRST_REMINDER_MIN_PADRAO) * 60,
+    reminderEveryS:
+      configMin("voice.watchdog.reminderEveryMin", REMINDER_EVERY_MIN_PADRAO) * 60,
+    silenceWindowMs:
+      configMin("voice.watchdog.silenceMin", SILENCE_MIN_PADRAO) * 60 * 1000,
+  };
+}
 function avisar(titulo: string, corpo: string, toastId: string) {
   notificarSistema(titulo, corpo, "voice-watchdog");
   piscarTitulo(`🔴 ${titulo}`);
@@ -47,6 +71,7 @@ export function useRecordingWatchdog({
   const silenceWarnedRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timingsRef = useRef(lerTimings());
 
   // Reset ao começar/terminar uma gravação (+ pedir permissão de notificação
   // no início — estamos dentro do gesto de "iniciar gravação")
@@ -56,6 +81,7 @@ export function useRecordingWatchdog({
       firedMarksRef.current = new Set();
       lastSoundAtRef.current = Date.now();
       silenceWarnedRef.current = false;
+      timingsRef.current = lerTimings(); // timings lidos no início da gravação
       pedirPermissaoDeNotificacao();
     }
   }, [isRecording]);
@@ -63,18 +89,23 @@ export function useRecordingWatchdog({
   // 1. Lembretes de gravação longa: 1h, depois a cada 30 min, sem limite
   useEffect(() => {
     if (!isRecording || isPaused || optedOutRef.current) return;
-    if (duration < FIRST_REMINDER_S) return;
+    const { firstReminderS, reminderEveryS } = timingsRef.current;
+    if (duration < firstReminderS) return;
 
     const mark =
-      FIRST_REMINDER_S +
-      Math.floor((duration - FIRST_REMINDER_S) / REMINDER_EVERY_S) *
-        REMINDER_EVERY_S;
+      firstReminderS +
+      Math.floor((duration - firstReminderS) / reminderEveryS) * reminderEveryS;
     if (firedMarksRef.current.has(mark)) return;
     firedMarksRef.current.add(mark);
 
     const h = Math.floor(mark / 3600);
     const min = Math.round((mark % 3600) / 60);
-    const label = min ? `${h}h${String(min).padStart(2, "0")}` : `${h}h`;
+    const label =
+      h === 0
+        ? `${min} min`
+        : min
+          ? `${h}h${String(min).padStart(2, "0")}`
+          : `${h}h`;
 
     avisar(
       "Ainda em reunião?",
@@ -150,7 +181,7 @@ export function useRecordingWatchdog({
       }
 
       const silentForMs = Date.now() - lastSoundAtRef.current;
-      if (silentForMs >= SILENCE_WINDOW_MS && !silenceWarnedRef.current) {
+      if (silentForMs >= timingsRef.current.silenceWindowMs && !silenceWarnedRef.current) {
         silenceWarnedRef.current = true;
         const minutos = Math.round(silentForMs / 60000);
         avisar(
