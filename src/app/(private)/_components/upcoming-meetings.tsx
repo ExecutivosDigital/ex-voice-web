@@ -1,43 +1,38 @@
 "use client";
 
-import { ComingSoonOverlay } from "@/components/coming-soon-overlay";
 import { cn } from "@/utils/cn";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
   CalendarPlus,
   Clock,
-  MapPin,
-  Monitor,
-  Trash2,
+  Loader2,
+  Mic,
+  Sparkles,
+  UserCheck,
   Video,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
-import {
-  getUpcoming,
-  Meeting,
-  MeetingType,
-  meetingTypeLabel,
-  useAgendaStore,
-} from "../agenda/use-agenda-store";
-import { PreRecordingModal } from "./pre-recording-modal";
+import { useMemo, useState } from "react";
+import { GooglePreMeetingModal } from "../agenda/components/google-pre-meeting-modal";
+import { GoogleEvent, useGoogleCalendar } from "../agenda/use-google-calendar";
 
-const typeAccent: Record<MeetingType, { cls: string; icon: typeof Video }> = {
-  meet: { cls: "text-emerald-700 bg-emerald-50 ring-emerald-100", icon: Video },
-  zoom: { cls: "text-sky-700 bg-sky-50 ring-sky-100", icon: Video },
-  teams: { cls: "text-indigo-700 bg-indigo-50 ring-indigo-100", icon: Monitor },
-  presencial: { cls: "text-gray-700 bg-gray-100 ring-gray-200", icon: MapPin },
-};
+/**
+ * "Próximas reuniões" da home — eventos REAIS do Google Agenda do usuário
+ * (era mock atrás do "Em breve" até 21/07). Sem conexão, convida a conectar.
+ */
 
-function formatDayLabel(date: string) {
-  const today = new Date().toISOString().slice(0, 10);
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
-  if (date === today) return "Hoje";
-  if (date === tomorrowStr) return "Amanhã";
-  const d = new Date(date + "T00:00");
+function formatDayLabel(iso: string) {
+  const d = new Date(iso);
+  const hoje = new Date();
+  const amanha = new Date();
+  amanha.setDate(hoje.getDate() + 1);
+  const mesmoDia = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+  if (mesmoDia(d, hoje)) return "Hoje";
+  if (mesmoDia(d, amanha)) return "Amanhã";
   return d.toLocaleDateString("pt-BR", {
     weekday: "short",
     day: "2-digit",
@@ -45,13 +40,24 @@ function formatDayLabel(date: string) {
   });
 }
 
-export function UpcomingMeetings() {
-  const router = useRouter();
-  const meetings = useAgendaStore((s) => s.meetings);
-  const removeMeeting = useAgendaStore((s) => s.removeMeeting);
+function formatHora(iso: string) {
+  return new Date(iso).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-  const upcoming = useMemo(() => getUpcoming(meetings).slice(0, 3), [meetings]);
-  const [prepping, setPrepping] = useState<Meeting | null>(null);
+export function UpcomingMeetings({
+  google,
+  onGravar,
+}: {
+  google: ReturnType<typeof useGoogleCalendar>;
+  onGravar: (evento: GoogleEvent) => void;
+}) {
+  const router = useRouter();
+  const [preMeetingDe, setPreMeetingDe] = useState<GoogleEvent | null>(null);
+
+  const proximos = useMemo(() => google.eventos.slice(0, 3), [google.eventos]);
 
   return (
     <section className="flex flex-col gap-5">
@@ -76,151 +82,170 @@ export function UpcomingMeetings() {
         </button>
       </div>
 
-      {upcoming.length === 0 ? (
-        <EmptyState onCreate={() => router.push("/agenda?new=1")} />
+      {google.carregando || (google.conectado && google.eventosCarregando && proximos.length === 0) ? (
+        <div className="flex items-center gap-2 rounded-2xl border border-dashed border-gray-200 bg-gray-50/40 px-6 py-8 text-sm text-gray-500">
+          <Loader2 size={14} className="animate-spin" />
+          Carregando sua agenda...
+        </div>
+      ) : !google.conectado ? (
+        <ConnectCta onConnect={() => router.push("/agenda")} />
+      ) : proximos.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/40 px-6 py-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-gray-100 to-gray-200">
+            <CalendarPlus size={20} className="text-gray-500" />
+          </div>
+          <p className="mt-3 text-sm font-semibold text-gray-800">
+            Agenda livre nos próximos 14 dias
+          </p>
+          <p className="mt-1 max-w-xs text-xs text-gray-500">
+            Nenhum compromisso no seu Google Agenda por enquanto.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence initial={false}>
-            {upcoming.map((meeting, i) => (
-              <ComingSoonOverlay key={meeting.id} compact>
-                <MeetingRow
-                  meeting={meeting}
-                  index={i}
-                  onOpen={() => setPrepping(meeting)}
-                  onDelete={() => removeMeeting(meeting.id)}
-                />
-              </ComingSoonOverlay>
-            ))}
-          </AnimatePresence>
+          {proximos.map((evento, i) => (
+            <EventCard
+              key={evento.id}
+              evento={evento}
+              index={i}
+              onPreMeeting={() => setPreMeetingDe(evento)}
+              onGravar={() => onGravar(evento)}
+            />
+          ))}
         </div>
       )}
 
-      <PreRecordingModal
-        meeting={prepping}
-        onClose={() => setPrepping(null)}
-        onStartRecording={(m) => {
-          setPrepping(null);
-          console.log("start recording for", m.id);
+      <GooglePreMeetingModal
+        evento={preMeetingDe}
+        onClose={() => setPreMeetingDe(null)}
+        onGravar={(evento) => {
+          setPreMeetingDe(null);
+          onGravar(evento);
         }}
       />
     </section>
   );
 }
 
-function EmptyState({ onCreate }: { onCreate: () => void }) {
+function ConnectCta({ onConnect }: { onConnect: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/40 px-6 py-10 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-gray-100 to-gray-200">
         <CalendarPlus size={20} className="text-gray-500" />
       </div>
       <p className="mt-3 text-sm font-semibold text-gray-800">
-        Sem reuniões na agenda
+        Conecte seu Google Agenda
       </p>
       <p className="mt-1 max-w-xs text-xs text-gray-500">
-        Adicione um compromisso e a gente te lembra quando for a hora.
+        Seus compromissos aparecem aqui prontos pra gravar, com os contatos já
+        reconhecidos.
       </p>
       <button
-        onClick={onCreate}
+        onClick={onConnect}
         className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700"
       >
-        <CalendarPlus size={13} />
-        Nova reunião
+        Conectar na Agenda
+        <ArrowRight size={13} />
       </button>
     </div>
   );
 }
 
-function MeetingRow({
-  meeting,
+function EventCard({
+  evento,
   index,
-  onOpen,
-  onDelete,
+  onPreMeeting,
+  onGravar,
 }: {
-  meeting: Meeting;
+  evento: GoogleEvent;
   index: number;
-  onOpen: () => void;
-  onDelete: () => void;
+  onPreMeeting: () => void;
+  onGravar: () => void;
 }) {
-  const [confirming, setConfirming] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const accent = typeAccent[meeting.type];
-  const Icon = accent.icon;
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirming) {
-      setConfirming(true);
-      timerRef.current = setTimeout(() => setConfirming(false), 2500);
-      return;
-    }
-    if (timerRef.current) clearTimeout(timerRef.current);
-    onDelete();
-  };
+  const temContato = evento.attendees.some((c) => c.contactId);
+  const convidados = evento.attendees.slice(0, 3);
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.35, delay: index * 0.05 }}
       whileHover={{ y: -2 }}
-      onClick={onOpen}
       className={cn(
-        "group relative flex cursor-pointer flex-col gap-3 overflow-hidden rounded-2xl border border-gray-200/70 bg-white p-4 text-left transition",
+        "group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-gray-200/70 bg-white p-4 text-left transition",
         "shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-gray-300 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.25)]",
       )}
     >
-      <div className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
-
-      <div className="flex items-center justify-between">
-        <span
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase ring-1",
-            accent.cls,
-          )}
-        >
-          <Icon size={10} />
-          {meetingTypeLabel(meeting.type)}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold text-gray-900 capitalize">
+          {evento.start ? formatDayLabel(evento.start) : "—"}
         </span>
-        <span className="rounded-full bg-gray-50 px-2.5 py-0.5 text-[10px] font-semibold text-gray-600">
-          {formatDayLabel(meeting.date)}
+        <span className="flex items-center gap-1 text-[11px] text-gray-500 tabular-nums">
+          <Clock size={10} />
+          {evento.allDay
+            ? "Dia inteiro"
+            : evento.start
+              ? formatHora(evento.start)
+              : "—"}
         </span>
       </div>
 
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-gray-900">
-          {meeting.title}
-        </p>
-        <p className="mt-0.5 line-clamp-1 text-xs text-gray-500">
-          Com {meeting.client}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="truncate text-sm font-semibold text-gray-900">
+            {evento.title}
+          </p>
+          {evento.meetLink && (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold tracking-wider text-emerald-700 uppercase ring-1 ring-emerald-100">
+              <Video size={9} />
+              Meet
+            </span>
+          )}
+        </div>
+        {convidados.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap items-center gap-1">
+            {convidados.map((convidado, i) => (
+              <span
+                key={`${evento.id}-${convidado.email ?? i}`}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                  convidado.contactId
+                    ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
+                    : "bg-gray-100 text-gray-500",
+                )}
+              >
+                {convidado.contactId && <UserCheck size={9} />}
+                {convidado.contactName ??
+                  convidado.name ??
+                  convidado.email ??
+                  "convidado"}
+              </span>
+            ))}
+            {evento.attendees.length > 3 && (
+              <span className="text-[10px] text-gray-400">
+                +{evento.attendees.length - 3}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
-      <div className="mt-auto flex items-center justify-between text-[11px] text-gray-500">
-        <span className="flex items-center gap-1">
-          <Clock size={11} />
-          {meeting.startTime} – {meeting.endTime}
-        </span>
+      <div className="mt-auto flex items-center gap-1.5">
+        {temContato && (
+          <button
+            onClick={onPreMeeting}
+            className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 text-[10px] font-semibold tracking-wider text-gray-700 uppercase transition hover:border-gray-300 hover:text-gray-900"
+          >
+            <Sparkles size={11} />
+            Pre-meeting
+          </button>
+        )}
         <button
-          type="button"
-          onClick={handleDelete}
-          aria-label={confirming ? "Confirmar exclusão" : "Excluir reunião"}
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold tracking-wider uppercase transition",
-            confirming
-              ? "bg-red-50 text-red-600 ring-1 ring-red-200"
-              : "text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-600",
-          )}
+          onClick={onGravar}
+          className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full bg-gray-900 px-3 text-[10px] font-semibold tracking-wider text-white uppercase transition hover:bg-gray-700"
         >
-          {confirming ? (
-            <>
-              <Trash2 size={11} />
-              Confirmar
-            </>
-          ) : (
-            <Trash2 size={12} />
-          )}
+          <Mic size={11} />
+          Gravar
         </button>
       </div>
     </motion.div>

@@ -2,8 +2,12 @@
 
 import { useSession } from "@/context/auth";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
-import { useAgendaStore } from "./agenda/use-agenda-store";
+import { useEffect, useMemo, useState } from "react";
+import {
+  gravacaoDeEvento,
+  GoogleEvent,
+  useGoogleCalendar,
+} from "./agenda/use-google-calendar";
 import { ImmersiveRecorder } from "./_components/immersive-recorder";
 import { ModeCards, RecordMode } from "./_components/mode-cards";
 import { RecentRecordings } from "./_components/recent-recordings";
@@ -43,19 +47,53 @@ function getGreeting(hour: number) {
 
 export default function NewHome() {
   const { profile } = useSession();
+  const google = useGoogleCalendar();
   const [activeMode, setActiveMode] = useState<RecordMode | null>(null);
+  const [preSelected, setPreSelected] = useState<{
+    clientIds: string[];
+    title: string;
+  } | null>(null);
+
+  // Gravação disparada de fora (ex.: evento da Agenda/Google): abre o gravador
+  // com contato e título já preenchidos via ?gravar=online&contato=..&titulo=..
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const gravar = params.get("gravar");
+    if (gravar !== "online" && gravar !== "presencial") return;
+    const contato = params.get("contato");
+    setPreSelected({
+      clientIds: contato ? contato.split(",").filter(Boolean) : [],
+      title: params.get("titulo") ?? "",
+    });
+    setActiveMode(gravar);
+    window.history.replaceState(null, "", "/");
+  }, []);
+
+  // Gravar a partir de um card de evento da própria home (sem navegação)
+  const gravarEvento = (evento: GoogleEvent) => {
+    const { mode, clientIds, title } = gravacaoDeEvento(evento);
+    setPreSelected({ clientIds, title });
+    setActiveMode(mode);
+  };
 
   const firstName = profile?.name?.split(" ")[0] || "";
   const now = new Date();
   const formattedDate = `${WEEKDAYS[now.getDay()]}, ${now.getDate()} de ${MONTHS[now.getMonth()]}`;
   const greeting = getGreeting(now.getHours());
 
-  const meetings = useAgendaStore((s) => s.meetings);
+  // Reuniões de HOJE vindas do Google Agenda (0 quando não conectado)
   const appointmentsToday = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    return meetings.filter((m) => m.date === today).length;
-  }, [meetings]);
-  const pendingSummaries = 2;
+    const hoje = new Date();
+    return google.eventos.filter((e) => {
+      if (!e.start) return false;
+      const d = new Date(e.start);
+      return (
+        d.getFullYear() === hoje.getFullYear() &&
+        d.getMonth() === hoje.getMonth() &&
+        d.getDate() === hoje.getDate()
+      );
+    }).length;
+  }, [google.eventos]);
 
   return (
     <div className="flex w-full flex-col gap-10">
@@ -73,16 +111,18 @@ export default function NewHome() {
           {firstName ? `, ${firstName}.` : "."}
         </h1>
         <p className="mt-1 max-w-xl text-sm leading-relaxed text-gray-500">
-          Você tem{" "}
-          <span className="font-medium text-gray-700">
-            {appointmentsToday}{" "}
-            {appointmentsToday === 1 ? "reunião" : "reuniões"}
-          </span>{" "}
-          hoje e{" "}
-          <span className="font-medium text-gray-700">
-            {pendingSummaries} resumos
-          </span>{" "}
-          esperando sua revisão.
+          {google.conectado ? (
+            <>
+              Você tem{" "}
+              <span className="font-medium text-gray-700">
+                {appointmentsToday}{" "}
+                {appointmentsToday === 1 ? "reunião" : "reuniões"}
+              </span>{" "}
+              hoje no seu Google Agenda.
+            </>
+          ) : (
+            <>Grave, transcreva e transforme suas conversas em decisões.</>
+          )}
         </p>
       </motion.section>
 
@@ -91,7 +131,7 @@ export default function NewHome() {
         <UploadRecordingCta />
       </div>
 
-      <UpcomingMeetings />
+      <UpcomingMeetings google={google} onGravar={gravarEvento} />
 
       <RecentRecordings />
 
@@ -100,7 +140,12 @@ export default function NewHome() {
           <ImmersiveRecorder
             key={activeMode}
             mode={activeMode}
-            onClose={() => setActiveMode(null)}
+            onClose={() => {
+              setActiveMode(null);
+              setPreSelected(null);
+            }}
+            preSelectedClientIds={preSelected?.clientIds}
+            initialTitle={preSelected?.title}
           />
         )}
       </AnimatePresence>

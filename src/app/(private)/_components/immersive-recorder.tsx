@@ -41,6 +41,7 @@ interface ImmersiveRecorderProps {
   mode: Mode;
   onClose: () => void;
   preSelectedClientIds?: string[];
+  initialTitle?: string;
 }
 
 const INTRO_COUNTDOWN_SECONDS = 0;
@@ -179,6 +180,7 @@ export function ImmersiveRecorder({
   mode,
   onClose,
   preSelectedClientIds,
+  initialTitle,
 }: ImmersiveRecorderProps) {
   const router = useRouter();
   const { PostAPI, GetAPI } = useApiContext();
@@ -205,7 +207,7 @@ export function ImmersiveRecorder({
     supportsTabAudio: true,
   });
 
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(initialTitle ?? "");
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>(
     preSelectedClientIds ?? [],
   );

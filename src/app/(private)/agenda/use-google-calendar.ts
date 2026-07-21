@@ -30,6 +30,29 @@ export interface GoogleEvent {
   attendees: GoogleEventAttendee[];
 }
 
+/**
+ * Parâmetros para abrir o gravador a partir de um evento: reunião com Meet =
+ * online (captura de aba), sem = presencial; contatos reconhecidos já entram
+ * vinculados e o título vem do evento.
+ */
+export function gravacaoDeEvento(evento: GoogleEvent) {
+  return {
+    mode: (evento.meetLink ? "online" : "presencial") as "online" | "presencial",
+    clientIds: evento.attendees
+      .map((c) => c.contactId)
+      .filter((id): id is string => Boolean(id)),
+    title: evento.title,
+  };
+}
+
+/** URL que abre a home com o gravador já configurado para o evento. */
+export function urlDeGravacao(evento: GoogleEvent) {
+  const { mode, clientIds, title } = gravacaoDeEvento(evento);
+  const params = new URLSearchParams({ gravar: mode, titulo: title });
+  if (clientIds.length) params.set("contato", clientIds.join(","));
+  return `/?${params.toString()}`;
+}
+
 export function useGoogleCalendar() {
   const { GetAPI, DeleteAPI } = useApiContext();
 

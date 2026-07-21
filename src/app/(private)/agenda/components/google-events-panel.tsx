@@ -1,8 +1,20 @@
 "use client";
 
 import { cn } from "@/utils/cn";
-import { Clock, Loader2, RefreshCw, UserCheck, Users, Video } from "lucide-react";
-import { GoogleEvent } from "../use-google-calendar";
+import {
+  Clock,
+  Loader2,
+  Mic,
+  RefreshCw,
+  Sparkles,
+  UserCheck,
+  Users,
+  Video,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { GoogleEvent, urlDeGravacao } from "../use-google-calendar";
+import { GooglePreMeetingModal } from "./google-pre-meeting-modal";
 
 /**
  * Eventos reais do Google Agenda (próximos 14 dias), com os convidados já
@@ -44,6 +56,14 @@ export function GoogleEventsPanel({
   carregando: boolean;
   onRecarregar: () => void;
 }) {
+  const router = useRouter();
+  const [preMeetingDe, setPreMeetingDe] = useState<GoogleEvent | null>(null);
+
+  // Abre o gravador na home com título e contatos do evento já preenchidos
+  const gravarEvento = (evento: GoogleEvent) => {
+    router.push(urlDeGravacao(evento));
+  };
+
   return (
     <section className="rounded-3xl border border-gray-200/70 bg-white/80 p-5 backdrop-blur-sm md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -144,6 +164,25 @@ export function GoogleEventsPanel({
                   </div>
                 )}
               </div>
+
+              <div className="flex shrink-0 items-center gap-1.5 md:pl-2">
+                {evento.attendees.some((c) => c.contactId) && (
+                  <button
+                    onClick={() => setPreMeetingDe(evento)}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 text-[10px] font-semibold tracking-wider text-gray-700 uppercase transition hover:border-gray-300 hover:text-gray-900"
+                  >
+                    <Sparkles size={11} />
+                    Pre-meeting
+                  </button>
+                )}
+                <button
+                  onClick={() => gravarEvento(evento)}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gray-900 px-3 text-[10px] font-semibold tracking-wider text-white uppercase transition hover:bg-gray-700"
+                >
+                  <Mic size={11} />
+                  Gravar
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -151,8 +190,18 @@ export function GoogleEventsPanel({
 
       <p className="mt-3 text-[11px] text-gray-400">
         Convidados destacados em verde já são seus contatos (reconhecidos pelo
-        e-mail) — a gravação da reunião pode ser vinculada a eles.
+        e-mail) — o Pre-meeting usa o histórico deles e a gravação já nasce
+        vinculada.
       </p>
+
+      <GooglePreMeetingModal
+        evento={preMeetingDe}
+        onClose={() => setPreMeetingDe(null)}
+        onGravar={(evento) => {
+          setPreMeetingDe(null);
+          gravarEvento(evento);
+        }}
+      />
     </section>
   );
 }
