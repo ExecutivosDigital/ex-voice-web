@@ -206,6 +206,10 @@ export function TranscriptionTimeline({
 
   return (
     <div className="space-y-3">
+      {/* Faixa de áudio FIXA no topo enquanto a página rola (ideia do Victor,
+          21/07): controles + trilha ficam sticky; a lista de falas abaixo é
+          conteúdo normal da página, sem scroll próprio. */}
+      <div className="sticky top-0 z-30 -mx-2 space-y-3 rounded-b-2xl bg-white/95 px-2 pt-2 pb-3 shadow-[0_12px_20px_-16px_rgba(15,23,42,0.25)] backdrop-blur-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <button
@@ -341,15 +345,18 @@ export function TranscriptionTimeline({
           </div>
         </div>
       </div>
+      </div>
 
-      {/* A leitura acompanha a navegação: a lista rola sozinha até a fala em
-          reprodução, e clicar num bloco da trilha seleciona a fala aqui. */}
+      {/* A leitura acompanha a navegação: a página segue a fala em reprodução
+          (quando o usuário está perto dela), e clicar num bloco da trilha
+          seleciona a fala aqui. */}
       <SpeechList
         trechos={trechos}
         estilos={estilos}
         posicao={posicao}
         selecionadoId={selecionado}
         onSeek={tocarEm}
+        scrollDaPagina
       />
 
       <p className="text-[11px] text-gray-400">

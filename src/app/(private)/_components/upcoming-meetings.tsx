@@ -204,9 +204,10 @@ function EventCard({
         </div>
         {convidados.length > 0 && (
           <div className="mt-1.5 flex flex-wrap items-center gap-1">
+            {/* LGPD (João, 21/07): e-mail de convidado nunca aparece na UI */}
             {convidados.map((convidado, i) => (
               <span
-                key={`${evento.id}-${convidado.email ?? i}`}
+                key={`${evento.id}-${i}`}
                 className={cn(
                   "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                   convidado.contactId
@@ -215,10 +216,7 @@ function EventCard({
                 )}
               >
                 {convidado.contactId && <UserCheck size={9} />}
-                {convidado.contactName ??
-                  convidado.name ??
-                  convidado.email ??
-                  "convidado"}
+                {convidado.contactName ?? convidado.name ?? "Convidado"}
               </span>
             ))}
             {evento.attendees.length > 3 && (

@@ -135,16 +135,14 @@ export function GoogleEventsPanel({
                 {evento.attendees.length > 0 && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1">
                     <Users size={10} className="text-gray-400" />
+                    {/* LGPD (João, 21/07): e-mail de convidado NUNCA aparece —
+                        só nome do convite ou o vínculo com o contato */}
                     {evento.attendees.map((convidado, i) => {
                       const rotulo =
-                        convidado.contactName ??
-                        convidado.name ??
-                        convidado.email ??
-                        "convidado";
+                        convidado.contactName ?? convidado.name ?? "Convidado";
                       return (
                         <span
-                          key={`${evento.id}-${convidado.email ?? i}`}
-                          title={convidado.email ?? undefined}
+                          key={`${evento.id}-${i}`}
                           className={cn(
                             "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                             convidado.contactId

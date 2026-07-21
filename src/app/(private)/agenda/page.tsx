@@ -47,11 +47,8 @@ function meetingDoEvento(evento: GoogleEvent): Meeting {
   return {
     id: `g-${evento.id}`,
     title: evento.title,
-    client:
-      principal?.contactName ??
-      principal?.name ??
-      principal?.email ??
-      "Sem convidados",
+    // LGPD (João, 21/07): e-mail de convidado não aparece na UI
+    client: principal?.contactName ?? principal?.name ?? "Sem convidados",
     date: start
       ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`
       : "",

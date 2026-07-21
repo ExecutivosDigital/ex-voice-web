@@ -34,6 +34,7 @@ export function SpeechList({
   posicao,
   selecionadoId,
   onSeek,
+  scrollDaPagina = false,
 }: {
   trechos: SpeechListItem[];
   estilos: Record<string, { bg?: string; text?: string; dot?: string }>;
@@ -42,6 +43,13 @@ export function SpeechList({
   /** Fala escolhida na visualização acima (clique num bloco) — rola até ela. */
   selecionadoId?: string | null;
   onSeek: (segundo: number) => void;
+  /**
+   * Modo página inteira (ideia do Victor, 21/07): a lista NÃO tem altura nem
+   * scroll próprios — quem rola é a tela, com a faixa de áudio sticky acima.
+   * O acompanhamento só rola a página se o usuário estiver perto da fala
+   * ativa (seguindo a leitura); se ele rolou para longe, não sequestra.
+   */
+  scrollDaPagina?: boolean;
 }) {
   const listaRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef(new Map<string, HTMLButtonElement>());
@@ -53,22 +61,39 @@ export function SpeechList({
   useEffect(() => {
     if (!alvo) return;
     const el = itemRefs.current.get(alvo);
+    if (!el) return;
+
+    if (scrollDaPagina) {
+      const rect = el.getBoundingClientRect();
+      const explicito = alvo === selecionadoId;
+      const perto =
+        rect.top > -window.innerHeight * 0.5 &&
+        rect.top < window.innerHeight * 1.5;
+      if (explicito || perto) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
     const lista = listaRef.current;
-    if (!el || !lista) return;
+    if (!lista) return;
     // Rola DENTRO da lista (nunca a página) até a fala ativa/selecionada.
     const topoRelativo = el.offsetTop - lista.offsetTop;
     lista.scrollTo({
       top: topoRelativo - lista.clientHeight / 2 + el.clientHeight / 2,
       behavior: "smooth",
     });
-  }, [alvo]);
+  }, [alvo, selecionadoId, scrollDaPagina]);
 
   if (!trechos.length) return null;
 
   return (
     <div
       ref={listaRef}
-      className="max-h-80 overflow-y-auto rounded-2xl border border-gray-200 bg-white"
+      className={cn(
+        "rounded-2xl border border-gray-200 bg-white",
+        !scrollDaPagina && "max-h-80 overflow-y-auto",
+      )}
     >
       <div className="flex flex-col">
         {trechos.map((t) => {
