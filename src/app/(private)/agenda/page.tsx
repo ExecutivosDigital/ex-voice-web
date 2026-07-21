@@ -1,7 +1,7 @@
 "use client";
 
-import { ComingSoonOverlay } from "@/components/coming-soon-overlay";
 import { cn } from "@/utils/cn";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
@@ -17,9 +17,9 @@ import toast from "react-hot-toast";
 import { DayView } from "./components/day-view";
 import { GoogleConnectChip } from "./components/google-connect-chip";
 import { GoogleEventsPanel } from "./components/google-events-panel";
-import { MeetingFormModal } from "./components/meeting-form-modal";
+import { GooglePreMeetingModal } from "./components/google-pre-meeting-modal";
+import { MeetingStartBanner } from "./components/meeting-start-banner";
 import { MonthCalendar } from "./components/month-calendar";
-import { PreMeetingModal } from "./components/pre-meeting-modal";
 import { ViewSwitcher, AgendaView } from "./components/view-switcher";
 import { YearView } from "./components/year-view";
 import {
@@ -27,9 +27,45 @@ import {
   MeetingType,
   meetingTypeLabel,
   sortMeetings,
-  useAgendaStore,
 } from "./use-agenda-store";
-import { useGoogleCalendar } from "./use-google-calendar";
+import {
+  GoogleEvent,
+  urlDeGravacao,
+  useGoogleCalendar,
+} from "./use-google-calendar";
+import { useMeetingStartAlert } from "./use-meeting-start-alert";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** Evento do Google no formato que as views de calendário consomem. */
+function meetingDoEvento(evento: GoogleEvent): Meeting {
+  const start = evento.start ? new Date(evento.start) : null;
+  const end = evento.end ? new Date(evento.end) : null;
+  const principal =
+    evento.attendees.find((c) => c.contactId) ?? evento.attendees[0];
+  return {
+    id: `g-${evento.id}`,
+    title: evento.title,
+    client:
+      principal?.contactName ??
+      principal?.name ??
+      principal?.email ??
+      "Sem convidados",
+    date: start
+      ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`
+      : "",
+    startTime:
+      evento.allDay || !start
+        ? "00:00"
+        : `${pad(start.getHours())}:${pad(start.getMinutes())}`,
+    endTime:
+      evento.allDay || !end
+        ? "23:59"
+        : `${pad(end.getHours())}:${pad(end.getMinutes())}`,
+    type: evento.meetLink ? "meet" : "presencial",
+    source: "google",
+  };
+}
 
 const typeAccent: Record<
   MeetingType,
@@ -78,8 +114,21 @@ function minutesBetween(iso: string, time: string) {
 }
 
 export default function AgendaPage() {
-  const meetings = useAgendaStore((s) => s.meetings);
+  const router = useRouter();
   const google = useGoogleCalendar();
+
+  // As views de calendário consomem os eventos REAIS do Google
+  const meetings = useMemo(
+    () => google.eventos.filter((e) => e.start).map(meetingDoEvento),
+    [google.eventos],
+  );
+  const eventoPorMeetingId = useMemo(
+    () =>
+      new Map(
+        google.eventos.filter((e) => e.start).map((e) => [`g-${e.id}`, e]),
+      ),
+    [google.eventos],
+  );
 
   // Resultado do OAuth chega em ?google=ok|erro|cancelado|sem-sessao
   useEffect(() => {
@@ -105,10 +154,23 @@ export default function AgendaPage() {
   });
   const [view, setView] = useState<AgendaView>("month");
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Meeting | null>(null);
-  const [defaultDate, setDefaultDate] = useState<string | undefined>(undefined);
-  const [preMeeting, setPreMeeting] = useState<Meeting | null>(null);
+  const [preMeetingEvento, setPreMeetingEvento] = useState<GoogleEvent | null>(
+    null,
+  );
+
+  const gravarEvento = (evento: GoogleEvent) => {
+    router.push(urlDeGravacao(evento));
+  };
+
+  const abrirMeeting = (meeting: Meeting) => {
+    const evento = eventoPorMeetingId.get(meeting.id);
+    if (evento) setPreMeetingEvento(evento);
+  };
+
+  const alertaInicio = useMeetingStartAlert({
+    eventos: google.eventos,
+    gravando: false,
+  });
 
   const sortedMeetings = useMemo(() => sortMeetings(meetings), [meetings]);
   const selectedDayMeetings = useMemo(
@@ -138,17 +200,13 @@ export default function AgendaPage() {
     return sortedMeetings.filter((m) => m.date >= todayISO && m.date <= end);
   }, [sortedMeetings, todayISO]);
 
-  const handleEdit = (meeting: Meeting) => {
-    setEditing(meeting);
-    setDefaultDate(undefined);
-    setModalOpen(true);
-    setPreMeeting(null);
-  };
-
-  const handleNew = (date?: string) => {
-    setEditing(null);
-    setDefaultDate(date);
-    setModalOpen(true);
+  // Agendamento manual persistido ainda não existe (backlog) — os
+  // compromissos vêm do Google Agenda por enquanto.
+  const handleNew = () => {
+    toast(
+      "Por enquanto os compromissos vêm do seu Google Agenda — agendamento manual chega em breve.",
+      { id: "agendamento-manual" },
+    );
   };
 
   const handleSelectMonth = (year: number, month: number) => {
@@ -164,12 +222,18 @@ export default function AgendaPage() {
 
   return (
     <div className="flex w-full flex-col gap-8">
+      <MeetingStartBanner
+        eventos={alertaInicio.comecando}
+        onGravar={gravarEvento}
+        onDispensar={alertaInicio.dispensar}
+      />
+
       <CockpitHeader
         todayCount={todayMeetings.length}
         weekCount={weekMeetings.length}
         totalCount={meetings.length}
         nextMeeting={nextMeeting}
-        onOpenNext={() => nextMeeting && setPreMeeting(nextMeeting)}
+        onOpenNext={() => nextMeeting && abrirMeeting(nextMeeting)}
         google={google}
       />
 
@@ -181,7 +245,6 @@ export default function AgendaPage() {
         />
       )}
 
-      <ComingSoonOverlay>
       <ViewToolbar view={view} onViewChange={setView} />
       <div className="mt-6" />
 
@@ -198,8 +261,8 @@ export default function AgendaPage() {
               meetings={meetings}
               selectedDate={selectedDate}
               onSelectDate={handleSelectDate}
-              onOpenMeeting={(m) => setPreMeeting(m)}
-              onAdd={(d) => handleNew(d)}
+              onOpenMeeting={abrirMeeting}
+              onAdd={() => handleNew()}
             />
           </motion.div>
         )}
@@ -227,8 +290,8 @@ export default function AgendaPage() {
               selectedDate={selectedDate}
               todayISO={todayISO}
               meetings={selectedDayMeetings}
-              onAdd={() => handleNew(selectedDate)}
-              onOpen={(m) => setPreMeeting(m)}
+              onAdd={() => handleNew()}
+              onOpen={abrirMeeting}
               onOpenDayView={() => setView("day")}
             />
           </motion.section>
@@ -258,23 +321,13 @@ export default function AgendaPage() {
           </motion.div>
         )}
       </AnimatePresence>
-      </ComingSoonOverlay>
 
-      <MeetingFormModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        editing={editing}
-        defaultDate={defaultDate}
-      />
-
-      <PreMeetingModal
-        meeting={preMeeting}
-        onClose={() => setPreMeeting(null)}
-        onEdit={handleEdit}
-        onStartRecording={(m) => {
-          setPreMeeting(null);
-          // Hook de gravação integra aqui depois.
-          console.log("start recording for", m.id);
+      <GooglePreMeetingModal
+        evento={preMeetingEvento}
+        onClose={() => setPreMeetingEvento(null)}
+        onGravar={(evento) => {
+          setPreMeetingEvento(null);
+          gravarEvento(evento);
         }}
       />
     </div>
@@ -353,13 +406,11 @@ function CockpitHeader({
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <ComingSoonOverlay compact backdropClassName="rounded-3xl">
-          <NextMeetingCard
-            meeting={nextMeeting}
-            minutes={nextMins}
-            onOpen={onOpenNext}
-          />
-        </ComingSoonOverlay>
+        <NextMeetingCard
+          meeting={nextMeeting}
+          minutes={nextMins}
+          onOpen={onOpenNext}
+        />
         <StatCard label="Hoje" value={todayCount} hint="compromissos" tone="light" />
         <StatCard
           label="Próx. 7 dias"

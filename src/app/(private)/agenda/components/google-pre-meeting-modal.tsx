@@ -47,6 +47,7 @@ export function GooglePreMeetingModal({
   const { PostAPI } = useApiContext();
   const [briefing, setBriefing] = useState<Briefing | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [semContato, setSemContato] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -55,12 +56,17 @@ export function GooglePreMeetingModal({
     if (!evento) {
       setBriefing(null);
       setErro(null);
+      setSemContato(false);
       return;
     }
     const clientIds = evento.attendees
       .map((c) => c.contactId)
       .filter((id): id is string => Boolean(id));
-    if (clientIds.length === 0) return;
+    if (clientIds.length === 0) {
+      setSemContato(true);
+      return;
+    }
+    setSemContato(false);
 
     let ativo = true;
     (async () => {
@@ -130,6 +136,13 @@ export function GooglePreMeetingModal({
               <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">
                 {erro}
               </p>
+            ) : semContato ? (
+              <div className="rounded-2xl bg-gray-50 px-4 py-4 text-sm leading-relaxed text-gray-600">
+                Nenhum convidado deste evento é um contato seu ainda — por isso
+                não há histórico para preparar o briefing. Cadastre o convidado
+                em Contatos com o e-mail do convite e ele passa a ser
+                reconhecido automaticamente. A gravação funciona normalmente.
+              </div>
             ) : !briefing ? (
               <div className="flex flex-col items-center gap-3 py-10 text-sm text-gray-500">
                 <Loader2 size={20} className="animate-spin" />

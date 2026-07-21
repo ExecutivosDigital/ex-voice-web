@@ -3,11 +3,13 @@
 import { useSession } from "@/context/auth";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
+import { MeetingStartBanner } from "./agenda/components/meeting-start-banner";
 import {
   gravacaoDeEvento,
   GoogleEvent,
   useGoogleCalendar,
 } from "./agenda/use-google-calendar";
+import { useMeetingStartAlert } from "./agenda/use-meeting-start-alert";
 import { ImmersiveRecorder } from "./_components/immersive-recorder";
 import { ModeCards, RecordMode } from "./_components/mode-cards";
 import { RecentRecordings } from "./_components/recent-recordings";
@@ -76,6 +78,11 @@ export default function NewHome() {
     setActiveMode(mode);
   };
 
+  const alertaInicio = useMeetingStartAlert({
+    eventos: google.eventos,
+    gravando: activeMode !== null,
+  });
+
   const firstName = profile?.name?.split(" ")[0] || "";
   const now = new Date();
   const formattedDate = `${WEEKDAYS[now.getDay()]}, ${now.getDate()} de ${MONTHS[now.getMonth()]}`;
@@ -97,6 +104,12 @@ export default function NewHome() {
 
   return (
     <div className="flex w-full flex-col gap-10">
+      <MeetingStartBanner
+        eventos={alertaInicio.comecando}
+        onGravar={gravarEvento}
+        onDispensar={alertaInicio.dispensar}
+      />
+
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
