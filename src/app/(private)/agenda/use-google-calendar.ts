@@ -35,9 +35,14 @@ export interface GoogleEvent {
  * online (captura de aba), sem = presencial; contatos reconhecidos já entram
  * vinculados e o título vem do evento.
  */
-export function gravacaoDeEvento(evento: GoogleEvent) {
+export function gravacaoDeEvento(
+  evento: GoogleEvent,
+  modo?: "online" | "presencial",
+) {
   return {
-    mode: (evento.meetLink ? "online" : "presencial") as "online" | "presencial",
+    mode:
+      modo ??
+      ((evento.meetLink ? "online" : "presencial") as "online" | "presencial"),
     clientIds: evento.attendees
       .map((c) => c.contactId)
       .filter((id): id is string => Boolean(id)),
@@ -46,8 +51,11 @@ export function gravacaoDeEvento(evento: GoogleEvent) {
 }
 
 /** URL que abre a home com o gravador já configurado para o evento. */
-export function urlDeGravacao(evento: GoogleEvent) {
-  const { mode, clientIds, title } = gravacaoDeEvento(evento);
+export function urlDeGravacao(
+  evento: GoogleEvent,
+  modo?: "online" | "presencial",
+) {
+  const { mode, clientIds, title } = gravacaoDeEvento(evento, modo);
   const params = new URLSearchParams({ gravar: mode, titulo: title });
   if (clientIds.length) params.set("contato", clientIds.join(","));
   return `/?${params.toString()}`;

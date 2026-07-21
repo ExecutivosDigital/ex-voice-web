@@ -239,7 +239,7 @@ export function TranscriptionTab({
                 )}
               >
                 <AudioWaveform size={13} />
-                {modo === "pro" ? "Ver lista" : "Timeline"}
+                {modo === "pro" ? "Ver lista" : "Pro"}
               </button>
 
 

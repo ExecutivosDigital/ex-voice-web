@@ -14,16 +14,26 @@ export function NotesCard({
   title,
   variant = "gray",
   data,
+  editadoEm,
+  onEditar,
 }: {
   title: string;
   variant?: VariantColor;
   data: { content?: string; notes?: string; sections?: NotesSection[] };
+  editadoEm?: string;
+  onEditar?: () => void;
 }) {
   const content = data.content || data.notes || "";
   const sections = (data.sections ?? []).filter((s) => s?.content);
 
   return (
-    <CardShell icon={FileText} title={title} variant={variant}>
+    <CardShell
+      icon={FileText}
+      title={title}
+      variant={variant}
+      editadoEm={editadoEm}
+      onEditar={onEditar}
+    >
       <div className="flex-1 p-5">
         {sections.length > 0 ? (
           <div className="flex flex-col gap-4">
@@ -63,13 +73,23 @@ export function ObservationsCard({
   title,
   variant = "amber",
   data,
+  editadoEm,
+  onEditar,
 }: {
   title: string;
   variant?: VariantColor;
   data: { observations?: string };
+  editadoEm?: string;
+  onEditar?: () => void;
 }) {
   return (
-    <CardShell icon={Info} title={title} variant={variant}>
+    <CardShell
+      icon={Info}
+      title={title}
+      variant={variant}
+      editadoEm={editadoEm}
+      onEditar={onEditar}
+    >
       <div className="flex-1 p-5">
         {data.observations ? (
           <p className="text-sm leading-relaxed break-words text-gray-700">

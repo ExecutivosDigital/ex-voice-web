@@ -10,8 +10,10 @@ import {
   useGoogleCalendar,
 } from "./agenda/use-google-calendar";
 import { useMeetingStartAlert } from "./agenda/use-meeting-start-alert";
+import { EscolherModoModal } from "./agenda/components/escolher-modo-modal";
 import { ImmersiveRecorder } from "./_components/immersive-recorder";
 import { ModeCards, RecordMode } from "./_components/mode-cards";
+import { NotificationPermissionBanner } from "./_components/notification-permission-banner";
 import { RecentRecordings } from "./_components/recent-recordings";
 import { UpcomingMeetings } from "./_components/upcoming-meetings";
 import { UploadRecordingCta } from "./_components/upload-recording-dialog";
@@ -71,11 +73,27 @@ export default function NewHome() {
     window.history.replaceState(null, "", "/");
   }, []);
 
-  // Gravar a partir de um card de evento da própria home (sem navegação)
-  const gravarEvento = (evento: GoogleEvent) => {
-    const { mode, clientIds, title } = gravacaoDeEvento(evento);
+  const [escolherModoDe, setEscolherModoDe] = useState<GoogleEvent | null>(
+    null,
+  );
+
+  // Gravar a partir de um card de evento da própria home (sem navegação).
+  // Com Meet = online direto; sem Meet o usuário escolhe (call João 21/07).
+  const iniciarGravacao = (
+    evento: GoogleEvent,
+    modo?: "online" | "presencial",
+  ) => {
+    const { mode, clientIds, title } = gravacaoDeEvento(evento, modo);
     setPreSelected({ clientIds, title });
     setActiveMode(mode);
+  };
+
+  const gravarEvento = (evento: GoogleEvent) => {
+    if (evento.meetLink) {
+      iniciarGravacao(evento);
+    } else {
+      setEscolherModoDe(evento);
+    }
   };
 
   const alertaInicio = useMeetingStartAlert({
@@ -104,6 +122,8 @@ export default function NewHome() {
 
   return (
     <div className="flex w-full flex-col gap-10">
+      <NotificationPermissionBanner />
+
       <MeetingStartBanner
         eventos={alertaInicio.comecando}
         onGravar={gravarEvento}
@@ -162,6 +182,16 @@ export default function NewHome() {
           />
         )}
       </AnimatePresence>
+
+      <EscolherModoModal
+        evento={escolherModoDe}
+        onClose={() => setEscolherModoDe(null)}
+        onEscolher={(modo) => {
+          const evento = escolherModoDe;
+          setEscolherModoDe(null);
+          if (evento) iniciarGravacao(evento, modo);
+        }}
+      />
     </div>
   );
 }

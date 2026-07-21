@@ -6,8 +6,11 @@ import {
   normalizeStructuredSummary,
 } from "@/components/analysis";
 import { RequestTranscription } from "@/components/ui/request-transcription";
+import { useApiContext } from "@/context/ApiContext";
+import { useGeneralContext } from "@/context/GeneralContext";
 import { motion } from "framer-motion";
 import { AlertTriangle, Brain, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { Placeholder } from "./placeholder";
 
 export function InsightsTab({
@@ -15,6 +18,46 @@ export function InsightsTab({
 }: {
   recording: RecordingDetailsProps;
 }) {
+  const { PutAPI } = useApiContext();
+  const { setSelectedRecording } = useGeneralContext();
+
+  // Edição de card (João, 21/07): grava o structuredSummary inteiro com o
+  // data novo do componente editado; o selo "Editado" vem do _editadoEm.
+  const salvarComponente = async (
+    si: number,
+    ci: number,
+    novoData: Record<string, unknown>,
+  ): Promise<boolean> => {
+    const atual = normalizeStructuredSummary(recording.structuredSummary);
+    if (!atual) return false;
+    const novo = {
+      pageTitle: atual.pageTitle,
+      sections: atual.sections.map((section, i) =>
+        i !== si
+          ? section
+          : {
+              ...section,
+              components: section.components.map((component, j) =>
+                j !== ci ? component : { ...component, data: novoData },
+              ),
+            },
+      ),
+    };
+    const response = await PutAPI(
+      `/recording/${recording.id}`,
+      { structuredSummary: novo },
+      true,
+    );
+    if (response.status === 200) {
+      setSelectedRecording((prev) =>
+        prev ? { ...prev, structuredSummary: novo } : prev,
+      );
+      toast.success("Análise atualizada");
+      return true;
+    }
+    toast.error("Não foi possível salvar a edição — tente novamente");
+    return false;
+  };
   if (recording.transcriptionStatus === "NOT_REQUESTED") {
     return (
       <Placeholder
@@ -74,7 +117,7 @@ export function InsightsTab({
       transition={{ duration: 0.35 }}
       className="rounded-3xl border border-gray-200/70 bg-white/80 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] backdrop-blur-sm md:p-7"
     >
-      <AnalysisView response={analysis} />
+      <AnalysisView response={analysis} onSalvarComponente={salvarComponente} />
     </motion.section>
   );
 }

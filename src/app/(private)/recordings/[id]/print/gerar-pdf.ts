@@ -83,12 +83,18 @@ class Documento {
   rodapes() {
     const paginas = this.doc.getNumberOfPages();
     const gerado = `Documento gerado pelo Executivos Voice em ${moment().format("DD/MM/YYYY [às] HH:mm")} · conteúdo transcrito e analisado por IA`;
+    // Canal de suporte no PDF (pedido do João, 21/07) — mesmo WhatsApp
+    // institucional dos planos/checkout, como link clicável
+    const suporte = "Dúvidas? Fale com a gente no WhatsApp: (41) 99781-9114";
     for (let p = 1; p <= paginas; p++) {
       this.doc.setPage(p);
       this.doc.setFont("helvetica", "normal");
       this.doc.setFontSize(7.5);
       this.doc.setTextColor(150);
       this.doc.text(gerado, MARGEM, 842 - 28);
+      this.doc.textWithLink(suporte, MARGEM, 842 - 18, {
+        url: "https://wa.me/5541997819114",
+      });
       this.doc.text(`${p} de ${paginas}`, MARGEM + LARGURA, 842 - 28, {
         align: "right",
       });

@@ -15,6 +15,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { DayView } from "./components/day-view";
+import { EscolherModoModal } from "./components/escolher-modo-modal";
 import { GoogleConnectChip } from "./components/google-connect-chip";
 import { GoogleEventsPanel } from "./components/google-events-panel";
 import { GooglePreMeetingModal } from "./components/google-pre-meeting-modal";
@@ -157,9 +158,17 @@ export default function AgendaPage() {
   const [preMeetingEvento, setPreMeetingEvento] = useState<GoogleEvent | null>(
     null,
   );
+  const [escolherModoDe, setEscolherModoDe] = useState<GoogleEvent | null>(
+    null,
+  );
 
+  // Com Meet = online direto; sem Meet o usuário escolhe (call João 21/07)
   const gravarEvento = (evento: GoogleEvent) => {
-    router.push(urlDeGravacao(evento));
+    if (evento.meetLink) {
+      router.push(urlDeGravacao(evento));
+    } else {
+      setEscolherModoDe(evento);
+    }
   };
 
   const abrirMeeting = (meeting: Meeting) => {
@@ -242,6 +251,7 @@ export default function AgendaPage() {
           eventos={google.eventos}
           carregando={google.eventosCarregando}
           onRecarregar={google.recarregarEventos}
+          onGravar={gravarEvento}
         />
       )}
 
@@ -330,6 +340,16 @@ export default function AgendaPage() {
           gravarEvento(evento);
         }}
       />
+
+      <EscolherModoModal
+        evento={escolherModoDe}
+        onClose={() => setEscolherModoDe(null)}
+        onEscolher={(modo) => {
+          const evento = escolherModoDe;
+          setEscolherModoDe(null);
+          if (evento) router.push(urlDeGravacao(evento, modo));
+        }}
+      />
     </div>
   );
 }
@@ -367,12 +387,21 @@ function CockpitHeader({
   onOpenNext: () => void;
   google: ReturnType<typeof useGoogleCalendar>;
 }) {
+  // Tick de 30s: sem ele o "em Xh" congela no valor do primeiro render
+  // (achado do João na call de 21/07)
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const nextMins = useMemo(
     () =>
       nextMeeting
         ? minutesBetween(nextMeeting.date, nextMeeting.startTime)
         : null,
-    [nextMeeting],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [nextMeeting, tick],
   );
 
   return (

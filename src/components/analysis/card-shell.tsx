@@ -2,6 +2,7 @@
 
 import { cn } from "@/utils/cn";
 import type { LucideIcon } from "lucide-react";
+import { Pencil } from "lucide-react";
 import type { ReactNode } from "react";
 import type { VariantColor } from "./types";
 
@@ -58,6 +59,8 @@ export function CardShell({
   headerAction,
   children,
   className,
+  editadoEm,
+  onEditar,
 }: {
   icon: LucideIcon;
   title: string;
@@ -66,6 +69,10 @@ export function CardShell({
   headerAction?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** ISO de quando o conteúdo foi editado à mão (selo "Editado"). */
+  editadoEm?: string;
+  /** Habilita o lápis de edição no header. */
+  onEditar?: () => void;
 }) {
   const styles = VARIANTS[variant] ?? VARIANTS.gray;
 
@@ -95,7 +102,25 @@ export function CardShell({
         >
           {title}
         </h3>
+        {editadoEm && (
+          <span
+            title={`Editado à mão em ${new Date(editadoEm).toLocaleString("pt-BR")}`}
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-semibold tracking-wider text-gray-500 uppercase"
+          >
+            <Pencil size={8} />
+            Editado
+          </span>
+        )}
         {headerAction}
+        {onEditar && (
+          <button
+            onClick={onEditar}
+            title="Editar conteúdo"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-900"
+          >
+            <Pencil size={13} />
+          </button>
+        )}
       </div>
       {children}
     </div>

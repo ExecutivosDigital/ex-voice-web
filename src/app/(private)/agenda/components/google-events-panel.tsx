@@ -11,9 +11,8 @@ import {
   Users,
   Video,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { GoogleEvent, urlDeGravacao } from "../use-google-calendar";
+import { GoogleEvent } from "../use-google-calendar";
 import { GooglePreMeetingModal } from "./google-pre-meeting-modal";
 
 /**
@@ -51,18 +50,15 @@ export function GoogleEventsPanel({
   eventos,
   carregando,
   onRecarregar,
+  onGravar,
 }: {
   eventos: GoogleEvent[];
   carregando: boolean;
   onRecarregar: () => void;
+  onGravar: (evento: GoogleEvent) => void;
 }) {
-  const router = useRouter();
   const [preMeetingDe, setPreMeetingDe] = useState<GoogleEvent | null>(null);
-
-  // Abre o gravador na home com título e contatos do evento já preenchidos
-  const gravarEvento = (evento: GoogleEvent) => {
-    router.push(urlDeGravacao(evento));
-  };
+  const gravarEvento = onGravar;
 
   return (
     <section className="rounded-3xl border border-gray-200/70 bg-white/80 p-5 backdrop-blur-sm md:p-6">

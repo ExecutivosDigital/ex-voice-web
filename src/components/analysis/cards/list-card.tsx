@@ -31,11 +31,15 @@ export function ListCard({
   title,
   variant = "emerald",
   data,
+  editadoEm,
+  onEditar,
 }: {
   type: keyof typeof ICON_BY_TYPE;
   title: string;
   variant?: VariantColor;
   data: { items?: ActionItem[] };
+  editadoEm?: string;
+  onEditar?: () => void;
 }) {
   const [copiedAll, setCopiedAll] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -64,6 +68,8 @@ export function ListCard({
       icon={ICON_BY_TYPE[type]}
       title={title}
       variant={variant}
+      editadoEm={editadoEm}
+      onEditar={onEditar}
       headerAction={
         items.length > 0 ? (
           <CopyAllButton copied={copiedAll} onCopy={copyAll} />
