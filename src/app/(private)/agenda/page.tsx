@@ -336,6 +336,7 @@ export default function AgendaPage() {
           setPreMeetingEvento(null);
           gravarEvento(evento);
         }}
+        onGerado={google.recarregarEventos}
       />
 
       <EscolherModoModal

@@ -1,7 +1,9 @@
 "use client";
 
+import { LogoBubble, MeetLogo, TeamsLogo, ZoomLogo } from "@/components/ui/brand-logos";
+import { useTravarScrollDaPagina } from "@/hooks/useTravarScrollDaPagina";
 import { AnimatePresence, motion } from "framer-motion";
-import { Mic, MonitorUp, X } from "lucide-react";
+import { MapPin, Mic, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { GoogleEvent } from "../use-google-calendar";
@@ -21,6 +23,7 @@ export function EscolherModoModal({
 }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  useTravarScrollDaPagina(!!evento);
   if (!mounted || !evento) return null;
 
   return createPortal(
@@ -60,32 +63,65 @@ export function EscolherModoModal({
             </button>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <button
-              onClick={() => onEscolher("online")}
-              className="group flex flex-col items-center gap-2.5 rounded-2xl border border-gray-200 bg-white p-5 text-center transition hover:border-gray-900 hover:shadow-[0_8px_24px_-14px_rgba(15,23,42,0.3)]"
-            >
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-700 transition group-hover:bg-gray-900 group-hover:text-white">
-                <MonitorUp size={20} />
-              </span>
-              <span className="text-sm font-semibold text-gray-900">Online</span>
-              <span className="text-[11px] leading-snug text-gray-500">
-                Captura a aba da chamada — quem fala fica separado por canal
-              </span>
-            </button>
+          {/* Mesma linguagem dos cards da home (pedido do Victor, 22/07) */}
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               onClick={() => onEscolher("presencial")}
-              className="group flex flex-col items-center gap-2.5 rounded-2xl border border-gray-200 bg-white p-5 text-center transition hover:border-gray-900 hover:shadow-[0_8px_24px_-14px_rgba(15,23,42,0.3)]"
+              className="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-900/5"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-700 transition group-hover:bg-gray-900 group-hover:text-white">
-                <Mic size={20} />
-              </span>
-              <span className="text-sm font-semibold text-gray-900">
-                Presencial
-              </span>
-              <span className="text-[11px] leading-snug text-gray-500">
-                Grava pelo microfone, todos na mesma sala
-              </span>
+              <div className="flex h-full flex-col gap-4 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 shadow-inner">
+                    <Mic size={22} className="text-white" strokeWidth={2} />
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold tracking-[0.18em] text-gray-600 uppercase">
+                    <MapPin size={10} /> no local
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <h4 className="text-lg font-semibold text-gray-900">
+                    Presencial
+                  </h4>
+                  <p className="text-xs leading-relaxed text-gray-500">
+                    Grava pelo microfone, todos na mesma sala.
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => onEscolher("online")}
+              className="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-900/5"
+            >
+              <div className="flex h-full flex-col gap-4 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center -space-x-2">
+                    <LogoBubble>
+                      <MeetLogo />
+                    </LogoBubble>
+                    <LogoBubble>
+                      <ZoomLogo />
+                    </LogoBubble>
+                    <LogoBubble>
+                      <TeamsLogo />
+                    </LogoBubble>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold tracking-[0.18em] text-gray-600 uppercase">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    </span>
+                    online
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <h4 className="text-lg font-semibold text-gray-900">Online</h4>
+                  <p className="text-xs leading-relaxed text-gray-500">
+                    Captura a aba da chamada — quem fala fica separado por
+                    canal.
+                  </p>
+                </div>
+              </div>
             </button>
           </div>
         </motion.div>

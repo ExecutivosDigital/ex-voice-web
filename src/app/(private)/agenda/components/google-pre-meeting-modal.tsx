@@ -18,11 +18,16 @@ import {
   UserCheck,
   X,
 } from "lucide-react";
+import {
+  BriefingView,
+  PreMeetingBriefing as Briefing,
+} from "@/components/premeeting/briefing-view";
+import { useTravarScrollDaPagina } from "@/hooks/useTravarScrollDaPagina";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
-import { GoogleEvent } from "../use-google-calendar";
+import { contatosDoEvento, GoogleEvent } from "../use-google-calendar";
 
 /**
  * Pre-meeting REAL v2 (direção do João, call de 21/07):
@@ -37,16 +42,6 @@ import { GoogleEvent } from "../use-google-calendar";
  */
 
 const PADRAO = "__padrao__";
-
-interface Briefing {
-  primeiraConversa: boolean;
-  objetivo: string;
-  retomar: string[];
-  cuidados: string[];
-  perguntas: string[];
-  baseadoEm: { recordingId: string; name: string; date: string }[];
-  contatos: { id: string; name: string; empresa: string | null }[];
-}
 
 interface PromptOption {
   id: string;
@@ -63,10 +58,13 @@ export function GooglePreMeetingModal({
   evento,
   onClose,
   onGravar,
+  onGerado,
 }: {
   evento: GoogleEvent | null;
   onClose: () => void;
   onGravar: (evento: GoogleEvent) => void;
+  /** Após gerar/salvar — o pai recarrega os eventos (vinculados/temBriefing). */
+  onGerado?: () => void;
 }) {
   const { GetAPI, PostAPI, PutAPI } = useApiContext();
 
@@ -78,7 +76,7 @@ export function GooglePreMeetingModal({
   const [prompts, setPrompts] = useState<PromptOption[]>([]);
   const [promptId, setPromptId] = useState<string>(PADRAO);
 
-  // Vínculo manual (evento sem contato reconhecido)
+  // Vínculo manual (evento sem contato reconhecido nem vinculado)
   const [escolhidos, setEscolhidos] = useState<ContatoOption[]>([]);
   const [busca, setBusca] = useState("");
   const [resultados, setResultados] = useState<ContatoOption[]>([]);
@@ -87,16 +85,17 @@ export function GooglePreMeetingModal({
   const [lembrarVinculo, setLembrarVinculo] = useState(false);
 
   useEffect(() => setMounted(true), []);
+  useTravarScrollDaPagina(!!evento);
 
-  const idsReconhecidos =
-    evento?.attendees
-      .map((c) => c.contactId)
-      .filter((id): id is string => Boolean(id)) ?? [];
-  const semContato = !!evento && idsReconhecidos.length === 0;
-  const clientIds = semContato ? escolhidos.map((c) => c.id) : idsReconhecidos;
+  // Reconhecidos por e-mail + vinculados manualmente (persistidos na API)
+  const idsDoEvento = evento
+    ? contatosDoEvento(evento).map((c) => c.id)
+    : [];
+  const semContato = !!evento && idsDoEvento.length === 0;
+  const clientIds = semContato ? escolhidos.map((c) => c.id) : idsDoEvento;
 
   // Um único convidado com e-mail + um único contato escolhido = vínculo sem
-  // ambiguidade; só aí oferecemos persistir o reconhecimento.
+  // ambiguidade; só aí oferecemos persistir o reconhecimento por e-mail.
   const emailsDoConvite =
     evento?.attendees
       .map((c) => c.email)
@@ -109,26 +108,33 @@ export function GooglePreMeetingModal({
       if (!evento || ids.length === 0) return;
       setGerando(true);
       setErro(null);
+      // eventId persiste vínculo + briefing na API — reabrir não regenera
       const response = await PostAPI(
         "/premeeting",
         {
           clientIds: ids,
           eventTitle: evento.title,
+          eventId: evento.id,
           ...(prompt !== PADRAO ? { promptId: prompt } : {}),
         },
         true,
       );
       if (response.status === 200 || response.status === 201) {
-        setBriefing(response.body as Briefing);
+        const corpo = response.body as Briefing;
+        setBriefing(corpo);
+        setPromptId(corpo.promptIdUsado ?? PADRAO);
+        onGerado?.();
       } else {
         setErro("Não foi possível gerar o pre-meeting — tente novamente.");
       }
       setGerando(false);
     },
-    [evento, PostAPI],
+    [evento, PostAPI, onGerado],
   );
 
-  // Reset + geração automática quando há contatos reconhecidos
+  // Abertura: briefing SALVO primeiro (feedback 22/07 — fechar/reabrir não
+  // pode perder nada); sem salvo, gera para os contatos do evento; sem
+  // contato nenhum, fluxo de vínculo manual.
   useEffect(() => {
     setBriefing(null);
     setErro(null);
@@ -138,11 +144,26 @@ export function GooglePreMeetingModal({
     setLembrarVinculo(false);
     setPromptId(PADRAO);
     if (!evento) return;
-    const ids = evento.attendees
-      .map((c) => c.contactId)
-      .filter((id): id is string => Boolean(id));
-    if (ids.length > 0) gerar(ids, PADRAO);
-  }, [evento, gerar]);
+
+    let ativo = true;
+    (async () => {
+      if (evento.temBriefing) {
+        const salvo = await GetAPI(`/premeeting/event/${evento.id}`, true);
+        if (!ativo) return;
+        if (salvo.status === 200 && salvo.body?.briefing) {
+          const corpo = salvo.body.briefing as Briefing;
+          setBriefing(corpo);
+          setPromptId(salvo.body.promptId ?? PADRAO);
+          return;
+        }
+      }
+      const ids = contatosDoEvento(evento).map((c) => c.id);
+      if (ids.length > 0) gerar(ids, PADRAO);
+    })();
+    return () => {
+      ativo = false;
+    };
+  }, [evento, gerar, GetAPI]);
 
   // IAs disponíveis (mesma fonte da re-análise)
   useEffect(() => {
@@ -218,8 +239,46 @@ export function GooglePreMeetingModal({
 
   const trocarIA = (novo: string) => {
     setPromptId(novo);
-    if (briefing || gerando) gerar(clientIds, novo);
+    // Com briefing na tela, trocar a IA regenera na hora; no fluxo de
+    // vínculo manual só guarda a escolha para o "Gerar"
+    if (briefing) gerar(clientIds, novo);
   };
+
+  // Seletor SEMPRE visível (22/07: o Victor não achou a escolha de IA —
+  // ela só aparecia depois de gerar e sumia sem IAs cadastradas)
+  const seletorDeIA = (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-[10px] font-semibold tracking-[0.22em] text-gray-400 uppercase">
+        IA do briefing
+      </span>
+      <select
+        value={promptId}
+        onChange={(e) => trocarIA(e.target.value)}
+        className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-800 outline-none transition focus:border-gray-900"
+      >
+        <option value={PADRAO}>Padrão</option>
+        {prompts.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name}
+          </option>
+        ))}
+      </select>
+      {prompts.length === 0 && (
+        <span className="text-[10px] text-gray-400">
+          Crie IAs na área Empresa para ter outros focos de briefing
+        </span>
+      )}
+      {briefing && !gerando && (
+        <button
+          onClick={() => gerar(clientIds, promptId)}
+          className="inline-flex h-7 items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 text-[10px] font-semibold tracking-wider text-gray-600 uppercase transition hover:border-gray-300 hover:text-gray-900"
+        >
+          <Sparkles size={10} />
+          Gerar novamente
+        </button>
+      )}
+    </div>
+  );
 
   return createPortal(
     <AnimatePresence>
@@ -370,6 +429,8 @@ export function GooglePreMeetingModal({
                   </label>
                 )}
 
+                {seletorDeIA}
+
                 <button
                   onClick={gerarComVinculo}
                   disabled={clientIds.length === 0 || gerando}
@@ -399,81 +460,8 @@ export function GooglePreMeetingModal({
               </div>
             ) : (
               <div className="flex flex-col gap-5">
-                {prompts.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[10px] font-semibold tracking-[0.22em] text-gray-400 uppercase">
-                      IA do briefing
-                    </span>
-                    <select
-                      value={promptId}
-                      onChange={(e) => trocarIA(e.target.value)}
-                      className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-800 outline-none transition focus:border-gray-900"
-                    >
-                      <option value={PADRAO}>Padrão</option>
-                      {prompts.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {briefing.primeiraConversa && (
-                  <p className="rounded-2xl bg-gray-50 px-4 py-3 text-xs leading-relaxed text-gray-600">
-                    Ainda não há reuniões gravadas com este contato — este é um
-                    roteiro de primeira conversa.
-                  </p>
-                )}
-
-                <Bloco icone={Target} titulo="Objetivo da reunião">
-                  <p className="text-sm leading-relaxed text-gray-700">
-                    {briefing.objetivo}
-                  </p>
-                </Bloco>
-
-                {briefing.retomar.length > 0 && (
-                  <Bloco icone={ArrowRight} titulo="Retomar (ficou em aberto)">
-                    <Lista itens={briefing.retomar} tom="bg-gray-50 text-gray-700" />
-                  </Bloco>
-                )}
-
-                {briefing.cuidados.length > 0 && (
-                  <Bloco icone={AlertTriangle} titulo="Cuidados">
-                    <Lista
-                      itens={briefing.cuidados}
-                      tom="bg-amber-50 text-amber-800"
-                    />
-                  </Bloco>
-                )}
-
-                {briefing.perguntas.length > 0 && (
-                  <Bloco icone={MessageCircle} titulo="Perguntas sugeridas">
-                    <Lista
-                      itens={briefing.perguntas}
-                      tom="bg-emerald-50/60 text-emerald-900"
-                    />
-                  </Bloco>
-                )}
-
-                {briefing.baseadoEm.length > 0 && (
-                  <Bloco icone={FileText} titulo="Baseado nas gravações">
-                    <div className="flex flex-col gap-1">
-                      {briefing.baseadoEm.map((r) => (
-                        <Link
-                          key={r.recordingId}
-                          href={`/recordings/${r.recordingId}`}
-                          className="group flex items-center justify-between rounded-xl border border-gray-100 bg-white px-3 py-2 text-xs text-gray-700 transition hover:border-gray-300"
-                        >
-                          <span className="truncate font-medium">{r.name}</span>
-                          <span className="ml-2 shrink-0 text-gray-400">
-                            {new Date(r.date).toLocaleDateString("pt-BR")}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  </Bloco>
-                )}
+                {seletorDeIA}
+                <BriefingView briefing={briefing} />
               </div>
             )}
           </div>
@@ -497,40 +485,5 @@ export function GooglePreMeetingModal({
       </motion.div>
     </AnimatePresence>,
     document.body,
-  );
-}
-
-function Bloco({
-  icone: Icone,
-  titulo,
-  children,
-}: {
-  icone: typeof Target;
-  titulo: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <p className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.22em] text-gray-400 uppercase">
-        <Icone size={11} />
-        {titulo}
-      </p>
-      <div className="mt-2">{children}</div>
-    </div>
-  );
-}
-
-function Lista({ itens, tom }: { itens: string[]; tom: string }) {
-  return (
-    <ul className="flex flex-col gap-1.5">
-      {itens.map((item) => (
-        <li
-          key={item}
-          className={cn("rounded-xl px-3 py-2 text-xs leading-relaxed", tom)}
-        >
-          {item}
-        </li>
-      ))}
-    </ul>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTravarScrollDaPagina } from "@/hooks/useTravarScrollDaPagina";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -41,6 +42,7 @@ export function EditarCardModal({
 }) {
   const [mounted, setMounted] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  useTravarScrollDaPagina(!!component);
 
   const ehLista = component
     ? ["actions_card", "decisions_card", "commitments_card"].includes(

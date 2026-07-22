@@ -122,6 +122,7 @@ export function UpcomingMeetings({
           setPreMeetingDe(null);
           onGravar(evento);
         }}
+        onGerado={google.recarregarEventos}
       />
     </section>
   );
@@ -162,7 +163,6 @@ function EventCard({
   onPreMeeting: () => void;
   onGravar: () => void;
 }) {
-  const temContato = evento.attendees.some((c) => c.contactId);
   const convidados = evento.attendees.slice(0, 3);
 
   return (
@@ -196,10 +196,17 @@ function EventCard({
             {evento.title}
           </p>
           {evento.meetLink && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold tracking-wider text-emerald-700 uppercase ring-1 ring-emerald-100">
+            <a
+              href={evento.meetLink}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              title="Abrir a chamada no Meet"
+              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold tracking-wider text-emerald-700 uppercase ring-1 ring-emerald-100 transition hover:bg-emerald-100"
+            >
               <Video size={9} />
               Meet
-            </span>
+            </a>
           )}
         </div>
         {convidados.length > 0 && (
@@ -229,15 +236,13 @@ function EventCard({
       </div>
 
       <div className="mt-auto flex items-center gap-1.5">
-        {temContato && (
-          <button
-            onClick={onPreMeeting}
-            className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 text-[10px] font-semibold tracking-wider text-gray-700 uppercase transition hover:border-gray-300 hover:text-gray-900"
-          >
-            <Sparkles size={11} />
-            Pre-meeting
-          </button>
-        )}
+        <button
+          onClick={onPreMeeting}
+          className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 text-[10px] font-semibold tracking-wider text-gray-700 uppercase transition hover:border-gray-300 hover:text-gray-900"
+        >
+          <Sparkles size={11} />
+          Pre-meeting
+        </button>
         <button
           onClick={onGravar}
           className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full bg-gray-900 px-3 text-[10px] font-semibold tracking-wider text-white uppercase transition hover:bg-gray-700"

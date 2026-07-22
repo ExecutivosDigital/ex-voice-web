@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import debounce from "lodash.debounce";
 import {
   AlertCircle,
+  BellRing,
   Check,
   CheckCircle2,
   Loader2,
@@ -201,6 +202,25 @@ export function ImmersiveRecorder({
   const [stage, setStage] = useState<Stage>("intro");
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  // Passo extra do intro online (Victor, 22/07): sem permissão de notificação,
+  // o watchdog não alcança quem está em outra aba — pedir ANTES de gravar.
+  const [notifPermissao, setNotifPermissao] = useState<
+    NotificationPermission | "indisponivel"
+  >("indisponivel");
+  useEffect(() => {
+    if (typeof Notification !== "undefined") {
+      setNotifPermissao(Notification.permission);
+    }
+  }, []);
+  const pedirNotificacao = async () => {
+    try {
+      const resultado = await Notification.requestPermission();
+      setNotifPermissao(resultado);
+    } catch {
+      // sem suporte — o passo simplesmente não conclui
+    }
+  };
   const [browserInfo, setBrowserInfo] = useState<BrowserInfo>({
     name: "Chrome",
     tabLabel: "Aba do Chrome",
@@ -669,6 +689,39 @@ export function ImmersiveRecorder({
                   </div>
 
                   <ol className="flex flex-col gap-2">
+                    {notifPermissao === "default" && (
+                      <li className="flex gap-3 rounded-xl border border-amber-300/25 bg-amber-300/[0.05] p-2.5">
+                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-amber-300 text-gray-900">
+                          <BellRing size={13} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-white">
+                            Ative os avisos de gravação
+                          </p>
+                          <p className="mt-0.5 text-xs leading-snug text-white/60">
+                            Se a reunião acabar e você esquecer de parar, a
+                            gente te avisa — mesmo em outra aba.
+                          </p>
+                          <button
+                            onClick={pedirNotificacao}
+                            className="mt-2 inline-flex h-7 items-center gap-1.5 rounded-full bg-amber-300 px-3 text-[10px] font-bold tracking-wider text-gray-900 uppercase transition hover:bg-amber-200"
+                          >
+                            Ativar avisos
+                          </button>
+                        </div>
+                      </li>
+                    )}
+                    {notifPermissao === "granted" && (
+                      <li className="flex items-center gap-3 rounded-xl border border-emerald-300/20 bg-emerald-300/[0.04] p-2.5">
+                        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-300 text-gray-900">
+                          <Check size={13} strokeWidth={3} />
+                        </div>
+                        <p className="text-xs text-white/70">
+                          Avisos de gravação ativados — te avisamos se a
+                          gravação ficar esquecida.
+                        </p>
+                      </li>
+                    )}
                     <li className="flex gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
                       <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-gray-900">
                         1

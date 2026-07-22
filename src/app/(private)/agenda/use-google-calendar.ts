@@ -28,6 +28,27 @@ export interface GoogleEvent {
   allDay: boolean;
   meetLink: string | null;
   attendees: GoogleEventAttendee[];
+  /** Contatos vinculados manualmente na modal (persistidos na API). */
+  vinculados: { id: string; name: string }[];
+  /** Já existe briefing salvo para este evento. */
+  temBriefing: boolean;
+}
+
+/** Contatos do evento: reconhecidos por e-mail + vinculados manualmente. */
+export function contatosDoEvento(evento: GoogleEvent) {
+  const porId = new Map<string, { id: string; name: string }>();
+  for (const convidado of evento.attendees) {
+    if (convidado.contactId) {
+      porId.set(convidado.contactId, {
+        id: convidado.contactId,
+        name: convidado.contactName ?? "Contato",
+      });
+    }
+  }
+  for (const vinculado of evento.vinculados ?? []) {
+    porId.set(vinculado.id, vinculado);
+  }
+  return [...porId.values()];
 }
 
 /**
@@ -43,9 +64,9 @@ export function gravacaoDeEvento(
     mode:
       modo ??
       ((evento.meetLink ? "online" : "presencial") as "online" | "presencial"),
-    clientIds: evento.attendees
-      .map((c) => c.contactId)
-      .filter((id): id is string => Boolean(id)),
+    // Reconhecidos por e-mail + vinculados manualmente — a gravação nasce
+    // ligada a todos os contatos do evento
+    clientIds: contatosDoEvento(evento).map((c) => c.id),
     title: evento.title,
   };
 }

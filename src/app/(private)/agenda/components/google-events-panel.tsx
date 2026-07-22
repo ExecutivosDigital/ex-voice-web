@@ -12,7 +12,7 @@ import {
   Video,
 } from "lucide-react";
 import { useState } from "react";
-import { GoogleEvent } from "../use-google-calendar";
+import { contatosDoEvento, GoogleEvent } from "../use-google-calendar";
 import { GooglePreMeetingModal } from "./google-pre-meeting-modal";
 
 /**
@@ -132,7 +132,8 @@ export function GoogleEventsPanel({
                     </a>
                   )}
                 </div>
-                {evento.attendees.length > 0 && (
+                {(evento.attendees.length > 0 ||
+                  evento.vinculados.length > 0) && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1">
                     <Users size={10} className="text-gray-400" />
                     {/* LGPD (João, 21/07): e-mail de convidado NUNCA aparece —
@@ -155,20 +156,34 @@ export function GoogleEventsPanel({
                         </span>
                       );
                     })}
+                    {/* Vínculos manuais persistidos (feitos na modal) */}
+                    {evento.vinculados
+                      .filter(
+                        (v) =>
+                          !evento.attendees.some((c) => c.contactId === v.id),
+                      )
+                      .map((vinculado) => (
+                        <span
+                          key={`${evento.id}-v-${vinculado.id}`}
+                          className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 ring-1 ring-emerald-100"
+                        >
+                          <UserCheck size={9} />
+                          {vinculado.name}
+                        </span>
+                      ))}
                   </div>
                 )}
               </div>
 
               <div className="flex shrink-0 items-center gap-1.5 md:pl-2">
-                {evento.attendees.some((c) => c.contactId) && (
-                  <button
-                    onClick={() => setPreMeetingDe(evento)}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 text-[10px] font-semibold tracking-wider text-gray-700 uppercase transition hover:border-gray-300 hover:text-gray-900"
-                  >
-                    <Sparkles size={11} />
-                    Pre-meeting
-                  </button>
-                )}
+                {/* Sempre visível: sem contato, abre o fluxo de vínculo manual */}
+                <button
+                  onClick={() => setPreMeetingDe(evento)}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 text-[10px] font-semibold tracking-wider text-gray-700 uppercase transition hover:border-gray-300 hover:text-gray-900"
+                >
+                  <Sparkles size={11} />
+                  Pre-meeting
+                </button>
                 <button
                   onClick={() => gravarEvento(evento)}
                   className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gray-900 px-3 text-[10px] font-semibold tracking-wider text-white uppercase transition hover:bg-gray-700"
@@ -195,6 +210,7 @@ export function GoogleEventsPanel({
           setPreMeetingDe(null);
           gravarEvento(evento);
         }}
+        onGerado={onRecarregar}
       />
     </section>
   );
