@@ -201,7 +201,7 @@ export function TranscriptionTab({
         <div className="flex shrink-0 flex-col gap-4 border-b border-gray-100 px-5 py-5 md:px-7">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-sm">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-sm">
                 <Mic2 size={16} />
               </div>
               <div>
@@ -236,7 +236,7 @@ export function TranscriptionTab({
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition",
                   modo === "pro"
-                    ? "border-gray-900 bg-gray-900 text-white"
+                    ? "border-primary bg-primary text-white"
                     : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50",
                 )}
               >
@@ -291,7 +291,7 @@ export function TranscriptionTab({
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-medium transition",
                   activeSpeakerId === null
-                    ? "bg-gray-900 text-white shadow-sm"
+                    ? "bg-primary text-white shadow-sm"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200",
                 )}
               >
@@ -485,7 +485,7 @@ function SpeechGroup({
             {name}
           </span>
           {isProfessional && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-gray-900/5 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-gray-700 uppercase">
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/5 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-gray-700 uppercase">
               <Star size={8} strokeWidth={2.4} className="fill-current" />
               Pro
             </span>
@@ -493,7 +493,7 @@ function SpeechGroup({
           <button
             onClick={() => seekAudioTo(startTime)}
             title="Ouvir a partir daqui"
-            className="inline-flex cursor-pointer items-center rounded-md bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-600 tabular-nums transition hover:bg-gray-900 hover:text-white"
+            className="inline-flex cursor-pointer items-center rounded-md bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-600 tabular-nums transition hover:bg-primary hover:text-white"
           >
             {formatTimestamp(startTime)}
           </button>
@@ -511,7 +511,7 @@ function SpeechGroup({
           className={cn(
             "relative max-w-[88%] rounded-2xl px-5 py-4 transition-colors",
             isProfessional
-              ? "rounded-tr-sm bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-[0_4px_14px_-6px_rgba(17,24,39,0.35)]"
+              ? "rounded-tr-sm bg-gradient-to-br from-primary to-primary-dim text-white shadow-[0_4px_14px_-6px_rgba(17,24,39,0.35)]"
               : cn("rounded-tl-sm border border-transparent", style.bg),
           )}
         >
@@ -534,7 +534,7 @@ function SpeechGroup({
                         "group/sent rounded-sm transition-colors",
                         isProfessional
                           ? "hover:bg-white/15"
-                          : "hover:bg-gray-900/5",
+                          : "hover:bg-primary/5",
                       )}
                     >
                       {sentence.map((word, wi) => (
@@ -551,7 +551,7 @@ function SpeechGroup({
                             "cursor-pointer rounded-sm transition-colors",
                             isProfessional
                               ? "hover:bg-white/30"
-                              : "hover:bg-gray-900/15",
+                              : "hover:bg-primary/15",
                           )}
                         >
                           {word.text}{" "}

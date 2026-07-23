@@ -97,7 +97,7 @@ export function DesktopSidebar() {
                 "flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition",
                 sidebarCollapsed && "justify-center px-0",
                 active
-                  ? "bg-gradient-to-r from-gray-900 to-gray-700 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-primary to-primary-dim text-white shadow-sm"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
               )}
             >
@@ -130,7 +130,7 @@ export function DesktopSidebar() {
             sidebarCollapsed && "justify-center",
           )}
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gray-900 to-gray-600 text-xs font-semibold text-white">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-gray-600 text-xs font-semibold text-white">
             {initial}
           </span>
           {!sidebarCollapsed && (

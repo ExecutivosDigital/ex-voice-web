@@ -213,7 +213,7 @@ export function EditClientModal({
             }
           }}
           className={cn(
-            "fixed inset-0 z-[9999999] flex items-center justify-center overflow-y-auto overscroll-contain bg-gray-900/40 p-4 backdrop-blur-sm",
+            "fixed inset-0 z-[9999999] flex items-center justify-center overflow-y-auto overscroll-contain bg-primary/40 p-4 backdrop-blur-sm",
             className,
           )}
         >
@@ -270,7 +270,7 @@ export function EditClientModal({
                             value={field.value || ""}
                             onChange={(e) => field.onChange(e.target.value)}
                             className={cn(
-                              "h-11 rounded-xl border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-4 focus:ring-gray-900/5",
+                              "h-11 rounded-xl border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5",
                               {
                                 "border-red-400 focus:border-red-500 focus:ring-red-500/10":
                                   form.formState.errors.name,
@@ -298,7 +298,7 @@ export function EditClientModal({
                             value={field.value || ""}
                             onChange={(e) => field.onChange(e.target.value)}
                             className={cn(
-                              "h-11 rounded-xl border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-4 focus:ring-gray-900/5",
+                              "h-11 rounded-xl border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5",
                               {
                                 "border-red-400 focus:border-red-500 focus:ring-red-500/10":
                                   form.formState.errors.email,
@@ -331,7 +331,7 @@ export function EditClientModal({
                             <select
                               value={field.value || ""}
                               onChange={(e) => field.onChange(e.target.value)}
-                              className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 transition outline-none focus:border-gray-900 focus:bg-white focus:ring-4 focus:ring-gray-900/5"
+                              className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 transition outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5"
                             >
                               <option value="">Sem empresa vinculada</option>
                               {contactCompanies.map((company) => (
@@ -365,7 +365,7 @@ export function EditClientModal({
                             placeholder="Adicione anotações, cargo, empresa ou contexto do contato..."
                             value={field.value || ""}
                             onChange={(e) => field.onChange(e.target.value)}
-                            className="min-h-28 resize-none rounded-xl border-gray-200 bg-gray-50/80 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-4 focus:ring-gray-900/5"
+                            className="min-h-28 resize-none rounded-xl border-gray-200 bg-gray-50/80 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5"
                             autoComplete="off"
                           />
                         </FormControl>

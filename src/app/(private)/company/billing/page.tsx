@@ -126,7 +126,7 @@ export default function CompanyBillingPage() {
         <>
           {(plan || expiration) && (
             <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-gray-200/70 bg-white p-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white">
                 <Receipt size={16} />
               </div>
               <div>

@@ -235,7 +235,7 @@ export function TranscriptionTimeline({
                 if (el.paused) void el.play().catch(() => {});
                 else el.pause();
               }}
-              className="flex h-8 items-center gap-1.5 rounded-lg bg-gray-900 px-3 text-xs font-medium text-white transition hover:bg-gray-700"
+              className="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-white transition hover:bg-primary-dim"
             >
               {tocando ? <Pause size={13} /> : <Play size={13} />}
               {tocando ? "Pausar" : "Tocar"}
@@ -289,10 +289,10 @@ export function TranscriptionTimeline({
             style={{ width: `${zoom * 100}%`, minWidth: "100%" }}
           >
             <div
-              className="pointer-events-none absolute inset-y-0 z-20 w-px bg-gray-900"
+              className="pointer-events-none absolute inset-y-0 z-20 w-px bg-primary"
               style={{ left: `${pct(posicao)}%` }}
             >
-              <div className="-ml-1 h-2 w-2 rounded-full bg-gray-900" />
+              <div className="-ml-1 h-2 w-2 rounded-full bg-primary" />
             </div>
 
             <div
@@ -384,7 +384,7 @@ export function TranscriptionTimeline({
                       ehInterjeicao(t) && "italic opacity-70",
                       emReproducao.has(t.id) && "ring-1 ring-gray-500",
                       selecionado === t.id &&
-                        "ring-2 ring-gray-900 ring-offset-1",
+                        "ring-2 ring-primary ring-offset-1",
                     )}
                     style={{
                       left: `${pct(t.start)}%`,

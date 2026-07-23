@@ -74,7 +74,7 @@ export function SummaryTab({
     >
       {/* Resumo executivo em destaque (TL;DR) */}
       {executive && (
-        <div className="rounded-2xl border border-gray-900/10 bg-gradient-to-br from-gray-900 to-gray-700 p-5 text-white shadow-lg md:p-6">
+        <div className="rounded-2xl border border-primary/10 bg-gradient-to-br from-primary to-primary-dim p-5 text-white shadow-lg md:p-6">
           <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold tracking-[0.2em] text-white/60 uppercase">
             <Sparkles size={12} className="text-amber-300" /> Resumo executivo
           </p>
@@ -86,7 +86,7 @@ export function SummaryTab({
 
       <article className="rounded-3xl border border-gray-200/70 bg-white/80 p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] backdrop-blur-sm md:p-8">
         <div className="mb-5 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white">
             <Sparkles size={15} />
           </div>
           <h2 className="text-lg font-semibold text-gray-900">

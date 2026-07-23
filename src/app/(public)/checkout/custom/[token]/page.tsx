@@ -426,7 +426,7 @@ export default function CustomCheckoutPage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-4 md:p-8">
         <div className="mx-auto max-w-2xl">
           <div className="rounded-3xl bg-white shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-6 md:p-8">
+            <div className="bg-gradient-to-r from-gray-800 to-primary text-white p-6 md:p-8">
               <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
                 <QrCode className="h-7 w-7" />
                 Pague com PIX
@@ -460,7 +460,7 @@ export default function CustomCheckoutPage() {
                   />
                   <button
                     onClick={handleCopyPix}
-                    className="flex flex-col items-center gap-1 rounded-lg bg-gray-800 text-white px-3 py-2 text-xs font-medium hover:bg-gray-700"
+                    className="flex flex-col items-center gap-1 rounded-lg bg-gray-800 text-white px-3 py-2 text-xs font-medium hover:bg-primary-dim"
                   >
                     <Copy className="h-4 w-4" />
                     Copiar
@@ -492,7 +492,7 @@ export default function CustomCheckoutPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-4 md:p-8">
       <div className="mx-auto max-w-3xl">
         <div className="rounded-3xl bg-white shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-6 md:p-8">
+          <div className="bg-gradient-to-r from-gray-800 to-primary text-white p-6 md:p-8">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-gray-300">
                 Plano personalizado
@@ -539,7 +539,7 @@ export default function CustomCheckoutPage() {
                     className={cn(
                       "flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-medium transition-all",
                       paymentType === "PIX"
-                        ? "border-gray-900 bg-gray-900 text-white"
+                        ? "border-primary bg-primary text-white"
                         : "border-gray-200 bg-white text-gray-700 hover:border-gray-400",
                       formDisabled && "opacity-50 cursor-not-allowed",
                     )}
@@ -558,7 +558,7 @@ export default function CustomCheckoutPage() {
                     className={cn(
                       "flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-medium transition-all",
                       paymentType === "CREDIT_CARD"
-                        ? "border-gray-900 bg-gray-900 text-white"
+                        ? "border-primary bg-primary text-white"
                         : "border-gray-200 bg-white text-gray-700 hover:border-gray-400",
                       formDisabled && "opacity-50 cursor-not-allowed",
                     )}
@@ -583,7 +583,7 @@ export default function CustomCheckoutPage() {
                     className={cn(
                       "rounded-xl border-2 p-3 text-sm font-medium transition-all",
                       billingCycle === "MONTHLY"
-                        ? "border-gray-900 bg-gray-900 text-white"
+                        ? "border-primary bg-primary text-white"
                         : "border-gray-200 bg-white text-gray-700 hover:border-gray-400",
                       formDisabled && "opacity-50 cursor-not-allowed",
                     )}
@@ -596,7 +596,7 @@ export default function CustomCheckoutPage() {
                     className={cn(
                       "rounded-xl border-2 p-3 text-sm font-medium transition-all",
                       billingCycle === "YEARLY"
-                        ? "border-gray-900 bg-gray-900 text-white"
+                        ? "border-primary bg-primary text-white"
                         : "border-gray-200 bg-white text-gray-700 hover:border-gray-400",
                       formDisabled && "opacity-50 cursor-not-allowed",
                     )}
@@ -738,7 +738,7 @@ export default function CustomCheckoutPage() {
             <button
               onClick={handleConfirm}
               disabled={formDisabled}
-              className="w-full rounded-xl bg-gradient-to-r from-gray-700 to-gray-900 py-4 text-sm font-bold text-white shadow-xl transition-all hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full rounded-xl bg-gradient-to-r from-gray-700 to-primary py-4 text-sm font-bold text-white shadow-xl transition-all hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>

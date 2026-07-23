@@ -79,7 +79,7 @@ function DispositivoCard({
         </div>
         <p className="text-sm leading-relaxed text-gray-500">{subtitle}</p>
 
-        <div className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full bg-gray-900 px-3 py-1.5 text-xs font-semibold text-white transition-all duration-300 group-hover:bg-red-600 group-hover:shadow-md group-hover:shadow-red-600/30">
+        <div className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-all duration-300 group-hover:bg-red-600 group-hover:shadow-md group-hover:shadow-red-600/30">
           Iniciar gravação
           <ArrowRight
             size={13}

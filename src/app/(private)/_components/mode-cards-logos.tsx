@@ -34,7 +34,7 @@ function PresencialCard({ onClick }: { onClick: () => void }) {
       className={cn(cardBase)}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 shadow-inner">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim shadow-inner">
           <Mic size={22} className="text-white" strokeWidth={2} />
         </div>
         <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold tracking-[0.18em] text-gray-600 uppercase">
@@ -59,7 +59,7 @@ function PresencialCard({ onClick }: { onClick: () => void }) {
         </span>
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 rounded-xl bg-gray-900 px-4 py-3 text-white transition-all duration-300 group-hover:bg-red-600">
+      <div className="mt-auto flex items-center justify-between gap-2 rounded-xl bg-primary px-4 py-3 text-white transition-all duration-300 group-hover:bg-red-600">
         <span className="flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
             <span className="h-2 w-2 rounded-full bg-white" />
@@ -121,7 +121,7 @@ function OnlineCard({ onClick }: { onClick: () => void }) {
         </span>
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 rounded-xl bg-gray-900 px-4 py-3 text-white transition-all duration-300 group-hover:bg-red-600">
+      <div className="mt-auto flex items-center justify-between gap-2 rounded-xl bg-primary px-4 py-3 text-white transition-all duration-300 group-hover:bg-red-600">
         <span className="flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
             <span className="h-2 w-2 rounded-full bg-white" />

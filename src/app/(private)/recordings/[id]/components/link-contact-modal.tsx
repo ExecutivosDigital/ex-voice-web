@@ -151,7 +151,7 @@ export function LinkContactModal({
                         className={cn(
                           "flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition",
                           active
-                            ? "bg-gray-900 text-white"
+                            ? "bg-primary text-white"
                             : "text-gray-700 hover:bg-gray-50",
                         )}
                       >
@@ -215,7 +215,7 @@ export function LinkContactModal({
                   busy || !selectedId || selectedId === currentClient?.id
                 }
                 onClick={() => selectedId && applyClient(selectedId)}
-                className="inline-flex h-10 items-center gap-2 rounded-full bg-gray-900 px-5 text-xs font-semibold text-white transition hover:bg-gray-800 disabled:opacity-40"
+                className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-xs font-semibold text-white transition hover:bg-primary-dim disabled:opacity-40"
               >
                 {busy && <Loader2 size={13} className="animate-spin" />}
                 Vincular

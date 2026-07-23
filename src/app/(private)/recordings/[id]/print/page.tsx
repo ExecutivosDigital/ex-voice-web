@@ -108,7 +108,7 @@ export default function RecordingPrintPage() {
                 transcricao: incluirTranscricao,
               })
             }
-            className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-800"
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-dim"
           >
             <FileDown size={13} /> Baixar PDF
           </button>
@@ -131,7 +131,7 @@ export default function RecordingPrintPage() {
                 type="checkbox"
                 checked={ativo}
                 onChange={(e) => set(e.target.checked)}
-                className="h-3.5 w-3.5 accent-gray-900"
+                className="h-3.5 w-3.5 accent-primary"
               />
               {rotulo}
             </label>
@@ -144,7 +144,7 @@ export default function RecordingPrintPage() {
       </div>
 
       {/* Cabeçalho do documento */}
-      <header className="border-b-2 border-gray-900 pb-4">
+      <header className="border-b-2 border-primary pb-4">
         {/* título sempre sai; os metadados respeitam o toggle */}
         <p className="text-[11px] font-semibold tracking-[0.25em] text-gray-400 uppercase">
           Executivos Voice · Registro de reunião

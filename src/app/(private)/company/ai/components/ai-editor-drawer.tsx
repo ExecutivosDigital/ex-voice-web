@@ -312,7 +312,7 @@ export function AiEditorDrawer({
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02] disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02] disabled:opacity-60"
               >
                 {saving ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -357,7 +357,7 @@ export function AiEditorDrawer({
                   <button
                     onClick={handleTest}
                     disabled={testing}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:opacity-60"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary-dim disabled:opacity-60"
                   >
                     {testing ? (
                       <Loader2 size={14} className="animate-spin" />

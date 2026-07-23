@@ -28,7 +28,7 @@ export function ComingSoonOverlay({
           {children}
         </div>
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <span className="inline-flex items-center gap-1 rounded-full bg-gray-900 px-2.5 py-1 text-[9px] font-bold tracking-[0.22em] text-white uppercase shadow-md shadow-gray-900/30">
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[9px] font-bold tracking-[0.22em] text-white uppercase shadow-md shadow-gray-900/30">
             <Sparkles size={10} />
             Em breve
           </span>
@@ -45,7 +45,7 @@ export function ComingSoonOverlay({
 
       <div
         className={cn(
-          "absolute inset-0 bg-gradient-to-br from-gray-900/70 via-gray-800/60 to-gray-900/70 backdrop-blur-sm",
+          "absolute inset-0 bg-gradient-to-br from-primary/70 via-gray-800/60 to-primary/70 backdrop-blur-sm",
           backdropClassName ?? (compact ? "rounded-2xl" : "rounded-[24px]"),
         )}
       />
@@ -64,8 +64,8 @@ export function ComingSoonOverlay({
           <span
             className={
               compact
-                ? "flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-md shadow-gray-900/30"
-                : "flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg shadow-gray-900/30"
+                ? "flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-md shadow-gray-900/30"
+                : "flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg shadow-gray-900/30"
             }
           >
             <Sparkles size={compact ? 16 : 24} />

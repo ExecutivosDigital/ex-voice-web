@@ -33,7 +33,7 @@ export function ActionButton({
       type="button"
       className={cn(
         "inline-flex h-10 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition disabled:pointer-events-none disabled:opacity-50",
-        variant === "primary" && "bg-gray-900 text-white hover:bg-gray-800",
+        variant === "primary" && "bg-primary text-white hover:bg-primary-dim",
         variant === "outline" &&
           "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50",
         variant === "danger" &&

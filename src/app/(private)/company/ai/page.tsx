@@ -94,7 +94,7 @@ export default function CompanyAiPage() {
         </div>
         <button
           onClick={() => setEditing("new")}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
         >
           <Plus size={16} /> Nova IA
         </button>
@@ -113,7 +113,7 @@ export default function CompanyAiPage() {
         </div>
       ) : ais.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-14 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white">
             <Bot size={24} />
           </div>
           <p className="mt-4 max-w-md text-sm text-gray-500">
@@ -123,7 +123,7 @@ export default function CompanyAiPage() {
           </p>
           <button
             onClick={() => setEditing("new")}
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
           >
             <Plus size={16} /> Criar a primeira IA
           </button>
@@ -137,7 +137,7 @@ export default function CompanyAiPage() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2.5">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white">
                     <Bot size={16} />
                   </div>
                   <div className="min-w-0">

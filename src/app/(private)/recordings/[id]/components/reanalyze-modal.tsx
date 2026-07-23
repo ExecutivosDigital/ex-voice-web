@@ -121,7 +121,7 @@ export function ReanalyzeModal({
               disabled={running}
               className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition ${
                 selectedId === PADRAO
-                  ? "border-gray-900 bg-gray-50"
+                  ? "border-primary bg-gray-50"
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
@@ -147,7 +147,7 @@ export function ReanalyzeModal({
                   disabled={running}
                   className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition ${
                     isSelected
-                      ? "border-gray-900 bg-gray-50"
+                      ? "border-primary bg-gray-50"
                       : "border-gray-200 bg-white hover:border-gray-300"
                   }`}
                 >
@@ -183,7 +183,7 @@ export function ReanalyzeModal({
           <button
             onClick={handleReanalyze}
             disabled={!selectedId || running}
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02] disabled:opacity-50"
           >
             {running ? (
               <>

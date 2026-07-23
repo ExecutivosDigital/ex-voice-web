@@ -564,7 +564,7 @@ function CheckoutInner() {
         <p className="text-sm text-gray-500">Plano não encontrado.</p>
         <button
           onClick={() => router.push("/plans")}
-          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
         >
           <ArrowLeft size={14} />
           Voltar para planos
@@ -599,7 +599,7 @@ function CheckoutInner() {
         </p>
         <h1 className="text-3xl font-semibold text-balance text-gray-900 md:text-4xl">
           Falta pouco para liberar o{" "}
-          <span className="bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary via-gray-600 to-primary bg-clip-text text-transparent">
             {selectedPlan.name}
           </span>
           .
@@ -660,7 +660,7 @@ function CheckoutInner() {
                         )}
                       >
                         {active && (
-                          <span className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700" />
+                          <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-primary-dim" />
                         )}
                         <span className="relative">
                           {c === "MONTHLY" ? "Mensal" : "Anual"}
@@ -794,7 +794,7 @@ function CheckoutInner() {
                   <button
                     onClick={validateCoupon}
                     disabled={isValidatingCoupon || !coupon.trim()}
-                    className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:opacity-40"
+                    className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary-dim disabled:opacity-40"
                   >
                     {isValidatingCoupon ? (
                       <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -882,7 +882,7 @@ function MethodPill({
       className={cn(
         "relative flex items-center gap-3 rounded-xl px-3.5 py-3 text-left transition",
         active
-          ? "bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg shadow-gray-900/20"
+          ? "bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg shadow-gray-900/20"
           : "bg-gray-50 text-gray-600 hover:bg-gray-100",
       )}
     >
@@ -985,7 +985,7 @@ function OrderSummary({
   const recordLabel = getRecordLabel(plan);
 
   return (
-    <aside className="relative flex h-fit flex-col gap-5 overflow-hidden rounded-3xl border border-transparent bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 p-6 text-white shadow-[0_20px_50px_-20px_rgba(17,24,39,0.6)] lg:sticky lg:top-24">
+    <aside className="relative flex h-fit flex-col gap-5 overflow-hidden rounded-3xl border border-transparent bg-gradient-to-br from-primary via-primary to-gray-800 p-6 text-white shadow-[0_20px_50px_-20px_rgba(17,24,39,0.6)] lg:sticky lg:top-24">
       <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full bg-gradient-to-br from-amber-400/30 via-orange-500/20 to-transparent blur-3xl" />
       <div className="absolute -bottom-24 -left-10 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/20 to-transparent blur-3xl" />
 
@@ -1125,7 +1125,7 @@ function PixPanel({
     >
       <Card>
         <div className="flex flex-col items-center gap-6 py-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-md">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-md">
             <QrCode size={20} />
           </div>
           <div className="text-center">
@@ -1158,7 +1158,7 @@ function PixPanel({
 
           <button
             onClick={onCopy}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.01]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.01]"
           >
             {copied ? (
               <>
@@ -1177,7 +1177,7 @@ function PixPanel({
         </div>
       </Card>
 
-      <aside className="relative flex h-fit flex-col gap-5 overflow-hidden rounded-3xl border border-transparent bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 p-6 text-white shadow-[0_20px_50px_-20px_rgba(17,24,39,0.6)] lg:sticky lg:top-24">
+      <aside className="relative flex h-fit flex-col gap-5 overflow-hidden rounded-3xl border border-transparent bg-gradient-to-br from-primary via-primary to-gray-800 p-6 text-white shadow-[0_20px_50px_-20px_rgba(17,24,39,0.6)] lg:sticky lg:top-24">
         <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full bg-gradient-to-br from-amber-400/30 via-orange-500/20 to-transparent blur-3xl" />
 
         <div className="relative flex items-center gap-2">
@@ -1270,7 +1270,7 @@ function SuccessScreen({ onHome }: { onHome: () => void }) {
       <div className="relative flex flex-col items-center gap-3">
         <button
           onClick={onHome}
-          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-primary to-primary-dim px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
         >
           Ir para o painel
           <ArrowRight size={14} />

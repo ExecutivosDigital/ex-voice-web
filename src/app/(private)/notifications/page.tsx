@@ -264,7 +264,7 @@ function StatsRow({
           className={cn(
             "flex flex-col justify-between rounded-3xl border p-5",
             it.tone === "accent"
-              ? "border-gray-900 bg-gradient-to-br from-gray-900 via-[#111318] to-[#1a1d24] text-white shadow-[0_12px_40px_-20px_rgba(17,24,39,0.6)]"
+              ? "border-primary bg-gradient-to-br from-primary via-[#111318] to-[#1a1d24] text-white shadow-[0_12px_40px_-20px_rgba(17,24,39,0.6)]"
               : "border-gray-200/70 bg-white/80 backdrop-blur-sm",
           )}
         >
@@ -338,7 +338,7 @@ function Toolbar({
               {active && (
                 <motion.span
                   layoutId="notif-filter-pill"
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-primary-dim shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
                   transition={{ type: "spring", stiffness: 400, damping: 32 }}
                 />
               )}
@@ -436,7 +436,7 @@ function NotificationRow({
         className={cn(
           "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 md:h-11 md:w-11",
           unread
-            ? "bg-gradient-to-br from-gray-900 to-gray-700 text-white ring-gray-900/20"
+            ? "bg-gradient-to-br from-primary to-primary-dim text-white ring-primary/20"
             : "bg-gray-50 text-gray-500 ring-gray-200",
         )}
       >
@@ -569,7 +569,7 @@ function EmptyState({ filter }: { filter: FilterKey }) {
         : "Avisos de reuniões, gravações e da sua conta aparecerão aqui.";
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-16 text-center backdrop-blur-sm">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg">
         <Icon size={26} />
       </div>
       <h3 className="mt-6 text-lg font-semibold text-gray-900">{title}</h3>

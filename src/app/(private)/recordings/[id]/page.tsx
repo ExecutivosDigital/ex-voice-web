@@ -69,7 +69,7 @@ export default function RecordingDetailPage() {
                   {active && (
                     <motion.span
                       layoutId="recording-tab-pill"
-                      className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
+                      className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-primary-dim shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
                       transition={{
                         type: "spring",
                         stiffness: 360,
@@ -184,7 +184,7 @@ function ErrorState({ message }: { message: string }) {
       <p className="mt-1.5 max-w-md text-sm text-gray-500">{message}</p>
       <button
         onClick={() => router.push("/recordings")}
-        className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+        className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
       >
         Voltar para a lista
       </button>

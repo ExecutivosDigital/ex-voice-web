@@ -138,7 +138,7 @@ export function EditSpeakersModal({
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
-          className="fixed inset-0 z-[9999999] flex items-center justify-center overflow-y-auto overscroll-contain bg-gray-900/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999999] flex items-center justify-center overflow-y-auto overscroll-contain bg-primary/40 p-4 backdrop-blur-sm"
         >
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -197,7 +197,7 @@ export function EditSpeakersModal({
                         className={cn(
                           "flex items-center gap-3 rounded-2xl border border-gray-200/80 bg-white p-3 transition",
                           draft.isProfessional &&
-                            "border-gray-900/20 bg-gray-50/60",
+                            "border-primary/20 bg-gray-50/60",
                         )}
                       >
                         <div
@@ -226,7 +226,7 @@ export function EditSpeakersModal({
                               handleNameChange(draft.id, e.target.value)
                             }
                             placeholder="Nome do locutor"
-                            className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-900/5"
+                            className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/5"
                           />
                         </div>
                         <button

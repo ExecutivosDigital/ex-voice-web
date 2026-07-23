@@ -174,7 +174,7 @@ export function PreMeetingModal({
               <select
                 value={promptId}
                 onChange={(e) => trocarIA(e.target.value)}
-                className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-800 outline-none transition focus:border-gray-900"
+                className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-800 outline-none transition focus:border-primary"
               >
                 <option value={PADRAO}>Padrão</option>
                 {prompts.map((p) => (
@@ -218,7 +218,7 @@ export function PreMeetingModal({
                   </button>
                   <button
                     onClick={copiar}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-gray-700"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-primary-dim"
                   >
                     {copied ? <Check size={12} /> : <Copy size={12} />}
                     {copied ? "Copiado" : "Copiar"}

@@ -37,15 +37,15 @@ function toneGradients(tone: Tone) {
       return {
         ringFrom: "#111827",
         ringTo: "#6b7280",
-        glow: "bg-gray-900/5",
-        chip: "bg-gradient-to-r from-gray-900 to-gray-700 text-white shadow-[0_6px_14px_-4px_rgba(17,24,39,0.4)]",
+        glow: "bg-primary/5",
+        chip: "bg-gradient-to-r from-primary to-primary-dim text-white shadow-[0_6px_14px_-4px_rgba(17,24,39,0.4)]",
       };
     default:
       return {
         ringFrom: "#111827",
         ringTo: "#6b7280",
-        glow: "bg-gray-900/5",
-        chip: "bg-gradient-to-r from-gray-900 to-gray-700 text-white shadow-[0_6px_14px_-4px_rgba(17,24,39,0.4)]",
+        glow: "bg-primary/5",
+        chip: "bg-gradient-to-r from-primary to-primary-dim text-white shadow-[0_6px_14px_-4px_rgba(17,24,39,0.4)]",
       };
   }
 }

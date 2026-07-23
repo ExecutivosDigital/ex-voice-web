@@ -65,7 +65,7 @@ export function MobileBottomNav() {
                     "absolute inset-0 rounded-xl shadow-[0_4px_14px_-4px_rgba(17,24,39,0.45)]",
                     item.highlight
                       ? "bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500"
-                      : "bg-gradient-to-r from-gray-900 to-gray-700",
+                      : "bg-gradient-to-r from-primary to-primary-dim",
                   )}
                   transition={{
                     type: "spring",

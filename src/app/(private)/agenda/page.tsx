@@ -507,7 +507,7 @@ function NextMeetingCard({
         "group relative flex items-center gap-4 overflow-hidden rounded-3xl border p-5 text-left transition",
         urgent
           ? "border-red-200 bg-gradient-to-br from-red-50 via-white to-white shadow-[0_12px_40px_-20px_rgba(239,68,68,0.35)]"
-          : "border-gray-900/80 bg-gradient-to-br from-gray-900 via-[#111318] to-[#1a1d24] text-white shadow-[0_12px_40px_-20px_rgba(17,24,39,0.6)]",
+          : "border-primary/80 bg-gradient-to-br from-primary via-[#111318] to-[#1a1d24] text-white shadow-[0_12px_40px_-20px_rgba(17,24,39,0.6)]",
       )}
     >
       <div
@@ -603,7 +603,7 @@ function StatCard({
       className={cn(
         "flex flex-col justify-between rounded-3xl border p-5",
         tone === "dark"
-          ? "border-gray-900 bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+          ? "border-primary bg-gradient-to-br from-primary to-primary-dim text-white"
           : "border-gray-200/70 bg-white/80 backdrop-blur-sm",
       )}
     >
@@ -679,7 +679,7 @@ function SelectedDayPanel({
           </button>
           <button
             onClick={onAdd}
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-gray-900 px-3 text-[11px] font-semibold text-white transition hover:bg-gray-700"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 text-[11px] font-semibold text-white transition hover:bg-primary-dim"
           >
             <CalendarPlus size={12} />
             Adicionar
@@ -742,7 +742,7 @@ function SelectedDayPanel({
                 </p>
               </div>
               <div className="flex shrink-0 items-center">
-                <span className="hidden items-center gap-1 rounded-full bg-gray-900 px-2.5 py-1 text-[9px] font-bold tracking-wider text-white uppercase opacity-0 transition group-hover:opacity-100 md:inline-flex">
+                <span className="hidden items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[9px] font-bold tracking-wider text-white uppercase opacity-0 transition group-hover:opacity-100 md:inline-flex">
                   <Sparkles size={10} /> Pre-Meeting
                 </span>
                 <ArrowRight

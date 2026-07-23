@@ -37,7 +37,7 @@ function Item({
       onClick={handleClick}
       className={cn(
         "flex w-full flex-col gap-0.5 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-gray-50",
-        !notification.opened && "bg-gray-900/[0.03]",
+        !notification.opened && "bg-primary/[0.03]",
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -87,12 +87,12 @@ export function MinimalNotificationBell() {
           className={cn(
             "group relative flex h-10 w-10 items-center justify-center rounded-full border text-gray-700 transition-all",
             hasUnread
-              ? "border-gray-900/10 bg-white shadow-[0_4px_14px_-4px_rgba(17,24,39,0.25)] hover:shadow-[0_6px_20px_-6px_rgba(17,24,39,0.35)]"
+              ? "border-primary/10 bg-white shadow-[0_4px_14px_-4px_rgba(17,24,39,0.25)] hover:shadow-[0_6px_20px_-6px_rgba(17,24,39,0.35)]"
               : "border-gray-200 bg-white/70 backdrop-blur-sm hover:border-gray-300 hover:bg-white",
           )}
         >
           {hasUnread && (
-            <span className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-gray-900/5 to-gray-900/0" />
+            <span className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-primary/5 to-primary/0" />
           )}
           <Icon
             size={18}
@@ -182,7 +182,7 @@ export function MinimalNotificationBell() {
           <button
             type="button"
             onClick={() => router.push("/notifications")}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gray-900 to-gray-700 py-2 text-sm font-semibold text-white transition hover:scale-[1.01]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-dim py-2 text-sm font-semibold text-white transition hover:scale-[1.01]"
           >
             Ver todas
           </button>

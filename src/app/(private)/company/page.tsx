@@ -232,7 +232,7 @@ export default function CompanyPage() {
   if (!isController) {
     return (
       <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-16 text-center backdrop-blur-sm">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg">
           <Building2 size={28} />
         </div>
         <h1 className="mt-4 text-xl font-semibold text-gray-900">

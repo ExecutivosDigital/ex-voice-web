@@ -60,7 +60,7 @@ export function RecordingModeModal({
             if (e.target === e.currentTarget) onClose();
           }}
           className={cn(
-            "fixed inset-0 z-[9999999] flex items-center justify-center overflow-y-auto overscroll-contain bg-gray-900/50 p-4 backdrop-blur-sm",
+            "fixed inset-0 z-[9999999] flex items-center justify-center overflow-y-auto overscroll-contain bg-primary/50 p-4 backdrop-blur-sm",
             className,
           )}
         >

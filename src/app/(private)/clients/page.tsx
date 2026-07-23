@@ -195,7 +195,7 @@ export default function MinimalClientsPage() {
 
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
         >
           <Plus size={16} />
           Novo cliente
@@ -318,11 +318,11 @@ function ClientCard({
       transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.3) }}
       whileHover={{ y: -2 }}
       className={cn(
-        "group relative flex cursor-pointer flex-col gap-3 overflow-hidden rounded-2xl border border-gray-200/70 bg-white p-4 text-left transition outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20",
+        "group relative flex cursor-pointer flex-col gap-3 overflow-hidden rounded-2xl border border-gray-200/70 bg-white p-4 text-left transition outline-none focus-visible:ring-2 focus-visible:ring-primary/20",
         "shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-gray-300 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.25)]",
       )}
     >
-      <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
+      <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-primary via-gray-500 to-primary transition-transform duration-500 group-hover:scale-x-100" />
 
       <button
         type="button"
@@ -337,7 +337,7 @@ function ClientCard({
       </button>
 
       <div className="flex items-center justify-between">
-        <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-xs font-semibold text-white shadow-sm">
+        <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-xs font-semibold text-white shadow-sm">
           {initials(client.name) || "?"}
         </div>
         <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-[10px] font-semibold tracking-wider text-gray-600 uppercase transition group-hover:opacity-0">
@@ -404,7 +404,7 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-16 text-center backdrop-blur-sm">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg">
         {hasFilters ? <UsersRound size={26} /> : <UserPlus size={26} />}
       </div>
       <h3 className="mt-6 text-lg font-semibold text-gray-900">
@@ -420,7 +420,7 @@ function EmptyState({
       {!hasFilters && (
         <button
           onClick={onCreate}
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
         >
           <Plus size={14} />
           Novo cliente

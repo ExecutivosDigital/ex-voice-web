@@ -36,7 +36,7 @@ export function CompanyTabs() {
             )}
           >
             {active && (
-              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]" />
+              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-primary-dim shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]" />
             )}
             <span className="relative flex items-center gap-1.5">
               <Icon size={14} />

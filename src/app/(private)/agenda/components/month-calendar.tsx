@@ -173,9 +173,9 @@ export function MonthCalendar({
                 "group relative flex aspect-square flex-col items-stretch justify-between rounded-xl border p-1.5 text-left transition",
                 !cell.inMonth && "opacity-40",
                 isSelected
-                  ? "border-gray-900 bg-gray-900 text-white shadow-[0_10px_24px_-10px_rgba(17,24,39,0.55)]"
+                  ? "border-primary bg-primary text-white shadow-[0_10px_24px_-10px_rgba(17,24,39,0.55)]"
                   : isToday
-                    ? "border-gray-900/10 bg-gray-50 text-gray-900"
+                    ? "border-primary/10 bg-gray-50 text-gray-900"
                     : hasMeetings
                       ? "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
                       : "border-transparent hover:border-gray-200 hover:bg-gray-50",
@@ -210,7 +210,7 @@ export function MonthCalendar({
                               typeDot[primaryType],
                               "ring-white",
                             )
-                          : "bg-gray-900 text-white",
+                          : "bg-primary text-white",
                     )}
                     aria-label={`${count} ${count === 1 ? "reunião" : "reuniões"}`}
                   >

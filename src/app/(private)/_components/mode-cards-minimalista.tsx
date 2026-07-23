@@ -60,15 +60,15 @@ function MinimalistaCard({
       aria-label={`Iniciar gravação ${title.toLowerCase()}`}
       className={cn(
         "group relative flex w-full cursor-pointer items-center justify-between gap-4 overflow-hidden rounded-xl border border-gray-200 bg-white px-5 py-4 text-left shadow-sm transition-all duration-300",
-        "hover:border-gray-900 hover:shadow-md",
+        "hover:border-primary hover:shadow-md",
         "active:bg-gray-50",
-        "focus-visible:ring-2 focus-visible:ring-gray-900/20 focus-visible:outline-none",
+        "focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:outline-none",
       )}
     >
       {/* indicador visual de "isto é clicável" — barra lateral que cresce no hover */}
       <span
         aria-hidden
-        className="absolute top-0 bottom-0 left-0 w-0.5 bg-gray-900 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        className="absolute top-0 bottom-0 left-0 w-0.5 bg-primary opacity-0 transition-opacity duration-300 group-hover:opacity-100"
       />
 
       <div className="flex min-w-0 items-center gap-3.5">
@@ -82,7 +82,7 @@ function MinimalistaCard({
       </div>
 
       {/* cápsula de ação — usa affordance padrão de botão */}
-      <span className="flex shrink-0 items-center gap-2 rounded-full bg-gray-900 px-3.5 py-1.5 text-xs font-semibold text-white transition-all duration-300 group-hover:bg-red-600 group-hover:shadow-md group-hover:shadow-red-600/30">
+      <span className="flex shrink-0 items-center gap-2 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white transition-all duration-300 group-hover:bg-red-600 group-hover:shadow-md group-hover:shadow-red-600/30">
         <span className="relative flex h-1.5 w-1.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/60" />
           <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />

@@ -332,7 +332,7 @@ export function EditarCardModal({
                           )
                         }
                         placeholder="Item"
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 transition outline-none focus:border-primary focus:ring-4 focus:ring-primary/5"
                       />
                       <input
                         value={item.secondary}
@@ -344,7 +344,7 @@ export function EditarCardModal({
                           )
                         }
                         placeholder="Detalhe (opcional)"
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600 transition outline-none focus:border-primary focus:ring-4 focus:ring-primary/5"
                       />
                     </div>
                     <button
@@ -398,7 +398,7 @@ export function EditarCardModal({
                               ),
                             )
                           }
-                          className="h-11 rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                          className="h-11 rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 transition outline-none focus:border-primary focus:ring-4 focus:ring-primary/5"
                         >
                           <option value="true">Sim</option>
                           <option value="false">Não</option>
@@ -432,7 +432,7 @@ export function EditarCardModal({
                                   ),
                                 )
                           }
-                          className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-gray-900 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                          className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-gray-900 transition outline-none focus:border-primary focus:ring-4 focus:ring-primary/5"
                         />
                       )}
                     </label>
@@ -459,7 +459,7 @@ export function EditarCardModal({
                         14,
                         Math.max(4, t.valor.split("\n").length + 2),
                       )}
-                      className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-gray-900 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                      className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-gray-900 transition outline-none focus:border-primary focus:ring-4 focus:ring-primary/5"
                     />
                   </label>
                 ))}
@@ -482,7 +482,7 @@ export function EditarCardModal({
               <button
                 onClick={salvar}
                 disabled={salvando}
-                className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-dim disabled:opacity-60"
               >
                 {salvando && <Loader2 size={12} className="animate-spin" />}
                 Salvar edição

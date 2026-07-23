@@ -98,7 +98,7 @@ export function ConfirmProvider({ children }: PropsWithChildren) {
                 "flex-1 rounded-full px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02]",
                 isDanger
                   ? "bg-gradient-to-r from-red-500 to-red-600 shadow-red-500/20"
-                  : "bg-gradient-to-r from-gray-900 to-gray-700 shadow-gray-900/20",
+                  : "bg-gradient-to-r from-primary to-primary-dim shadow-gray-900/20",
               )}
             >
               {options?.confirmLabel ?? "Confirmar"}

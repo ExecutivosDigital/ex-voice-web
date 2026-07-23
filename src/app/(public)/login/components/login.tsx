@@ -462,7 +462,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
             type="button"
             onClick={handleAppleSignIn}
             disabled={isLoggingIn}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-800 bg-gradient-to-br from-gray-800 to-gray-950 font-medium text-white transition hover:from-gray-700 hover:to-gray-900 disabled:opacity-50"
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-800 bg-gradient-to-br from-gray-800 to-gray-950 font-medium text-white transition hover:from-gray-700 hover:to-primary disabled:opacity-50"
           >
             <Image
               src="/icons/apple-login.png"

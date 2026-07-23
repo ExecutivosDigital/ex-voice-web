@@ -99,7 +99,7 @@ export function YearView({
             <span className="h-2 w-2 rounded-sm bg-gray-700" /> 3+
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-sm bg-gray-900" /> Hoje
+            <span className="h-2 w-2 rounded-sm bg-primary" /> Hoje
           </span>
         </div>
       </div>
@@ -189,7 +189,7 @@ function MiniMonth({
         aria-hidden
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-gray-900 to-gray-500 transition-all duration-500"
+          className="h-full rounded-full bg-gradient-to-r from-primary to-gray-500 transition-all duration-500"
           style={{ width: `${Math.round(relative * 100)}%` }}
         />
       </div>
@@ -210,9 +210,9 @@ function MiniMonth({
           const isSelected = cell.iso === selectedDate;
 
           const bg = isSelected
-            ? "bg-gray-900 text-white ring-1 ring-gray-900"
+            ? "bg-primary text-white ring-1 ring-primary"
             : isToday
-              ? "bg-gray-900 text-white"
+              ? "bg-primary text-white"
               : count >= 3
                 ? "bg-gray-700 text-white"
                 : count > 0

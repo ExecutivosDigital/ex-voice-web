@@ -73,7 +73,7 @@ export function NotificationPermissionBanner() {
           className="fixed right-4 bottom-4 z-40 w-[calc(100vw-2rem)] max-w-sm rounded-3xl border border-gray-200/70 bg-white/95 p-4 shadow-[0_20px_60px_-16px_rgba(15,23,42,0.35)] backdrop-blur-md"
         >
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-md shadow-gray-900/20">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-md shadow-gray-900/20">
               <BellRing size={17} />
             </span>
             <div className="min-w-0 flex-1">
@@ -91,7 +91,7 @@ export function NotificationPermissionBanner() {
           <div className="mt-3 flex items-center gap-2">
             <button
               onClick={ativar}
-              className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-gray-900 px-4 text-xs font-semibold text-white transition hover:bg-gray-700"
+              className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-white transition hover:bg-primary-dim"
             >
               Ativar avisos
             </button>

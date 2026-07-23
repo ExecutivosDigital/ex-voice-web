@@ -167,7 +167,7 @@ function MinimalHeader({
 
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-xs font-semibold text-white shadow-sm">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-xs font-semibold text-white shadow-sm">
             {initials(client.name) || "?"}
           </div>
           <h1 className="truncate text-2xl font-semibold text-gray-900 md:text-3xl">
@@ -187,7 +187,7 @@ function MinimalHeader({
           <button
             type="button"
             onClick={onNewRecording}
-            className="inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-4 text-xs font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-4 text-xs font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
           >
             <Plus size={16} />
             Nova gravação
@@ -236,7 +236,7 @@ function ViewSwitcher({
               {active && (
                 <motion.span
                   layoutId="client-view-pill"
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
+                  className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-primary-dim shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
                   transition={{ type: "spring", stiffness: 360, damping: 30 }}
                 />
               )}
@@ -374,9 +374,9 @@ function RecordingRow({
       whileHover={{ y: -1 }}
       className="group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl border border-gray-200/70 bg-white/80 p-4 text-left shadow-[0_1px_2px_rgba(15,23,42,0.03)] backdrop-blur-sm transition hover:border-gray-300 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.18)]"
     >
-      <span className="absolute inset-y-0 left-0 w-[3px] scale-y-0 bg-gradient-to-b from-gray-900 to-gray-500 transition-transform duration-300 group-hover:scale-y-100" />
+      <span className="absolute inset-y-0 left-0 w-[3px] scale-y-0 bg-gradient-to-b from-primary to-gray-500 transition-transform duration-300 group-hover:scale-y-100" />
 
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-sm">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-sm">
         <Video size={18} />
       </div>
 
@@ -414,7 +414,7 @@ function RecordingRow({
         </div>
       </div>
 
-      <div className="ml-2 hidden h-10 w-10 items-center justify-center rounded-full bg-gray-50 text-gray-400 transition group-hover:bg-gray-900 group-hover:text-white md:flex">
+      <div className="ml-2 hidden h-10 w-10 items-center justify-center rounded-full bg-gray-50 text-gray-400 transition group-hover:bg-primary group-hover:text-white md:flex">
         <ArrowRight size={16} />
       </div>
     </motion.button>
@@ -444,7 +444,7 @@ function SkeletonList() {
 function EmptyRecordings({ onNewRecording }: { onNewRecording: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-16 text-center backdrop-blur-sm">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg">
         <Mic2 size={26} />
       </div>
       <h3 className="mt-6 text-lg font-semibold text-gray-900">
@@ -458,7 +458,7 @@ function EmptyRecordings({ onNewRecording }: { onNewRecording: () => void }) {
         <button
           type="button"
           onClick={onNewRecording}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
         >
           <Plus size={16} />
           Começar gravação
@@ -607,7 +607,7 @@ function AboutView({ client }: { client: ClientProps }) {
               key={tag}
               className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white/80 px-3 py-1.5 text-xs font-medium text-gray-700"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-gray-900 to-gray-500" />
+              <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-primary to-gray-500" />
               {tag}
             </span>
           ))}
@@ -634,9 +634,9 @@ function MetricTile({
 }) {
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-gray-200/70 bg-white/80 p-4 backdrop-blur-sm transition hover:border-gray-300 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.2)]">
-      <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
+      <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-primary via-gray-500 to-primary transition-transform duration-500 group-hover:scale-x-100" />
       <div className="flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-900/5 text-gray-700">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/5 text-gray-700">
           <Icon size={14} />
         </span>
         <p className="text-[10px] font-semibold tracking-[0.2em] text-gray-400 uppercase">
@@ -676,7 +676,7 @@ function Section({
       )}
     >
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-900/5 text-gray-700">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/5 text-gray-700">
           <Icon size={15} />
         </span>
         <div className="flex-1">
@@ -733,7 +733,7 @@ function Field({
             {label}
           </p>
           {mock && (
-            <span className="rounded-full bg-gray-900/5 px-1.5 py-px text-[9px] font-semibold tracking-wide text-gray-500 uppercase">
+            <span className="rounded-full bg-primary/5 px-1.5 py-px text-[9px] font-semibold tracking-wide text-gray-500 uppercase">
               Estimado
             </span>
           )}
@@ -743,7 +743,7 @@ function Field({
       {copy && (
         <button
           onClick={handleCopy}
-          className="shrink-0 rounded-full border border-gray-200 bg-white px-2 py-1 text-[10px] font-semibold tracking-wider text-gray-500 uppercase transition hover:border-gray-900 hover:text-gray-900"
+          className="shrink-0 rounded-full border border-gray-200 bg-white px-2 py-1 text-[10px] font-semibold tracking-wider text-gray-500 uppercase transition hover:border-primary hover:text-gray-900"
         >
           {copied ? "OK" : "Copiar"}
         </button>
@@ -877,7 +877,7 @@ function IntelligenceView({ client }: { client: ClientProps }) {
                 key={topic}
                 className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white/80 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-gray-300 hover:bg-white"
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-gray-900 to-gray-500" />
+                <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-primary to-gray-500" />
                 {topic}
               </span>
             ))}
@@ -919,9 +919,9 @@ function IntelligenceView({ client }: { client: ClientProps }) {
               key={p.title}
               className="group relative overflow-hidden rounded-2xl border border-gray-200/70 bg-white/70 p-4 transition hover:border-gray-300 hover:bg-white"
             >
-              <span className="absolute top-0 left-0 h-full w-[3px] bg-gradient-to-b from-gray-900 to-gray-500 opacity-80" />
+              <span className="absolute top-0 left-0 h-full w-[3px] bg-gradient-to-b from-primary to-gray-500 opacity-80" />
               <div className="flex items-start gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-xs font-semibold text-white">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-xs font-semibold text-white">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div>
@@ -948,10 +948,10 @@ function IntelligenceView({ client }: { client: ClientProps }) {
 function SignatureCard({ profile }: { profile: MockProfile }) {
   return (
     <div className="relative overflow-hidden rounded-[24px] border border-gray-200/70 bg-gradient-to-br from-white via-white to-gray-50 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:p-7">
-      <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-gradient-to-br from-gray-900 to-gray-700 opacity-[0.05] blur-3xl" />
+      <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-gradient-to-br from-primary to-primary-dim opacity-[0.05] blur-3xl" />
       <div className="relative flex flex-col gap-3">
         <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white">
             <Target size={15} />
           </span>
           <p className="text-xs font-semibold tracking-[0.28em] text-gray-400 uppercase">
@@ -979,9 +979,9 @@ function StatTile({
 }) {
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-gray-200/70 bg-white/80 p-5 backdrop-blur-sm transition hover:border-gray-300 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.2)]">
-      <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
+      <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-primary via-gray-500 to-primary transition-transform duration-500 group-hover:scale-x-100" />
       <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-900/5 text-gray-700">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/5 text-gray-700">
           <Icon size={16} />
         </span>
         <p className="text-[11px] font-semibold tracking-[0.2em] text-gray-400 uppercase">
@@ -1023,8 +1023,8 @@ function Panel({
           className={cn(
             "flex h-9 w-9 items-center justify-center rounded-xl shadow-sm",
             accent
-              ? "bg-gradient-to-br from-gray-900 to-gray-700 text-white"
-              : "bg-gray-900/5 text-gray-700",
+              ? "bg-gradient-to-br from-primary to-primary-dim text-white"
+              : "bg-primary/5 text-gray-700",
           )}
         >
           <Icon size={15} />
@@ -1062,10 +1062,10 @@ function TraitRow({ trait }: { trait: StyleTrait }) {
           initial={{ width: 0 }}
           animate={{ width: `${trait.value}%` }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-500"
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-gray-500"
         />
         <span
-          className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border-2 border-white bg-gray-900 shadow"
+          className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border-2 border-white bg-primary shadow"
           style={{ left: `calc(${trait.value}% - 6px)` }}
         />
       </div>
@@ -1101,7 +1101,7 @@ function ToneBar({ tone }: { tone: ToneEntry }) {
 function TriggerRow({ trigger }: { trigger: PersuasionTrigger }) {
   return (
     <div className="group relative flex gap-3 overflow-hidden rounded-2xl border border-gray-100 bg-white/70 p-4 transition hover:border-gray-200 hover:bg-white">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white">
         <Flame size={15} />
       </span>
       <div>

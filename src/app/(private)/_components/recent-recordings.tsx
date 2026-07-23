@@ -74,9 +74,9 @@ export function RecentRecordings() {
                 "shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-gray-300 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.25)]",
               )}
             >
-              <div className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
+              <div className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-primary via-gray-500 to-primary transition-transform duration-500 group-hover:scale-x-100" />
 
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white">
                 <Mic2 size={16} />
               </div>
 

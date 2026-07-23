@@ -54,7 +54,7 @@ export function ModeCards({ onSelect }: ModeCardsProps) {
 }
 
 const cardBase =
-  "group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-900/5 focus-visible:ring-4 focus-visible:ring-gray-900/20 focus-visible:outline-none";
+  "group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-900/5 focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:outline-none";
 
 function PresencialCard({ onClick }: { onClick: () => void }) {
   return (
@@ -71,7 +71,7 @@ function PresencialCard({ onClick }: { onClick: () => void }) {
       <div className="flex h-full flex-col gap-5 p-5">
         {/* Cabeçalho: ícone + badge */}
         <div className="flex items-start justify-between gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 shadow-inner">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim shadow-inner">
             <Mic size={22} className="text-white" strokeWidth={2} />
           </div>
           <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold tracking-[0.18em] text-gray-600 uppercase">
@@ -163,7 +163,7 @@ function PulseCta({
   label?: React.ReactNode;
 }) {
   return (
-    <div className="mt-auto flex items-center gap-3 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 px-4 py-3.5 text-white shadow-md shadow-gray-900/20 transition-all duration-300 group-hover:from-gray-900 group-hover:to-black group-hover:shadow-lg group-hover:shadow-gray-900/30">
+    <div className="mt-auto flex items-center gap-3 rounded-xl bg-gradient-to-r from-gray-800 to-primary px-4 py-3.5 text-white shadow-md shadow-gray-900/20 transition-all duration-300 group-hover:from-primary group-hover:to-black group-hover:shadow-lg group-hover:shadow-gray-900/30">
       <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-white/25">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/30 opacity-60" />
         <Icon size={18} className="relative text-white" strokeWidth={2.5} />
@@ -326,7 +326,7 @@ function OnlineDesktopModal({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-gray-900 to-gray-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:from-black hover:to-gray-800"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-primary-dim px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:from-black hover:to-gray-800"
           >
             Entendi
             <ArrowRight size={15} strokeWidth={2.5} />
@@ -366,7 +366,7 @@ function Feature({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-sm">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-sm">
         <Icon size={16} strokeWidth={2} />
       </span>
       <div className="flex-1">

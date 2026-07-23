@@ -71,7 +71,7 @@ export function EscolherModoModal({
             >
               <div className="flex h-full flex-col gap-4 p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 shadow-inner">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim shadow-inner">
                     <Mic size={22} className="text-white" strokeWidth={2} />
                   </div>
                   <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold tracking-[0.18em] text-gray-600 uppercase">

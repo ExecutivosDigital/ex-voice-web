@@ -198,7 +198,7 @@ export function ChatTab({
                 onClick={send}
                 disabled={!input.trim()}
                 className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-[0_4px_14px_-4px_rgba(17,24,39,0.45)] transition",
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-[0_4px_14px_-4px_rgba(17,24,39,0.45)] transition",
                   !input.trim()
                     ? "cursor-not-allowed opacity-30"
                     : "hover:scale-[1.05]",
@@ -235,8 +235,8 @@ export function ChatTab({
 function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center gap-8 py-12 text-center">
-      <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg shadow-gray-900/20">
-        <span className="absolute inset-0 animate-pulse rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 opacity-40 blur-lg" />
+      <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg shadow-gray-900/20">
+        <span className="absolute inset-0 animate-pulse rounded-2xl bg-gradient-to-br from-primary to-primary-dim opacity-40 blur-lg" />
         <Sparkles size={24} className="relative" />
       </div>
 
@@ -257,7 +257,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
             onClick={() => onPick(prompt)}
             className="group flex flex-col items-start gap-2 rounded-2xl border border-gray-200 bg-white p-3.5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-700 transition-colors group-hover:bg-gray-900 group-hover:text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-700 transition-colors group-hover:bg-primary group-hover:text-white">
               <Icon size={15} strokeWidth={2.2} />
             </span>
             <span className="text-xs font-semibold text-gray-900">{label}</span>
@@ -274,7 +274,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
 function ThinkingDots() {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-dim text-white">
         <Sparkles size={13} />
       </div>
       <div className="flex items-center gap-1.5 rounded-2xl bg-gray-50 px-4 py-3 ring-1 ring-gray-100">
@@ -319,8 +319,8 @@ function MessageBubble({
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white",
           isUser
-            ? "bg-gradient-to-br from-gray-700 to-gray-900"
-            : "bg-gradient-to-br from-gray-900 to-gray-700",
+            ? "bg-gradient-to-br from-gray-700 to-primary"
+            : "bg-gradient-to-br from-primary to-primary-dim",
         )}
       >
         {isUser ? (
@@ -340,7 +340,7 @@ function MessageBubble({
           className={cn(
             "max-w-full rounded-2xl px-4 py-3 text-[15px] leading-relaxed",
             isUser
-              ? "bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-[0_4px_14px_-6px_rgba(17,24,39,0.35)]"
+              ? "bg-gradient-to-br from-primary to-primary-dim text-white shadow-[0_4px_14px_-6px_rgba(17,24,39,0.35)]"
               : "bg-gray-50 text-gray-800 ring-1 ring-gray-100",
           )}
         >

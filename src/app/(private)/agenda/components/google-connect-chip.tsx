@@ -82,8 +82,8 @@ export function GoogleConnectChip({
           onClick={handleConnect}
           disabled={redirecionando}
           className={cn(
-            "inline-flex h-6 items-center gap-1 rounded-full bg-gray-900 px-2.5 text-[10px] font-semibold text-white transition",
-            redirecionando ? "cursor-wait opacity-80" : "hover:bg-gray-700",
+            "inline-flex h-6 items-center gap-1 rounded-full bg-primary px-2.5 text-[10px] font-semibold text-white transition",
+            redirecionando ? "cursor-wait opacity-80" : "hover:bg-primary-dim",
           )}
         >
           {redirecionando ? (
@@ -174,7 +174,7 @@ export function GoogleConnectChip({
                     setInfoOpen(false);
                     handleConnect();
                   }}
-                  className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-dim"
                 >
                   <GoogleIcon className="h-3.5 w-3.5" />
                   Vincular agora

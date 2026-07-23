@@ -179,7 +179,7 @@ export function DepartmentMembersModal({
             <button
               onClick={() => addingUserId && setMember(addingUserId, addingRole)}
               disabled={!addingUserId || busy}
-              className="flex h-10 items-center gap-1.5 rounded-xl bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:opacity-50"
+              className="flex h-10 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary-dim disabled:opacity-50"
             >
               <UserPlus size={15} /> Adicionar
             </button>
@@ -312,7 +312,7 @@ export function BranchManagersModal({
             <button
               onClick={addManager}
               disabled={!addingUserId || busy}
-              className="flex h-10 items-center gap-1.5 rounded-xl bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:opacity-50"
+              className="flex h-10 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary-dim disabled:opacity-50"
             >
               <UserPlus size={15} /> Adicionar
             </button>

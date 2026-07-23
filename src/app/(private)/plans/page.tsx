@@ -363,7 +363,7 @@ function Hero() {
         <div>
           <h1 className="text-3xl font-semibold text-balance text-gray-900 md:text-4xl">
             Escolha o plano que{" "}
-            <span className="bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-gray-600 to-primary bg-clip-text text-transparent">
               trabalha por você
             </span>
             .
@@ -379,7 +379,7 @@ function Hero() {
               {["MA", "RC", "FL"].map((s) => (
                 <span
                   key={s}
-                  className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-gray-900 to-gray-600 text-[9px] font-semibold text-white"
+                  className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-primary to-gray-600 text-[9px] font-semibold text-white"
                 >
                   {s}
                 </span>
@@ -441,7 +441,7 @@ function BillingBar({
                 {active && (
                   <motion.span
                     layoutId="cycle-pill"
-                    className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
+                    className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-primary-dim shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
                     transition={{ type: "spring", stiffness: 400, damping: 32 }}
                   />
                 )}
@@ -485,7 +485,7 @@ function BillingBar({
                 {active && (
                   <motion.span
                     layoutId="method-pill"
-                    className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
+                    className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-primary-dim shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]"
                     transition={{ type: "spring", stiffness: 400, damping: 32 }}
                   />
                 )}
@@ -536,7 +536,7 @@ function PlanCard({
       className={cn(
         "group relative flex flex-col gap-5 overflow-hidden rounded-3xl border p-6 text-left transition",
         featured
-          ? "border-transparent bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white shadow-[0_24px_60px_-24px_rgba(17,24,39,0.7)] lg:-translate-y-2 lg:scale-[1.02]"
+          ? "border-transparent bg-gradient-to-br from-primary via-primary to-gray-800 text-white shadow-[0_24px_60px_-24px_rgba(17,24,39,0.7)] lg:-translate-y-2 lg:scale-[1.02]"
           : "border-gray-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-gray-300 hover:shadow-[0_14px_40px_-20px_rgba(15,23,42,0.3)]",
       )}
     >
@@ -547,7 +547,7 @@ function PlanCard({
         </>
       )}
       {!featured && (
-        <div className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
+        <div className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-primary via-gray-500 to-primary transition-transform duration-500 group-hover:scale-x-100" />
       )}
 
       <div className="relative flex items-start justify-between">
@@ -556,7 +556,7 @@ function PlanCard({
             "flex h-11 w-11 items-center justify-center rounded-2xl",
             featured
               ? "bg-white/10 text-white ring-1 ring-white/20"
-              : "bg-gradient-to-br from-gray-900 to-gray-700 text-white",
+              : "bg-gradient-to-br from-primary to-primary-dim text-white",
           )}
         >
           <Icon size={18} />
@@ -567,7 +567,7 @@ function PlanCard({
               "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase",
               featured
                 ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-[0_4px_14px_-4px_rgba(245,158,11,0.65)]"
-                : "bg-gray-900 text-white",
+                : "bg-primary text-white",
             )}
           >
             <Sparkles size={10} />
@@ -679,7 +679,7 @@ function PlanCard({
                     ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white"
                     : "bg-white/10 text-white"
                   : f.highlight
-                    ? "bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+                    ? "bg-gradient-to-br from-primary to-primary-dim text-white"
                     : "bg-gray-100 text-gray-700",
               )}
             >
@@ -709,7 +709,7 @@ function PlanCard({
           "relative mt-auto inline-flex items-center justify-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold transition",
           featured
             ? "bg-white text-gray-900 shadow-lg shadow-black/20 hover:scale-[1.02]"
-            : "bg-gradient-to-r from-gray-900 to-gray-700 text-white shadow-lg shadow-gray-900/20 hover:scale-[1.02]",
+            : "bg-gradient-to-r from-primary to-primary-dim text-white shadow-lg shadow-gray-900/20 hover:scale-[1.02]",
         )}
       >
         Assinar {preset.displayName}
@@ -749,7 +749,7 @@ function ValuePanel({
       <div>
         <h3 className="text-lg font-semibold text-balance text-gray-900 md:text-xl">
           Mais tempo pensando.{" "}
-          <span className="bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary via-gray-500 to-primary bg-clip-text text-transparent">
             Menos tempo anotando.
           </span>
         </h3>
@@ -861,7 +861,7 @@ function ComparisonTable() {
               key={name}
               className={cn(
                 "px-4 py-3 text-center",
-                i === 1 && "bg-gray-900 text-white",
+                i === 1 && "bg-primary text-white",
               )}
             >
               {name}
@@ -892,7 +892,7 @@ function ComparisonTable() {
                 key={i}
                 className={cn(
                   "flex items-center justify-center px-4 py-3",
-                  i === 1 && "bg-gray-900/[0.03]",
+                  i === 1 && "bg-primary/[0.03]",
                 )}
               >
                 {typeof v === "boolean" ? (
@@ -902,7 +902,7 @@ function ComparisonTable() {
                         "flex h-5 w-5 items-center justify-center rounded-full",
                         i === 1
                           ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white"
-                          : "bg-gradient-to-br from-gray-900 to-gray-700 text-white",
+                          : "bg-gradient-to-br from-primary to-primary-dim text-white",
                       )}
                     >
                       <Check size={11} strokeWidth={3} />
@@ -960,7 +960,7 @@ function Testimonials() {
             whileHover={{ y: -2 }}
             className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-gray-200/70 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-gray-300 hover:shadow-[0_14px_40px_-20px_rgba(15,23,42,0.25)]"
           >
-            <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900 transition-transform duration-500 group-hover:scale-x-100" />
+            <span className="absolute inset-x-0 top-0 h-[2px] scale-x-0 bg-gradient-to-r from-primary via-gray-500 to-primary transition-transform duration-500 group-hover:scale-x-100" />
             <Quote
               size={22}
               className="absolute top-5 right-5 text-gray-200"
@@ -977,7 +977,7 @@ function Testimonials() {
             </div>
             <p className="text-sm leading-relaxed text-gray-700">“{t.quote}”</p>
             <div className="mt-auto flex items-center gap-3 border-t border-gray-100 pt-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-xs font-semibold text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-xs font-semibold text-white">
                 {getInitials(t.author)}
               </div>
               <div className="min-w-0">
@@ -1059,7 +1059,7 @@ function FaqSection() {
 
 function SecurityFooter() {
   return (
-    <section className="flex flex-col items-start gap-5 rounded-3xl border border-gray-900 bg-gradient-to-br from-gray-900 via-[#111318] to-[#1a1d24] px-6 py-8 text-white md:flex-row md:items-center md:justify-between md:px-10">
+    <section className="flex flex-col items-start gap-5 rounded-3xl border border-primary bg-gradient-to-br from-primary via-[#111318] to-[#1a1d24] px-6 py-8 text-white md:flex-row md:items-center md:justify-between md:px-10">
       <div className="flex items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/20">
           <Shield size={20} />
@@ -1120,7 +1120,7 @@ function SkeletonGrid() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-16 text-center backdrop-blur-sm">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg">
         <Sparkles size={26} />
       </div>
       <h3 className="mt-6 text-lg font-semibold text-gray-900">

@@ -46,7 +46,7 @@ export function ChaptersCard({
               onClick={() => seekAudioTo(chapter.start)}
               className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-gray-50"
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition group-hover:bg-gray-900 group-hover:text-white">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition group-hover:bg-primary group-hover:text-white">
                 <Play size={12} className="translate-x-[1px]" />
               </span>
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800">

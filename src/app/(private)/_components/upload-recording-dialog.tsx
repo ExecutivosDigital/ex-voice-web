@@ -104,9 +104,9 @@ export function UploadRecordingCta() {
         transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         whileTap={{ scale: 0.995 }}
         aria-label="Subir gravação já feita"
-        className="group flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-white/60 px-4 py-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-400 hover:bg-white hover:shadow-sm focus-visible:ring-4 focus-visible:ring-gray-900/15 focus-visible:outline-none"
+        className="group flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-gray-300 bg-white/60 px-4 py-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-400 hover:bg-white hover:shadow-sm focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:outline-none"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700 transition-colors group-hover:bg-gray-900 group-hover:text-white">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700 transition-colors group-hover:bg-primary group-hover:text-white">
           <Upload size={16} strokeWidth={2} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
@@ -438,7 +438,7 @@ function UploadDialog({ onClose }: { onClose: () => void }) {
         <div className="flex-shrink-0 border-b border-gray-100 px-5 py-4 sm:px-6">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-sm">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-sm">
                 <UploadCloud size={18} strokeWidth={2} />
               </span>
               <div>
@@ -485,7 +485,7 @@ function UploadDialog({ onClose }: { onClose: () => void }) {
               className={cn(
                 "flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-10 text-center transition",
                 isDragging
-                  ? "border-gray-900 bg-gray-50"
+                  ? "border-primary bg-gray-50"
                   : "border-gray-300 bg-gray-50/50 hover:border-gray-400 hover:bg-gray-50",
               )}
             >
@@ -539,7 +539,7 @@ function UploadDialog({ onClose }: { onClose: () => void }) {
                     "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-sm",
                     picked.mediaType === "video"
                       ? "bg-gradient-to-br from-indigo-600 to-indigo-500"
-                      : "bg-gradient-to-br from-gray-900 to-gray-700",
+                      : "bg-gradient-to-br from-primary to-primary-dim",
                   )}
                 >
                   {picked.mediaType === "video" ? (
@@ -589,7 +589,7 @@ function UploadDialog({ onClose }: { onClose: () => void }) {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Dê um nome para essa gravação"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
                 />
               </div>
 
@@ -731,7 +731,7 @@ function UploadDialog({ onClose }: { onClose: () => void }) {
                       }
                     }}
                     placeholder="Cadastrar novo contato"
-                    className="w-full min-w-0 flex-1 rounded-xl border border-dashed border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-gray-900 focus:outline-none"
+                    className="w-full min-w-0 flex-1 rounded-xl border border-dashed border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-900 transition placeholder:text-gray-400 focus:border-primary focus:outline-none"
                   />
                   <button
                     type="button"
@@ -742,7 +742,7 @@ function UploadDialog({ onClose }: { onClose: () => void }) {
                     className={cn(
                       "flex h-10 items-center gap-1.5 rounded-xl px-4 text-xs font-semibold transition",
                       newContactName.trim().length >= 2 && !creatingContact
-                        ? "bg-gray-900 text-white hover:bg-black"
+                        ? "bg-primary text-white hover:bg-black"
                         : "cursor-not-allowed bg-gray-100 text-gray-400",
                     )}
                   >
@@ -783,7 +783,7 @@ function UploadDialog({ onClose }: { onClose: () => void }) {
               className={cn(
                 "flex flex-[1.4] items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition",
                 canSubmit
-                  ? "bg-gray-900 text-white shadow-[0_10px_30px_-10px_rgba(17,24,39,0.45)] hover:bg-black"
+                  ? "bg-primary text-white shadow-[0_10px_30px_-10px_rgba(17,24,39,0.45)] hover:bg-black"
                   : "cursor-not-allowed bg-gray-100 text-gray-400",
               )}
             >

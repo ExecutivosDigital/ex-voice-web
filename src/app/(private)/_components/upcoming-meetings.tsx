@@ -143,7 +143,7 @@ function ConnectCta({ onConnect }: { onConnect: () => void }) {
       </p>
       <button
         onClick={onConnect}
-        className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-dim"
       >
         Conectar na Agenda
         <ArrowRight size={13} />
@@ -245,7 +245,7 @@ function EventCard({
         </button>
         <button
           onClick={onGravar}
-          className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full bg-gray-900 px-3 text-[10px] font-semibold tracking-wider text-white uppercase transition hover:bg-gray-700"
+          className="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-semibold tracking-wider text-white uppercase transition hover:bg-primary-dim"
         >
           <Mic size={11} />
           Gravar

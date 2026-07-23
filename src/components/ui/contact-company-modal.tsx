@@ -112,7 +112,7 @@ export function ContactCompanyModal({
               onClose();
             }
           }}
-          className="fixed inset-0 z-[9999999] flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999999] flex items-center justify-center bg-primary/40 p-4 backdrop-blur-sm"
         >
           <motion.div
             initial={{ opacity: 0, y: 18, scale: 0.97 }}
@@ -122,7 +122,7 @@ export function ContactCompanyModal({
           >
             <div className="flex items-start justify-between border-b border-gray-100 px-6 py-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-900 text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white">
                   <Building2 size={19} />
                 </div>
                 <div>
@@ -156,7 +156,7 @@ export function ContactCompanyModal({
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="Ex. Empresa A"
-                  className="h-11 rounded-xl border border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 outline-none focus:border-gray-900 focus:bg-white focus:ring-4 focus:ring-gray-900/5"
+                  className="h-11 rounded-xl border border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5"
                 />
               </label>
               <label className="flex flex-col gap-1.5">
@@ -171,7 +171,7 @@ export function ContactCompanyModal({
                   onChange={(event) => setDetails(event.target.value)}
                   placeholder="O que a empresa faz, relação comercial e informações úteis..."
                   rows={5}
-                  className="resize-y rounded-2xl border border-gray-200 bg-gray-50/80 px-4 py-3 text-sm text-gray-900 outline-none focus:border-gray-900 focus:bg-white focus:ring-4 focus:ring-gray-900/5"
+                  className="resize-y rounded-2xl border border-gray-200 bg-gray-50/80 px-4 py-3 text-sm text-gray-900 outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5"
                 />
                 <p className="text-[11px] leading-relaxed text-gray-400">
                   Além deste texto, o Voice mantém automaticamente um contexto
@@ -224,7 +224,7 @@ export function ContactCompanyModal({
                   type="button"
                   onClick={save}
                   disabled={saving || deleting}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-gray-900 px-4 text-xs font-semibold text-white hover:bg-gray-700 disabled:opacity-50"
+                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-xs font-semibold text-white hover:bg-primary-dim disabled:opacity-50"
                 >
                   {saving ? (
                     <Loader2 size={14} className="animate-spin" />

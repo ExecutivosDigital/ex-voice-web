@@ -345,7 +345,7 @@ export function RequestTranscription() {
                   className="relative flex h-[100dvh] w-full max-w-3xl flex-col overflow-hidden bg-white shadow-[0_40px_80px_-20px_rgba(15,23,42,0.45)] md:h-auto md:max-h-[90vh] md:rounded-3xl"
                 >
                   {/* Header escuro estilo new-home */}
-                  <div className="relative shrink-0 border-b border-gray-100 bg-gradient-to-br from-gray-900 via-[#111318] to-[#1a1d24] px-6 pt-7 pb-6 text-white md:px-10 md:pt-8 md:pb-6">
+                  <div className="relative shrink-0 border-b border-gray-100 bg-gradient-to-br from-primary via-[#111318] to-[#1a1d24] px-6 pt-7 pb-6 text-white md:px-10 md:pt-8 md:pb-6">
                     <div className="pointer-events-none absolute inset-0 overflow-hidden">
                       <div className="absolute -top-10 -right-10 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
                       <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl" />
@@ -417,7 +417,7 @@ export function RequestTranscription() {
                             icon={
                               <Building2 size={18} className="text-white" />
                             }
-                            iconWrapCls="bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+                            iconWrapCls="bg-gradient-to-br from-primary to-primary-dim text-white"
                             title={dept.name}
                             chipLabel={
                               dept.role === "MANAGER" ? "Gestor" : "Membro"
@@ -472,7 +472,7 @@ export function RequestTranscription() {
                                     className="text-white"
                                   />
                                 }
-                                iconWrapCls="bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+                                iconWrapCls="bg-gradient-to-br from-primary to-primary-dim text-white"
                                 title={prompt.name}
                                 chipLabel={getSourceLabel(prompt)}
                                 chipCls={getSourceChip(prompt.source)}
@@ -546,7 +546,7 @@ export function RequestTranscription() {
                               ? !selectedDepartmentId
                               : !selectedPrompt)
                             ? "cursor-not-allowed bg-gray-300 shadow-none"
-                            : "bg-gradient-to-r from-gray-900 to-gray-700 shadow-gray-900/20 hover:scale-[1.02]",
+                            : "bg-gradient-to-r from-primary to-primary-dim shadow-gray-900/20 hover:scale-[1.02]",
                         )}
                       >
                         {isRequesting ? (
@@ -611,14 +611,14 @@ function PromptRow({
       className={cn(
         "group relative flex items-start gap-3 overflow-hidden rounded-2xl border p-3 text-left transition md:gap-4 md:p-4",
         selected
-          ? "border-gray-900 bg-white shadow-[0_12px_30px_-18px_rgba(15,23,42,0.4)]"
+          ? "border-primary bg-white shadow-[0_12px_30px_-18px_rgba(15,23,42,0.4)]"
           : "border-gray-200/70 bg-white hover:border-gray-300 hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.2)]",
         disabled && "cursor-not-allowed opacity-50",
       )}
     >
       {selected && (
         <span
-          className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-gray-900 via-gray-500 to-gray-900"
+          className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-primary via-gray-500 to-primary"
           aria-hidden
         />
       )}
@@ -656,7 +656,7 @@ function PromptRow({
           className={cn(
             "flex h-6 w-6 items-center justify-center rounded-full transition",
             selected
-              ? "bg-gradient-to-br from-gray-900 to-gray-700 text-white"
+              ? "bg-gradient-to-br from-primary to-primary-dim text-white"
               : "border border-gray-200 bg-white text-gray-300 group-hover:border-gray-300",
           )}
         >
@@ -690,7 +690,7 @@ function SkeletonList() {
 function EmptySearch() {
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-12 text-center backdrop-blur-sm">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg">
         <Search size={18} />
       </div>
       <p className="mt-4 text-sm font-semibold text-gray-900">

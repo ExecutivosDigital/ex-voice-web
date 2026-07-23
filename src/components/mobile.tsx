@@ -191,7 +191,7 @@ const MobileAppBlocker = () => {
             {/* Botão Apple Store */}
             <a
               href="https://apps.apple.com/us/app/executivos-voice/id6754694679"
-              className="group flex w-full items-center justify-center gap-3 rounded-xl bg-black px-4 py-3 text-white shadow-lg transition-all hover:bg-gray-900 active:scale-95"
+              className="group flex w-full items-center justify-center gap-3 rounded-xl bg-black px-4 py-3 text-white shadow-lg transition-all hover:bg-primary active:scale-95"
             >
               <Image
                 src="/icons/apple-login.png"
@@ -211,7 +211,7 @@ const MobileAppBlocker = () => {
             {/* Botão Google Play Store */}
             <a
               href="https://play.google.com/store/apps/details?id=com.executivos.exvoice"
-              className="group flex w-full items-center justify-center gap-3 rounded-xl bg-black px-4 py-3 text-white shadow-lg transition-all hover:bg-gray-900 active:scale-95"
+              className="group flex w-full items-center justify-center gap-3 rounded-xl bg-black px-4 py-3 text-white shadow-lg transition-all hover:bg-primary active:scale-95"
             >
               {/* Ícone Google Play SVG Manual */}
               <Image

@@ -172,7 +172,7 @@ export function ShareRecordingModal({
                 <button
                   onClick={handleShare}
                   disabled={!selectedId || busy}
-                  className="flex h-10 items-center gap-1.5 rounded-xl bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:opacity-50"
+                  className="flex h-10 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary-dim disabled:opacity-50"
                 >
                   <UserPlus size={15} /> Enviar
                 </button>

@@ -89,10 +89,10 @@ export const PROFESSIONAL_STYLE: SpeakerStyle = {
   key: "professional",
   label: "Profissional",
   avatar: "from-neutral-500 to-neutral-900",
-  ring: "ring-gray-900/15",
-  bg: "bg-gradient-to-r from-gray-900/5 to-gray-900/0",
+  ring: "ring-primary/15",
+  bg: "bg-gradient-to-r from-primary/5 to-primary/0",
   text: "text-gray-900",
-  dot: "bg-gray-900",
+  dot: "bg-primary",
 };
 
 export function buildSpeakerStyleMap(

@@ -20,7 +20,7 @@ export function Placeholder({
       transition={{ duration: 0.3 }}
       className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white/50 px-6 py-14 text-center backdrop-blur-sm"
     >
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-lg">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-dim text-white shadow-lg">
         {icon}
       </div>
       <h3 className="mt-5 text-base font-semibold text-gray-900">{title}</h3>

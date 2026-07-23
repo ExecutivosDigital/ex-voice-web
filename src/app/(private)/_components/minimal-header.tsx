@@ -114,7 +114,7 @@ export function MinimalHeader({ hideNav = false }: { hideNav?: boolean }) {
                   )}
                 >
                   {active && (
-                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]" />
+                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-primary-dim shadow-[0_4px_14px_-4px_rgba(17,24,39,0.5)]" />
                   )}
                   <span className="relative whitespace-nowrap">
                     {item.label}
@@ -156,7 +156,7 @@ export function MinimalHeader({ hideNav = false }: { hideNav?: boolean }) {
                   className="flex h-9 items-center gap-2 rounded-full bg-gray-100/80 pr-3 pl-1 text-gray-700 transition hover:bg-gray-200/80"
                   aria-label="Abrir menu do usuário"
                 >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-gray-900 to-gray-600 text-xs font-semibold text-white">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary to-gray-600 text-xs font-semibold text-white">
                     {initial}
                   </span>
                   <span className="max-w-[100px] truncate text-sm font-medium">
@@ -170,7 +170,7 @@ export function MinimalHeader({ hideNav = false }: { hideNav?: boolean }) {
                 className="w-60 overflow-hidden rounded-2xl border border-gray-100 bg-white p-1 shadow-xl shadow-gray-300/40"
               >
                 <div className="flex items-center gap-3 px-3 py-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-900 to-gray-600 text-sm font-semibold text-white">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-gray-600 text-sm font-semibold text-white">
                     {initial}
                   </div>
                   <div className="min-w-0 flex-1">

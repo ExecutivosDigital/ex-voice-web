@@ -530,8 +530,8 @@ export function AudioRecorder({
             )}
           >
             <div className="relative w-full max-w-5xl my-auto rounded-3xl bg-white shadow-2xl flex flex-col md:flex-row md:min-h-[500px] max-h-[90vh] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-500">
-              <div className="relative hidden w-1/2 md:block overflow-hidden bg-gray-900">
-                <div className="absolute inset-0 z-10 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent" />
+              <div className="relative hidden w-1/2 md:block overflow-hidden bg-primary">
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent" />
                 <div className="absolute top-10 left-10 z-20">
                   <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-md border border-white/20">
                     <div className="h-2 w-2 rounded-full bg-red-400 animate-pulse shadow-[0_0_8px_rgba(248,113,113,0.8)]" />

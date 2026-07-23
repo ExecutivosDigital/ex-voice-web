@@ -121,8 +121,8 @@ export function CompleteRegistrationModal() {
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4 animate-in fade-in duration-300 overflow-y-auto">
       <div className="relative w-full max-w-5xl my-auto rounded-3xl bg-white shadow-2xl flex flex-col md:flex-row min-h-[600px] max-h-[90vh] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-500">
         {/* Left: image carousel */}
-        <div className="relative hidden w-1/2 md:block overflow-hidden bg-gray-900">
-          <div className="absolute inset-0 z-10 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent" />
+        <div className="relative hidden w-1/2 md:block overflow-hidden bg-primary">
+          <div className="absolute inset-0 z-10 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent" />
 
           <div className="absolute top-10 left-10 z-20">
             <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-md border border-white/20">
@@ -272,7 +272,7 @@ export function CompleteRegistrationModal() {
                     type="submit"
                     disabled={isLoading || !form.formState.isValid}
                     className={cn(
-                      "group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 py-4 text-sm font-bold text-white shadow-xl shadow-gray-500/20 transition-all duration-300 hover:shadow-gray-500/40 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2",
+                      "group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-gray-600 to-primary-dim py-4 text-sm font-bold text-white shadow-xl shadow-gray-500/20 transition-all duration-300 hover:shadow-gray-500/40 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2",
                     )}
                   >
                     <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />

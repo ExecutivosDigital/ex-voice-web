@@ -34,7 +34,7 @@ export function ViewSwitcher({ value, onChange }: ViewSwitcherProps) {
               <motion.span
                 layoutId="agenda-view-pill"
                 transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-gray-900 to-gray-700 shadow-[0_6px_18px_-8px_rgba(17,24,39,0.45)]"
+                className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-primary to-primary-dim shadow-[0_6px_18px_-8px_rgba(17,24,39,0.45)]"
               />
             )}
             {opt.label}

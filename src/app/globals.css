@@ -5,7 +5,11 @@
 @theme {
   --font-sans: "Poppins", sans-serif;
 
+  /* Acento da MARCA. Todos os acentos das telas (botões, ícones, gradientes,
+     rings) usam primary/primary-dim — é o que muda de produto para produto
+     (Jurid: #AB8E63/#8f7652). Texto continua gray-*, não muda com a marca. */
   --color-primary: #4c4d4e;
+  --color-primary-dim: #3a3b3c;
 
   --animate-in: fade-in 300ms ease-out both;
   --animate-out: fade-out 300ms ease-in both;

@@ -186,7 +186,7 @@ export function GoogleEventsPanel({
                 </button>
                 <button
                   onClick={() => gravarEvento(evento)}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-gray-900 px-3 text-[10px] font-semibold tracking-wider text-white uppercase transition hover:bg-gray-700"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-primary px-3 text-[10px] font-semibold tracking-wider text-white uppercase transition hover:bg-primary-dim"
                 >
                   <Mic size={11} />
                   Gravar

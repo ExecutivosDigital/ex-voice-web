@@ -218,7 +218,7 @@ export default function TeamRecordingsPage() {
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim text-white">
                     <Mic2 size={16} />
                   </div>
                   {rec.department && (
