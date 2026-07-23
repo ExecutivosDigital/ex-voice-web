@@ -1,4 +1,4 @@
-import { ClientProps } from "@/@types/general-client";
+import { ClientProps, ContactCompanyProps } from "@/@types/general-client";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
@@ -35,6 +35,7 @@ interface EditClientModalProps {
   onClose: () => void;
   client: ClientProps | null;
   className?: string;
+  contactCompanies?: ContactCompanyProps[];
 }
 
 const FormSchema = z.object({
@@ -42,6 +43,7 @@ const FormSchema = z.object({
   /** Chave de reconhecimento nos convites de calendário — ver create-client-sheet. */
   email: z.string().email("E-mail inválido").optional().or(z.literal("")),
   description: z.string().optional().nullable(),
+  contactCompanyId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -80,10 +82,10 @@ export function EditClientModal({
   onClose,
   client,
   className,
+  contactCompanies,
 }: EditClientModalProps) {
   const { PutAPI, DeleteAPI } = useApiContext();
-  const { setClients, selectedClient, setSelectedClient } =
-    useGeneralContext();
+  const { setClients, selectedClient, setSelectedClient } = useGeneralContext();
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -95,6 +97,7 @@ export function EditClientModal({
       name: "",
       email: "",
       description: "",
+      contactCompanyId: "",
     },
   });
 
@@ -113,6 +116,7 @@ export function EditClientModal({
         name: client.name ?? "",
         email: client.email ?? "",
         description: client.description ?? "",
+        contactCompanyId: client.contactCompanyId ?? "",
       });
       setConfirmDelete(false);
     }
@@ -137,7 +141,13 @@ export function EditClientModal({
       const updated: ClientProps = {
         ...client,
         name: values.name,
+        email: values.email || null,
         description: values.description ?? null,
+        contactCompanyId: values.contactCompanyId || null,
+        contactCompany:
+          contactCompanies?.find(
+            (company) => company.id === values.contactCompanyId,
+          ) ?? null,
       };
       setClients((prev) =>
         prev.map((c) => (c.id === client.id ? { ...c, ...updated } : c)),
@@ -218,11 +228,7 @@ export function EditClientModal({
             <div className="flex shrink-0 items-start justify-between px-6 pt-6 pb-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-neutral-500 to-neutral-900 shadow-[0_4px_14px_-4px_rgba(17,24,39,0.55)]">
-                  <UserCog
-                    size={20}
-                    strokeWidth={2.2}
-                    className="text-white"
-                  />
+                  <UserCog size={20} strokeWidth={2.2} className="text-white" />
                 </div>
                 <div className="flex flex-col">
                   <h2 className="text-lg font-semibold text-gray-900">
@@ -302,13 +308,47 @@ export function EditClientModal({
                           />
                         </FormControl>
                         <p className="text-[11px] text-gray-400">
-                          Usado para reconhecer esta pessoa nos convites de reunião
-                          da sua agenda.
+                          Usado para reconhecer esta pessoa nos convites de
+                          reunião da sua agenda.
                         </p>
                         <FormMessage className="px-0 py-0 text-xs text-red-500" />
                       </FormItem>
                     )}
                   />
+                  {contactCompanies && (
+                    <FormField
+                      control={form.control}
+                      name="contactCompanyId"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="flex items-center gap-2 text-xs font-semibold tracking-wide text-gray-700 uppercase">
+                            Empresa cliente
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium tracking-normal text-gray-500 normal-case">
+                              opcional
+                            </span>
+                          </FormLabel>
+                          <FormControl>
+                            <select
+                              value={field.value || ""}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 transition outline-none focus:border-gray-900 focus:bg-white focus:ring-4 focus:ring-gray-900/5"
+                            >
+                              <option value="">Sem empresa vinculada</option>
+                              {contactCompanies.map((company) => (
+                                <option key={company.id} value={company.id}>
+                                  {company.name}
+                                </option>
+                              ))}
+                            </select>
+                          </FormControl>
+                          <p className="text-[11px] text-gray-400">
+                            O contexto acumulado desta empresa será considerado
+                            nos próximos pre-meetings.
+                          </p>
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   <FormField
                     control={form.control}
                     name="description"
@@ -374,7 +414,9 @@ export function EditClientModal({
                       <>
                         <Trash2 size={16} strokeWidth={2.2} />
                         <span>
-                          {confirmDelete ? "Confirmar exclusão" : "Apagar contato"}
+                          {confirmDelete
+                            ? "Confirmar exclusão"
+                            : "Apagar contato"}
                         </span>
                       </>
                     )}
@@ -400,7 +442,10 @@ export function EditClientModal({
                         <Loader2 className="relative h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                          <Save className="relative h-4 w-4" strokeWidth={2.4} />
+                          <Save
+                            className="relative h-4 w-4"
+                            strokeWidth={2.4}
+                          />
                           <span className="relative">Salvar alterações</span>
                         </>
                       )}

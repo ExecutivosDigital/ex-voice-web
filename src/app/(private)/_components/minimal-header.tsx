@@ -28,7 +28,7 @@ import { MinimalNotificationBell } from "./minimal-notification-bell";
 const NAV_ITEMS: { label: string; href: string }[] = [
   { label: "Gravação", href: "/" },
   { label: "Últimas Gravações", href: "/recordings" },
-  { label: "Clientes", href: "/clients" },
+  { label: "Contatos", href: "/clients" },
   { label: "Agenda", href: "/agenda" },
 ];
 

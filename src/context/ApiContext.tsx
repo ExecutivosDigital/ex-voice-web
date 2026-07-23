@@ -30,6 +30,10 @@ interface ApiContextProps {
     url: string,
     auth: boolean,
   ) => Promise<{ status: number; body: any }>;
+  DownloadAPI: (
+    url: string,
+    auth: boolean,
+  ) => Promise<{ status: number; body: Blob | any }>;
 }
 
 const ApiContext = createContext<ApiContextProps | undefined>(undefined);
@@ -257,8 +261,28 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
     return connect;
   }
 
+  async function DownloadAPI(url: string, auth: boolean) {
+    const connect = await api
+      .get(url, {
+        headers: buildHeaders(auth),
+        responseType: "blob",
+        _requiresAuth: auth,
+      } as any)
+      .then(({ data }) => ({ status: 200, body: data as Blob }))
+      .catch((err) => {
+        console.error(`API Error [DOWNLOAD] ${url}`, err.response?.data || err);
+        return {
+          status: err.response?.status || 500,
+          body: err.response?.data || "Erro desconhecido",
+        };
+      });
+    return connect;
+  }
+
   return (
-    <ApiContext.Provider value={{ PostAPI, GetAPI, PutAPI, PatchAPI, DeleteAPI }}>
+    <ApiContext.Provider
+      value={{ PostAPI, GetAPI, PutAPI, PatchAPI, DeleteAPI, DownloadAPI }}
+    >
       {children}
     </ApiContext.Provider>
   );

@@ -1,16 +1,21 @@
 "use client";
 
-import { ClientProps } from "@/@types/general-client";
+import { ClientProps, ContactCompanyProps } from "@/@types/general-client";
 import { CustomPagination } from "@/components/ui/blocks/custom-pagination";
+import { ContactCompanyModal } from "@/components/ui/contact-company-modal";
 import { CreateClientSheet } from "@/components/ui/create-client-sheet";
 import { EditClientModal } from "@/components/ui/edit-client-modal";
+import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
+import { useCorporate } from "@/context/corporateContext";
 import { cn } from "@/utils/cn";
 import { AnimatePresence, motion } from "framer-motion";
 import { debounce } from "lodash";
 import {
   ArrowUpRight,
+  Building2,
   Calendar,
+  Loader2,
   Pencil,
   Plus,
   Search,
@@ -20,7 +25,7 @@ import {
 import moment from "moment";
 import "moment/locale/pt-br";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 moment.locale("pt-br");
 
@@ -37,12 +42,36 @@ export default function MinimalClientsPage() {
     setClientsFilters,
     clientsTotalPages,
     setSelectedClient,
+    GetClients,
   } = useGeneralContext();
+  const { GetAPI } = useApiContext();
+  const { hasCompany } = useCorporate();
   const router = useRouter();
 
   const [query, setQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [clientToEdit, setClientToEdit] = useState<ClientProps | null>(null);
+  const [contactCompanies, setContactCompanies] = useState<
+    ContactCompanyProps[]
+  >([]);
+  const [companiesLoading, setCompaniesLoading] = useState(false);
+  const [companyModalOpen, setCompanyModalOpen] = useState(false);
+  const [companyToEdit, setCompanyToEdit] =
+    useState<ContactCompanyProps | null>(null);
+
+  const loadContactCompanies = useCallback(async () => {
+    if (!hasCompany) return;
+    setCompaniesLoading(true);
+    const response = await GetAPI("/corporate/contact-companies", true);
+    if (response.status === 200) {
+      setContactCompanies(response.body ?? []);
+    }
+    setCompaniesLoading(false);
+  }, [GetAPI, hasCompany]);
+
+  useEffect(() => {
+    void loadContactCompanies();
+  }, [loadContactCompanies]);
 
   const debouncedSearch = useMemo(
     () =>
@@ -84,6 +113,71 @@ export default function MinimalClientsPage() {
           cada contato.
         </p>
       </section>
+
+      {hasCompany && (
+        <section className="flex flex-col gap-3">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.16em] text-gray-400 uppercase">
+                Empresas clientes
+              </p>
+              <p className="mt-1 text-sm text-gray-500">
+                Contatos da mesma empresa compartilham contexto no pre-meeting.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setCompanyToEdit(null);
+                setCompanyModalOpen(true);
+              }}
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm transition hover:border-gray-300"
+            >
+              <Building2 size={14} />
+              Nova empresa
+            </button>
+          </div>
+
+          {companiesLoading ? (
+            <div className="flex h-20 items-center justify-center rounded-2xl border border-gray-200/70 bg-white/60">
+              <Loader2 size={18} className="animate-spin text-gray-400" />
+            </div>
+          ) : contactCompanies.length > 0 ? (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {contactCompanies.map((company) => (
+                <button
+                  key={company.id}
+                  type="button"
+                  onClick={() => {
+                    setCompanyToEdit(company);
+                    setCompanyModalOpen(true);
+                  }}
+                  className="flex items-center gap-3 rounded-2xl border border-gray-200/70 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                    <Building2 size={17} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-gray-900">
+                      {company.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {company._count?.clients ?? 0} contato
+                      {(company._count?.clients ?? 0) === 1 ? "" : "s"}
+                    </span>
+                  </span>
+                  <Pencil size={13} className="text-gray-400" />
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white/50 px-5 py-4 text-sm text-gray-500">
+              Nenhuma empresa cliente cadastrada. Você ainda pode manter
+              contatos sem empresa vinculada.
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative w-full lg:max-w-md">
@@ -148,14 +242,45 @@ export default function MinimalClientsPage() {
       {isCreateOpen && (
         <CreateClientSheet
           isOpen={isCreateOpen}
-          onClose={() => setIsCreateOpen(false)}
+          onClose={() => {
+            setIsCreateOpen(false);
+            void loadContactCompanies();
+          }}
+          onClientCreated={() => void loadContactCompanies()}
+          contactCompanies={hasCompany ? contactCompanies : undefined}
         />
       )}
 
       <EditClientModal
         isOpen={!!clientToEdit}
         client={clientToEdit}
-        onClose={() => setClientToEdit(null)}
+        onClose={() => {
+          setClientToEdit(null);
+          void loadContactCompanies();
+        }}
+        contactCompanies={hasCompany ? contactCompanies : undefined}
+      />
+
+      <ContactCompanyModal
+        open={companyModalOpen}
+        company={companyToEdit}
+        onClose={() => {
+          setCompanyModalOpen(false);
+          setCompanyToEdit(null);
+        }}
+        onSaved={(company) => {
+          setContactCompanies((current) =>
+            [...current.filter((item) => item.id !== company.id), company].sort(
+              (a, b) => a.name.localeCompare(b.name, "pt-BR"),
+            ),
+          );
+        }}
+        onDeleted={(id) => {
+          setContactCompanies((current) =>
+            current.filter((company) => company.id !== id),
+          );
+          void GetClients();
+        }}
       />
     </div>
   );
@@ -206,7 +331,7 @@ function ClientCard({
           onEdit();
         }}
         aria-label={`Editar ${client.name}`}
-        className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-500 opacity-0 shadow-sm backdrop-blur-sm transition hover:border-gray-300 hover:bg-white hover:text-gray-900 focus:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
+        className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-500 opacity-0 shadow-sm backdrop-blur-sm transition group-hover:opacity-100 hover:border-gray-300 hover:bg-white hover:text-gray-900 focus:opacity-100 focus-visible:opacity-100"
       >
         <Pencil size={13} strokeWidth={2.2} />
       </button>
@@ -230,6 +355,12 @@ function ClientCard({
         <p className="mt-0.5 line-clamp-1 text-xs text-gray-500">
           {client.description || "Sem descrição"}
         </p>
+        {client.contactCompany && (
+          <span className="mt-2 inline-flex max-w-full items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-600">
+            <Building2 size={10} />
+            <span className="truncate">{client.contactCompany.name}</span>
+          </span>
+        )}
       </div>
 
       <div className="mt-auto flex items-center justify-end text-[11px] text-gray-400 transition group-hover:text-gray-900">

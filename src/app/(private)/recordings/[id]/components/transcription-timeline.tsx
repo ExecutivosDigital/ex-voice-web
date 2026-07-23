@@ -55,7 +55,10 @@ function ehInterjeicao(t: Trecho): boolean {
  * O nº de linhas acaba sendo o máximo de vozes simultâneas — a altura conta a
  * história sem ninguém ler.
  */
-function empilhar(trechos: Trecho[]): { itens: { t: Trecho; linha: number }[]; linhas: number } {
+function empilhar(trechos: Trecho[]): {
+  itens: { t: Trecho; linha: number }[];
+  linhas: number;
+} {
   const ordenados = [...trechos].sort((a, b) => a.start - b.start);
   const fimDaLinha: number[] = [];
   const itens: { t: Trecho; linha: number }[] = [];
@@ -74,7 +77,9 @@ function empilhar(trechos: Trecho[]): { itens: { t: Trecho; linha: number }[]; l
 
 /** Faixas com 2+ locutores DISTINTOS falando (não segmentos: o mesmo locutor cruzando ele mesmo não é conversa cruzada). */
 function faixasDeOverlap(trechos: Trecho[]) {
-  const pontos = [...new Set(trechos.flatMap((t) => [t.start, t.end]))].sort((a, b) => a - b);
+  const pontos = [...new Set(trechos.flatMap((t) => [t.start, t.end]))].sort(
+    (a, b) => a - b,
+  );
   const faixas: { start: number; end: number; nomes: string[] }[] = [];
   for (let i = 0; i < pontos.length - 1; i++) {
     const a = pontos[i];
@@ -82,11 +87,17 @@ function faixasDeOverlap(trechos: Trecho[]) {
     if (b - a < 0.01) continue;
     const meio = (a + b) / 2;
     const ativos = [
-      ...new Set(trechos.filter((t) => t.start <= meio && meio < t.end).map((t) => t.speakerId)),
+      ...new Set(
+        trechos
+          .filter((t) => t.start <= meio && meio < t.end)
+          .map((t) => t.speakerId),
+      ),
     ];
     if (ativos.length < 2) continue;
     const nomes = [
-      ...new Set(trechos.filter((t) => ativos.includes(t.speakerId)).map((t) => t.nome)),
+      ...new Set(
+        trechos.filter((t) => ativos.includes(t.speakerId)).map((t) => t.nome),
+      ),
     ];
     const ultima = faixas[faixas.length - 1];
     if (ultima && Math.abs(ultima.end - a) < 0.01) ultima.end = b;
@@ -198,7 +209,12 @@ export function TranscriptionTimeline({
   }, [duracao]);
 
   const emReproducao = useMemo(
-    () => new Set(trechos.filter((t) => t.start <= posicao && posicao < t.end).map((t) => t.id)),
+    () =>
+      new Set(
+        trechos
+          .filter((t) => t.start <= posicao && posicao < t.end)
+          .map((t) => t.id),
+      ),
     [trechos, posicao],
   );
 
@@ -209,142 +225,188 @@ export function TranscriptionTimeline({
       {/* Faixa de áudio FIXA no topo enquanto a página rola (ideia do Victor,
           21/07): controles + trilha ficam sticky; a lista de falas abaixo é
           conteúdo normal da página, sem scroll próprio. */}
-      <div className="sticky top-0 z-30 -mx-2 space-y-3 rounded-b-2xl bg-white/95 px-2 pt-2 pb-3 shadow-[0_12px_20px_-16px_rgba(15,23,42,0.25)] backdrop-blur-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              const el = document.querySelector("audio");
-              if (!el) return;
-              if (el.paused) void el.play().catch(() => {});
-              else el.pause();
-            }}
-            className="flex h-8 items-center gap-1.5 rounded-lg bg-gray-900 px-3 text-xs font-medium text-white transition hover:bg-gray-700"
-          >
-            {tocando ? <Pause size={13} /> : <Play size={13} />}
-            {tocando ? "Pausar" : "Tocar"}
-          </button>
-          <span className="text-[11px] tabular-nums text-gray-500">
-            {tempo(posicao)} / {tempo(duracao)}
-          </span>
+      <div className="sticky top-0 z-30 -mx-5 space-y-3 rounded-b-2xl bg-white px-5 pt-3 pb-3 shadow-[0_12px_20px_-16px_rgba(15,23,42,0.25)] md:-mx-7 md:px-7">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const el = document.querySelector("audio");
+                if (!el) return;
+                if (el.paused) void el.play().catch(() => {});
+                else el.pause();
+              }}
+              className="flex h-8 items-center gap-1.5 rounded-lg bg-gray-900 px-3 text-xs font-medium text-white transition hover:bg-gray-700"
+            >
+              {tocando ? <Pause size={13} /> : <Play size={13} />}
+              {tocando ? "Pausar" : "Tocar"}
+            </button>
+            <span className="text-[11px] text-gray-500 tabular-nums">
+              {tempo(posicao)} / {tempo(duracao)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="mr-1 hidden text-[11px] text-gray-400 sm:inline">
+              clique para ouvir
+            </span>
+            <button
+              onClick={() =>
+                setZoom((z) => ZOOMS[Math.max(0, ZOOMS.indexOf(z) - 1)])
+              }
+              disabled={zoom === ZOOMS[0]}
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:opacity-30"
+              aria-label="Diminuir zoom"
+            >
+              <Minus size={13} />
+            </button>
+            <span className="w-7 text-center text-[11px] text-gray-500">
+              {zoom}×
+            </span>
+            <button
+              onClick={() =>
+                setZoom(
+                  (z) =>
+                    ZOOMS[Math.min(ZOOMS.length - 1, ZOOMS.indexOf(z) + 1)],
+                )
+              }
+              disabled={zoom === ZOOMS[ZOOMS.length - 1]}
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:opacity-30"
+              aria-label="Aumentar zoom"
+            >
+              <Plus size={13} />
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="mr-1 hidden text-[11px] text-gray-400 sm:inline">
-            clique para ouvir
-          </span>
-          <button
-            onClick={() => setZoom((z) => ZOOMS[Math.max(0, ZOOMS.indexOf(z) - 1)])}
-            disabled={zoom === ZOOMS[0]}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:opacity-30"
-            aria-label="Diminuir zoom"
-          >
-            <Minus size={13} />
-          </button>
-          <span className="w-7 text-center text-[11px] text-gray-500">{zoom}×</span>
-          <button
-            onClick={() => setZoom((z) => ZOOMS[Math.min(ZOOMS.length - 1, ZOOMS.indexOf(z) + 1)])}
-            disabled={zoom === ZOOMS[ZOOMS.length - 1]}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:opacity-30"
-            aria-label="Aumentar zoom"
-          >
-            <Plus size={13} />
-          </button>
-        </div>
-      </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
-        <div ref={trilhaRef} className="relative" style={{ width: `${zoom * 100}%`, minWidth: "100%" }}>
+        <div
+          className={cn(
+            "rounded-2xl border border-gray-200 bg-white",
+            zoom === 1 ? "overflow-x-hidden" : "overflow-x-auto",
+          )}
+        >
           <div
-            className="pointer-events-none absolute inset-y-0 z-20 w-px bg-gray-900"
-            style={{ left: `${pct(posicao)}%` }}
+            ref={trilhaRef}
+            className="relative"
+            style={{ width: `${zoom * 100}%`, minWidth: "100%" }}
           >
-            <div className="-ml-1 h-2 w-2 rounded-full bg-gray-900" />
-          </div>
-
-          <div onClick={cliqueNaTrilha} className="relative h-5 cursor-pointer border-b border-gray-100 bg-gray-50/60">
-            {marcas.map((t) => (
-              <span
-                key={t}
-                className="absolute top-0.5 -translate-x-1/2 text-[9px] text-gray-400"
-                style={{ left: `${pct(t)}%` }}
-              >
-                {tempo(t)}
-              </span>
-            ))}
-          </div>
-
-          {/* Onda: só quando existe. Acervo anterior a 17/07 não tem — a timeline
-              funciona sem ela (blocos + marcas + áudio), só fica menos bonita. */}
-          {onda && onda.length > 0 && (
-            <div onClick={cliqueNaTrilha} className="relative cursor-pointer border-b border-gray-100">
-              <div className="flex h-12 items-center gap-px px-px">
-                {onda.map((p, i) => {
-                  const t = (i / onda.length) * duracao;
-                  return (
-                    <div
-                      key={i}
-                      className={cn("flex-1 rounded-full", t <= posicao ? "bg-gray-800" : "bg-gray-300")}
-                      style={{ height: `${Math.max(2, p * 100)}%` }}
-                    />
-                  );
-                })}
-              </div>
+            <div
+              className="pointer-events-none absolute inset-y-0 z-20 w-px bg-gray-900"
+              style={{ left: `${pct(posicao)}%` }}
+            >
+              <div className="-ml-1 h-2 w-2 rounded-full bg-gray-900" />
             </div>
-          )}
 
-          {overlaps.length > 0 && (
-            <div onClick={cliqueNaTrilha} className="relative h-3 cursor-pointer border-b border-gray-100 bg-gray-50/40">
-              {overlaps.map((f, i) => (
-                <div
-                  key={i}
-                  title={`${f.nomes.join(" + ")} · ${(f.end - f.start).toFixed(1)}s`}
-                  className="absolute inset-y-0 bg-rose-400/50"
-                  style={{ left: `${pct(f.start)}%`, width: `${pct(f.end - f.start)}%` }}
-                />
-              ))}
-              <span className="absolute top-0 left-1.5 text-[8px] font-medium text-gray-400 uppercase">
-                falando junto
-              </span>
-            </div>
-          )}
-
-          <div className="relative" style={{ height: linhas * ALTURA_LINHA + 8 }}>
-            {itens.map(({ t, linha }) => {
-              const cor = estilos[t.speakerId];
-              const larguraRelativa = duracao ? ((t.end - t.start) / duracao) * zoom : 0;
-              const cabeNome = larguraRelativa > 0.035;
-              const cabeTexto = larguraRelativa > 0.12;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    setSelecionado(t.id);
-                    tocarEm(t.start);
-                  }}
-                  title={`${t.nome} · ${tempo(t.start)}–${tempo(t.end)}\n${t.texto}`}
-                  className={cn(
-                    "absolute overflow-hidden rounded border text-left text-[10px] whitespace-nowrap transition",
-                    cabeNome ? "px-1.5" : "px-0",
-                    cor?.bg ?? "bg-gray-50", cor?.ring ?? "ring-gray-200",
-                    ehInterjeicao(t) && "italic opacity-70",
-                    emReproducao.has(t.id) && "ring-1 ring-gray-500",
-                    selecionado === t.id && "ring-2 ring-gray-900 ring-offset-1",
-                  )}
-                  style={{
-                    left: `${pct(t.start)}%`,
-                    width: `${pct(t.end - t.start)}%`,
-                    top: linha * ALTURA_LINHA + 4,
-                    height: ALTURA_LINHA - 6,
-                  }}
+            <div
+              onClick={cliqueNaTrilha}
+              className="relative h-5 cursor-pointer border-b border-gray-100 bg-gray-50/60"
+            >
+              {marcas.map((t) => (
+                <span
+                  key={t}
+                  className="absolute top-0.5 -translate-x-1/2 text-[9px] text-gray-400"
+                  style={{ left: `${pct(t)}%` }}
                 >
-                  {cabeNome && <span className={cn("font-semibold", cor?.text)}>{t.nome}</span>}
-                  {cabeTexto && <span className="text-gray-500"> {t.texto}</span>}
-                </button>
-              );
-            })}
+                  {tempo(t)}
+                </span>
+              ))}
+            </div>
+
+            {/* Onda: só quando existe. Acervo anterior a 17/07 não tem — a timeline
+              funciona sem ela (blocos + marcas + áudio), só fica menos bonita. */}
+            {onda && onda.length > 0 && (
+              <div
+                onClick={cliqueNaTrilha}
+                className="relative cursor-pointer border-b border-gray-100"
+              >
+                <div className="flex h-12 items-center gap-px px-px">
+                  {onda.map((p, i) => {
+                    const t = (i / onda.length) * duracao;
+                    return (
+                      <div
+                        key={i}
+                        className={cn(
+                          "flex-1 rounded-full",
+                          t <= posicao ? "bg-gray-800" : "bg-gray-300",
+                        )}
+                        style={{ height: `${Math.max(2, p * 100)}%` }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {overlaps.length > 0 && (
+              <div
+                onClick={cliqueNaTrilha}
+                className="relative h-3 cursor-pointer border-b border-gray-100 bg-gray-50/40"
+              >
+                {overlaps.map((f, i) => (
+                  <div
+                    key={i}
+                    title={`${f.nomes.join(" + ")} · ${(f.end - f.start).toFixed(1)}s`}
+                    className="absolute inset-y-0 bg-rose-400/50"
+                    style={{
+                      left: `${pct(f.start)}%`,
+                      width: `${pct(f.end - f.start)}%`,
+                    }}
+                  />
+                ))}
+                <span className="absolute top-0 left-1.5 text-[8px] font-medium text-gray-400 uppercase">
+                  falando junto
+                </span>
+              </div>
+            )}
+
+            <div
+              className="relative"
+              style={{ height: linhas * ALTURA_LINHA + 8 }}
+            >
+              {itens.map(({ t, linha }) => {
+                const cor = estilos[t.speakerId];
+                const larguraRelativa = duracao
+                  ? ((t.end - t.start) / duracao) * zoom
+                  : 0;
+                const cabeNome = larguraRelativa > 0.035;
+                const cabeTexto = larguraRelativa > 0.12;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      setSelecionado(t.id);
+                      tocarEm(t.start);
+                    }}
+                    title={`${t.nome} · ${tempo(t.start)}–${tempo(t.end)}\n${t.texto}`}
+                    className={cn(
+                      "absolute overflow-hidden rounded border text-left text-[10px] whitespace-nowrap transition",
+                      cabeNome ? "px-1.5" : "px-0",
+                      cor?.bg ?? "bg-gray-50",
+                      cor?.ring ?? "ring-gray-200",
+                      ehInterjeicao(t) && "italic opacity-70",
+                      emReproducao.has(t.id) && "ring-1 ring-gray-500",
+                      selecionado === t.id &&
+                        "ring-2 ring-gray-900 ring-offset-1",
+                    )}
+                    style={{
+                      left: `${pct(t.start)}%`,
+                      width: `${pct(t.end - t.start)}%`,
+                      top: linha * ALTURA_LINHA + 4,
+                      height: ALTURA_LINHA - 6,
+                    }}
+                  >
+                    {cabeNome && (
+                      <span className={cn("font-semibold", cor?.text)}>
+                        {t.nome}
+                      </span>
+                    )}
+                    {cabeTexto && (
+                      <span className="text-gray-500"> {t.texto}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* A leitura acompanha a navegação: a página segue a fala em reprodução

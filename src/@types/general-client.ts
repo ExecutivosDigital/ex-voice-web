@@ -16,7 +16,25 @@ export interface ClientProps {
    * continua manual, como sempre foi.
    */
   email?: string | null;
+  contactCompanyId?: string | null;
+  contactCompany?: {
+    id: string;
+    name: string;
+  } | null;
   createdAt: Date;
+}
+
+export interface ContactCompanyProps {
+  id: string;
+  name: string;
+  cnpj?: string | null;
+  details?: string | null;
+  resume?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  _count?: {
+    clients: number;
+  };
 }
 
 // Tipos para Agendamentos (anteriormente Reminders)

@@ -74,7 +74,15 @@ function renderCard(
         />
       );
     default:
-      return <GenericCard title={title} variant={variant} data={data} />;
+      return (
+        <GenericCard
+          title={title}
+          variant={variant}
+          data={data}
+          editadoEm={extra.editadoEm}
+          onEditar={extra.onEditar}
+        />
+      );
   }
 }
 
@@ -117,8 +125,15 @@ export function AnalysisView({
           )}
           <div className="flex flex-col gap-4">
             {section.components.map((component, ci) => {
+              const ehCardDedicadoSomenteLeitura = [
+                "entities_card",
+                "sentiment_card",
+                "chapters_card",
+              ].includes(component.type);
               const editavel =
-                !!onSalvarComponente && TIPOS_EDITAVEIS.has(component.type);
+                !!onSalvarComponente &&
+                (TIPOS_EDITAVEIS.has(component.type) ||
+                  !ehCardDedicadoSomenteLeitura);
               const editadoEm =
                 typeof component.data._editadoEm === "string"
                   ? component.data._editadoEm

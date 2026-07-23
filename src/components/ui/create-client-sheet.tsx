@@ -1,3 +1,4 @@
+import { ContactCompanyProps } from "@/@types/general-client";
 import { useApiContext } from "@/context/ApiContext";
 import { useGeneralContext } from "@/context/GeneralContext";
 import { cn } from "@/utils/cn";
@@ -27,6 +28,7 @@ interface CreateClientSheetProps {
   className?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onClientCreated?: (client: any) => void;
+  contactCompanies?: ContactCompanyProps[];
 }
 
 const FormSchema = z.object({
@@ -39,12 +41,9 @@ const FormSchema = z.object({
    * `.or(z.literal(""))` porque campo vazio é válido — sem isso o zod barraria
    * o formulário inteiro por um campo que o usuário decidiu não preencher.
    */
-  email: z
-    .string()
-    .email("E-mail inválido")
-    .optional()
-    .or(z.literal("")),
+  email: z.string().email("E-mail inválido").optional().or(z.literal("")),
   description: z.string().optional().nullable(),
+  contactCompanyId: z.string().optional(),
 });
 
 function showSuccessToast(name: string) {
@@ -64,8 +63,8 @@ function showSuccessToast(name: string) {
             Contato adicionado!
           </p>
           <p className="truncate text-xs text-gray-500">
-            <span className="font-medium text-gray-700">{name}</span> foi
-            salvo na sua agenda.
+            <span className="font-medium text-gray-700">{name}</span> foi salvo
+            na sua agenda.
           </p>
         </div>
         <button
@@ -86,6 +85,7 @@ export function CreateClientSheet({
   onClose,
   className,
   onClientCreated,
+  contactCompanies,
 }: CreateClientSheetProps) {
   const { PostAPI } = useApiContext();
   const { GetClients, setClients } = useGeneralContext();
@@ -107,6 +107,7 @@ export function CreateClientSheet({
       name: "",
       email: "",
       description: "",
+      contactCompanyId: "",
     },
   });
 
@@ -114,7 +115,7 @@ export function CreateClientSheet({
     const [activeStep, setActiveStep] = useState(0);
 
     const stepFields = {
-      0: ["name", "email", "description"] as const,
+      0: ["name", "email", "description", "contactCompanyId"] as const,
     };
 
     const validateStep = async (step: number) => {
@@ -139,6 +140,7 @@ export function CreateClientSheet({
         name: "Nome",
         email: "E-mail",
         description: "Descrição",
+        contactCompanyId: "Empresa cliente",
       };
 
       const firstErrorField = Object.keys(
@@ -319,13 +321,47 @@ export function CreateClientSheet({
                           />
                         </FormControl>
                         <p className="text-[11px] text-gray-400">
-                          Usado para reconhecer esta pessoa nos convites de reunião
-                          da sua agenda.
+                          Usado para reconhecer esta pessoa nos convites de
+                          reunião da sua agenda.
                         </p>
                         <FormMessage className="px-0 py-0 text-xs text-red-500" />
                       </FormItem>
                     )}
                   />
+                  {contactCompanies && (
+                    <FormField
+                      control={form.control}
+                      name="contactCompanyId"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="flex items-center gap-2 text-xs font-semibold tracking-wide text-gray-700 uppercase">
+                            Empresa cliente
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium tracking-normal text-gray-500 normal-case">
+                              opcional
+                            </span>
+                          </FormLabel>
+                          <FormControl>
+                            <select
+                              value={field.value || ""}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50/80 px-4 text-sm text-gray-900 transition outline-none focus:border-gray-900 focus:bg-white focus:ring-4 focus:ring-gray-900/5"
+                            >
+                              <option value="">Sem empresa vinculada</option>
+                              {contactCompanies.map((company) => (
+                                <option key={company.id} value={company.id}>
+                                  {company.name}
+                                </option>
+                              ))}
+                            </select>
+                          </FormControl>
+                          <p className="text-[11px] text-gray-400">
+                            Reuniões de outros contatos desta empresa passam a
+                            compor o contexto do pre-meeting.
+                          </p>
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   <FormField
                     control={form.control}
                     name="description"

@@ -210,8 +210,8 @@ export function TranscriptionTab({
                 </h2>
                 {hasSpeakers && (
                   <p className="text-[11px] text-gray-500">
-                    {speakers.length} locutor{speakers.length > 1 ? "es" : ""}{" "}
-                    · {totalSpeeches} fala{totalSpeeches === 1 ? "" : "s"}
+                    {speakers.length} locutor{speakers.length > 1 ? "es" : ""} ·{" "}
+                    {totalSpeeches} fala{totalSpeeches === 1 ? "" : "s"}
                   </p>
                 )}
               </div>
@@ -229,7 +229,9 @@ export function TranscriptionTab({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setModo((m) => (m === "lista" ? "pro" : "lista"))}
+                onClick={() =>
+                  setModo((m) => (m === "lista" ? "pro" : "lista"))
+                }
                 aria-pressed={modo === "pro"}
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition",
@@ -242,18 +244,16 @@ export function TranscriptionTab({
                 {modo === "pro" ? "Ver lista" : "Pro"}
               </button>
 
-
-
-            {hasSpeakers && (
-              <button
-                type="button"
-                onClick={() => setIsEditOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
-              >
-                <Settings2 size={13} />
-                <span className="hidden sm:inline">Editar locutores</span>
-              </button>
-            )}
+              {hasSpeakers && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                >
+                  <Settings2 size={13} />
+                  <span className="hidden sm:inline">Editar locutores</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -269,7 +269,7 @@ export function TranscriptionTab({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar na transcrição..."
-                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pr-10 pl-10 text-sm text-gray-800 outline-none transition focus:border-gray-400 focus:bg-white focus:shadow-sm"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pr-10 pl-10 text-sm text-gray-800 transition outline-none focus:border-gray-400 focus:bg-white focus:shadow-sm"
               />
               {query && (
                 <button
@@ -303,9 +303,7 @@ export function TranscriptionTab({
                 return (
                   <button
                     key={s.id}
-                    onClick={() =>
-                      setActiveSpeakerId(isActive ? null : s.id)
-                    }
+                    onClick={() => setActiveSpeakerId(isActive ? null : s.id)}
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 transition",
                       isActive
@@ -354,12 +352,18 @@ export function TranscriptionTab({
 
         {/* Corpo (scroll interno) */}
         <div
-          className="flex-1 overflow-y-auto px-5 py-6 md:px-7"
+          className={cn(
+            "flex-1 overflow-y-auto px-5 md:px-7",
+            modo === "pro" && hasSpeeches ? "pt-0 pb-6" : "py-6",
+          )}
           data-lenis-prevent
           onWheel={(e) => e.stopPropagation()}
         >
           {modo === "pro" && hasSpeeches ? (
-            <TranscriptionTimeline recording={recording} speeches={recording.speeches} />
+            <TranscriptionTimeline
+              recording={recording}
+              speeches={recording.speeches}
+            />
           ) : hasSpeeches ? (
             <AnimatePresence mode="popLayout">
               {grouped.length === 0 ? (
@@ -385,9 +389,7 @@ export function TranscriptionTab({
                     const style = entry?.style || PROFESSIONAL_STYLE;
                     const name = entry?.name || "Locutor";
                     const isProfessional = entry?.isProfessional;
-                    const text = group.segments
-                      .map((s) => s.text)
-                      .join("\n\n");
+                    const text = group.segments.map((s) => s.text).join("\n\n");
                     return (
                       <SpeechGroup
                         key={`${group.speakerId}-${gi}`}
@@ -491,7 +493,7 @@ function SpeechGroup({
           <button
             onClick={() => seekAudioTo(startTime)}
             title="Ouvir a partir daqui"
-            className="inline-flex cursor-pointer items-center rounded-md bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-gray-600 transition hover:bg-gray-900 hover:text-white"
+            className="inline-flex cursor-pointer items-center rounded-md bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-600 tabular-nums transition hover:bg-gray-900 hover:text-white"
           >
             {formatTimestamp(startTime)}
           </button>
@@ -510,10 +512,7 @@ function SpeechGroup({
             "relative max-w-[88%] rounded-2xl px-5 py-4 transition-colors",
             isProfessional
               ? "rounded-tr-sm bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-[0_4px_14px_-6px_rgba(17,24,39,0.35)]"
-              : cn(
-                  "rounded-tl-sm border border-transparent",
-                  style.bg,
-                ),
+              : cn("rounded-tl-sm border border-transparent", style.bg),
           )}
         >
           {segments.map((seg, si) => (

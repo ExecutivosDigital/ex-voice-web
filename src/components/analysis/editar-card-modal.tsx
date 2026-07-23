@@ -30,6 +30,131 @@ interface ItemEditavel {
   original?: ActionItem;
 }
 
+type Caminho = Array<string | number>;
+
+interface CampoGenerico {
+  caminho: Caminho;
+  rotulo: string;
+  valor: string;
+  original: unknown;
+  listaDeTextos: boolean;
+}
+
+const TIPOS_COM_RENDERER_DEDICADO = new Set([
+  ...TIPOS_EDITAVEIS,
+  "entities_card",
+  "sentiment_card",
+  "chapters_card",
+]);
+
+function rotuloLegivel(valor: string): string {
+  return valor
+    .replace(/([A-Z])/g, " $1")
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .replace(/^./, (letra) => letra.toUpperCase());
+}
+
+function extrairCamposGenericos(
+  valor: unknown,
+  caminho: Caminho = [],
+  rotulos: string[] = [],
+): CampoGenerico[] {
+  if (valor === null || valor === undefined) return [];
+
+  if (
+    typeof valor === "string" ||
+    typeof valor === "number" ||
+    typeof valor === "boolean"
+  ) {
+    return [
+      {
+        caminho,
+        rotulo: rotulos.join(" · ") || "Conteúdo",
+        valor: String(valor),
+        original: valor,
+        listaDeTextos: false,
+      },
+    ];
+  }
+
+  if (Array.isArray(valor)) {
+    if (
+      valor.every(
+        (item) =>
+          typeof item === "string" ||
+          typeof item === "number" ||
+          typeof item === "boolean",
+      )
+    ) {
+      return [
+        {
+          caminho,
+          rotulo: rotulos.join(" · ") || "Itens",
+          valor: valor.map(String).join("\n"),
+          original: valor,
+          listaDeTextos: true,
+        },
+      ];
+    }
+
+    return valor.flatMap((item, index) => {
+      if (
+        item &&
+        typeof item === "object" &&
+        "label" in item &&
+        "value" in item
+      ) {
+        const itemComRotulo = item as { label: unknown; value: unknown };
+        return extrairCamposGenericos(
+          itemComRotulo.value,
+          [...caminho, index, "value"],
+          [
+            ...rotulos,
+            typeof itemComRotulo.label === "string"
+              ? itemComRotulo.label
+              : `Item ${index + 1}`,
+          ],
+        );
+      }
+      return extrairCamposGenericos(
+        item,
+        [...caminho, index],
+        [...rotulos, `Item ${index + 1}`],
+      );
+    });
+  }
+
+  if (typeof valor === "object") {
+    return Object.entries(valor as Record<string, unknown>)
+      .filter(([chave]) => chave !== "_editadoEm")
+      .flatMap(([chave, item]) =>
+        extrairCamposGenericos(
+          item,
+          [...caminho, chave],
+          [...rotulos, rotuloLegivel(chave)],
+        ),
+      );
+  }
+
+  return [];
+}
+
+function definirNoCaminho(
+  objeto: Record<string, unknown>,
+  caminho: Caminho,
+  valor: unknown,
+) {
+  let atual: unknown = objeto;
+  caminho.forEach((parte, index) => {
+    if (index === caminho.length - 1) {
+      (atual as Record<string | number, unknown>)[parte] = valor;
+      return;
+    }
+    atual = (atual as Record<string | number, unknown>)[parte];
+  });
+}
+
 export function EditarCardModal({
   component,
   onSalvar,
@@ -49,9 +174,13 @@ export function EditarCardModal({
         component.type,
       )
     : false;
+  const ehGenerico = component
+    ? !TIPOS_COM_RENDERER_DEDICADO.has(component.type)
+    : false;
 
   const [itens, setItens] = useState<ItemEditavel[]>([]);
   const [textos, setTextos] = useState<{ rotulo: string; valor: string }[]>([]);
+  const [camposGenericos, setCamposGenericos] = useState<CampoGenerico[]>([]);
 
   useEffect(() => setMounted(true), []);
 
@@ -66,6 +195,8 @@ export function EditarCardModal({
           original: item,
         })),
       );
+    } else if (ehGenerico) {
+      setCamposGenericos(extrairCamposGenericos(component.data));
     } else {
       const data = component.data as Record<string, unknown>;
       const sections = (data.sections as NotesSection[] | undefined)?.filter(
@@ -87,7 +218,7 @@ export function EditarCardModal({
         setTextos([{ rotulo: "Conteúdo", valor }]);
       }
     }
-  }, [component, ehLista]);
+  }, [component, ehGenerico, ehLista]);
 
   if (!mounted || !component) return null;
 
@@ -103,6 +234,27 @@ export function EditarCardModal({
           primary: item.primary.trim(),
           secondary: item.secondary.trim() || undefined,
         }));
+    } else if (ehGenerico) {
+      const dataClonado = JSON.parse(JSON.stringify(component.data)) as Record<
+        string,
+        unknown
+      >;
+      camposGenericos.forEach((campo) => {
+        let valor: unknown = campo.valor;
+        if (campo.listaDeTextos) {
+          valor = campo.valor
+            .split("\n")
+            .map((item) => item.trim())
+            .filter(Boolean);
+        } else if (typeof campo.original === "number") {
+          const numero = Number(campo.valor.replace(",", "."));
+          valor = Number.isFinite(numero) ? numero : campo.original;
+        } else if (typeof campo.original === "boolean") {
+          valor = campo.valor === "true";
+        }
+        definirNoCaminho(dataClonado, campo.caminho, valor);
+      });
+      Object.assign(data, dataClonado);
     } else {
       const sections = (data.sections as NotesSection[] | undefined)?.filter(
         (s) => s?.content,
@@ -180,7 +332,7 @@ export function EditarCardModal({
                           )
                         }
                         placeholder="Item"
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 outline-none transition focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
                       />
                       <input
                         value={item.secondary}
@@ -192,7 +344,7 @@ export function EditarCardModal({
                           )
                         }
                         placeholder="Detalhe (opcional)"
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600 outline-none transition focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
                       />
                     </div>
                     <button
@@ -208,13 +360,84 @@ export function EditarCardModal({
                 ))}
                 <button
                   onClick={() =>
-                    setItens((prev) => [...prev, { primary: "", secondary: "" }])
+                    setItens((prev) => [
+                      ...prev,
+                      { primary: "", secondary: "" },
+                    ])
                   }
                   className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-dashed border-gray-300 px-3 py-2.5 text-xs font-semibold text-gray-500 transition hover:border-gray-400 hover:text-gray-800"
                 >
                   <Plus size={13} />
                   Adicionar item
                 </button>
+              </div>
+            ) : ehGenerico ? (
+              <div className="flex flex-col gap-4">
+                {camposGenericos.length === 0 ? (
+                  <p className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-500">
+                    Este card não possui campos de texto editáveis.
+                  </p>
+                ) : (
+                  camposGenericos.map((campo, i) => (
+                    <label
+                      key={campo.caminho.join(".")}
+                      className="flex flex-col gap-1.5"
+                    >
+                      <span className="text-[11px] font-semibold tracking-wider text-gray-500 uppercase">
+                        {campo.rotulo}
+                      </span>
+                      {typeof campo.original === "boolean" ? (
+                        <select
+                          value={campo.valor}
+                          onChange={(e) =>
+                            setCamposGenericos((prev) =>
+                              prev.map((item, j) =>
+                                j === i
+                                  ? { ...item, valor: e.target.value }
+                                  : item,
+                              ),
+                            )
+                          }
+                          className="h-11 rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                        >
+                          <option value="true">Sim</option>
+                          <option value="false">Não</option>
+                        </select>
+                      ) : (
+                        <textarea
+                          value={campo.valor}
+                          onChange={(e) =>
+                            setCamposGenericos((prev) =>
+                              prev.map((item, j) =>
+                                j === i
+                                  ? { ...item, valor: e.target.value }
+                                  : item,
+                              ),
+                            )
+                          }
+                          rows={
+                            campo.listaDeTextos
+                              ? Math.min(
+                                  10,
+                                  Math.max(
+                                    3,
+                                    campo.valor.split("\n").length + 1,
+                                  ),
+                                )
+                              : Math.min(
+                                  10,
+                                  Math.max(
+                                    2,
+                                    campo.valor.split("\n").length + 1,
+                                  ),
+                                )
+                          }
+                          className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-gray-900 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                        />
+                      )}
+                    </label>
+                  ))
+                )}
               </div>
             ) : (
               <div className="flex flex-col gap-4">
@@ -232,8 +455,11 @@ export function EditarCardModal({
                           ),
                         )
                       }
-                      rows={Math.min(14, Math.max(4, t.valor.split("\n").length + 2))}
-                      className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-gray-900 outline-none transition focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
+                      rows={Math.min(
+                        14,
+                        Math.max(4, t.valor.split("\n").length + 2),
+                      )}
+                      className="w-full resize-y rounded-2xl border border-gray-200 bg-white px-3.5 py-3 text-sm leading-relaxed text-gray-900 transition outline-none focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5"
                     />
                   </label>
                 ))}
