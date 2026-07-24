@@ -96,6 +96,14 @@ export function useGoogleCalendar() {
     const response = await GetAPI("/calendar/google/events?days=14", true);
     if (response.status === 200 && Array.isArray(response.body)) {
       setEventos(response.body as GoogleEvent[]);
+    } else if (response.status === 403) {
+      // A API remove conexões antigas que foram salvas sem o escopo necessário.
+      setConectado(false);
+      setEmail(null);
+      setEventos([]);
+      toast.error(
+        "A permissão para ler seus eventos não foi concedida. A agenda não foi conectada",
+      );
     } else if (response.status === 400) {
       // invalid_grant: a API já apagou a conexão — refletir e avisar
       setConectado(false);

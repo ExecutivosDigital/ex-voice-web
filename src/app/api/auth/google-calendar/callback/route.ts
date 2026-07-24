@@ -43,7 +43,9 @@ export async function GET(request: NextRequest) {
         redirectUri: `${origin}/api/auth/google-calendar/callback`,
       }),
     });
-    return paraAgenda(response.ok ? "ok" : "erro");
+    if (response.ok) return paraAgenda("ok");
+    if (response.status === 403) return paraAgenda("permissao-negada");
+    return paraAgenda("erro");
   } catch {
     return paraAgenda("erro");
   }

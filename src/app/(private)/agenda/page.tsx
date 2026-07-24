@@ -128,13 +128,18 @@ export default function AgendaPage() {
     [google.eventos],
   );
 
-  // Resultado do OAuth chega em ?google=ok|erro|cancelado|sem-sessao
+  // Resultado do OAuth chega em
+  // ?google=ok|erro|cancelado|sem-sessao|permissao-negada
   useEffect(() => {
     const resultado = new URLSearchParams(window.location.search).get("google");
     if (!resultado) return;
     window.history.replaceState(null, "", "/agenda");
     if (resultado === "ok") {
       toast.success("Google Agenda conectada!");
+    } else if (resultado === "permissao-negada") {
+      toast.error(
+        "A permissão para ler seus eventos não foi concedida. A agenda não foi conectada",
+      );
     } else if (resultado === "cancelado") {
       toast("Conexão com o Google cancelada");
     } else if (resultado === "sem-sessao") {
