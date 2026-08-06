@@ -44,6 +44,9 @@ interface CompanyUserRow {
   deletedAt?: string | null;
 }
 
+const wait = (milliseconds: number) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
 export default function CompanyUsersPage() {
   const { loaded, isController } = useCorporate();
   const { profile } = useSession();
@@ -91,6 +94,29 @@ export default function CompanyUsersPage() {
     setLoading(false);
   }, [GetAPI, page, debouncedQuery]);
 
+  const waitForProjection = useCallback(
+    async (
+      email: string,
+      matches: (user: CompanyUserRow | undefined) => boolean,
+    ) => {
+      for (let attempt = 0; attempt < 7; attempt += 1) {
+        const params = new URLSearchParams({ page: "1", query: email });
+        const response = await GetAPI(
+          `/company-adm/users?${params.toString()}`,
+          true,
+        );
+        const projectedUser = (response.body?.items ?? []).find(
+          (user: CompanyUserRow) =>
+            user.email.toLowerCase() === email.toLowerCase(),
+        );
+        if (response.status === 200 && matches(projectedUser)) return true;
+        if (attempt < 6) await wait(2500);
+      }
+      return false;
+    },
+    [GetAPI],
+  );
+
   useEffect(() => {
     if (loaded && isController) load();
   }, [loaded, isController, load]);
@@ -102,17 +128,30 @@ export default function CompanyUsersPage() {
     }
     setBusy(true);
     const response = await PostAPI("/company-adm/users", form, true);
-    setBusy(false);
     if (response.status === 200 || response.status === 201) {
-      toast.success("Usuário criado — repasse a senha com segurança");
+      const createdEmail = form.email.trim();
+      const createdRole = form.role;
       setCreateOpen(false);
       setForm({ name: "", email: "", password: "", role: "USER" });
-      load();
+      const projected = await waitForProjection(
+        createdEmail,
+        (user) => !!user && !user.deletedAt && user.role === createdRole,
+      );
+      await load();
+      if (projected) {
+        toast.success("Usuário criado — repasse a senha com segurança");
+      } else {
+        toast("Usuário criado no Hub; a lista ainda está sincronizando");
+      }
     } else {
       toast.error(
-        translateError(response.body?.message, "Não foi possível criar o usuário"),
+        translateError(
+          response.body?.message,
+          "Não foi possível criar o usuário",
+        ),
       );
     }
+    setBusy(false);
   }
 
   async function handleRoleChange(
@@ -125,32 +164,45 @@ export default function CompanyUsersPage() {
       { role },
       true,
     );
-    setBusy(false);
     if (response.status === 200) {
-      toast.success("Papel atualizado");
-      load();
+      const projected = await waitForProjection(
+        user.email,
+        (projectedUser) => projectedUser?.role === role,
+      );
+      await load();
+      if (projected) toast.success("Papel atualizado");
+      else toast("Papel atualizado no Hub; a lista ainda está sincronizando");
     } else {
       toast.error(response.body?.message || "Não foi possível atualizar");
     }
+    setBusy(false);
   }
 
   async function handleDelete(user: CompanyUserRow) {
     const ok = await confirm({
       title: `Desativar "${user.name}"?`,
-      description: "A pessoa perde o acesso, mas as gravações dela permanecem na empresa.",
+      description:
+        "A pessoa perde o acesso, mas as gravações dela permanecem na empresa.",
       confirmLabel: "Desativar",
       tone: "danger",
     });
     if (!ok) return;
     setBusy(true);
     const response = await DeleteAPI(`/company-adm/users/${user.id}`, true);
-    setBusy(false);
     if (response.status === 200) {
-      toast.success("Usuário desativado");
-      load();
+      const projected = await waitForProjection(
+        user.email,
+        (projectedUser) => !!projectedUser?.deletedAt,
+      );
+      await load();
+      if (projected) toast.success("Usuário desativado");
+      else toast("Usuário desativado no Hub; a lista ainda está sincronizando");
     } else {
-      toast.error(translateError(response.body?.message, "Não foi possível desativar"));
+      toast.error(
+        translateError(response.body?.message, "Não foi possível desativar"),
+      );
     }
+    setBusy(false);
   }
 
   if (loaded && !isController) {
@@ -176,7 +228,7 @@ export default function CompanyUsersPage() {
         </div>
         <button
           onClick={() => setCreateOpen(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
+          className="from-primary to-primary-dim inline-flex items-center gap-2 rounded-full bg-gradient-to-r px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02]"
         >
           <Plus size={16} /> Novo usuário
         </button>
@@ -288,7 +340,10 @@ export default function CompanyUsersPage() {
         />
       )}
 
-      <Dialog open={createOpen} onOpenChange={(o) => !o && setCreateOpen(false)}>
+      <Dialog
+        open={createOpen}
+        onOpenChange={(o) => !o && setCreateOpen(false)}
+      >
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>Novo usuário</DialogTitle>
@@ -350,7 +405,7 @@ export default function CompanyUsersPage() {
               <button
                 onClick={handleCreate}
                 disabled={busy}
-                className="rounded-full bg-gradient-to-r from-primary to-primary-dim px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02] disabled:opacity-60"
+                className="from-primary to-primary-dim rounded-full bg-gradient-to-r px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:scale-[1.02] disabled:opacity-60"
               >
                 {busy ? "Criando..." : "Criar usuário"}
               </button>
