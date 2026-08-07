@@ -27,6 +27,10 @@ export function CreditsIndicator({ className }: { className?: string }) {
 
   if (!availabilityLoaded || !profile) return null;
 
+  // Mesma razão do widget flutuante: cota de conta corporativa vem do contrato
+  // no Hub e não há autosserviço de plano para ela.
+  if (profile.companyId) return null;
+
   const isExpired =
     !isTrial && availableRecording === 0 && totalRecording === 0;
   const percentage =

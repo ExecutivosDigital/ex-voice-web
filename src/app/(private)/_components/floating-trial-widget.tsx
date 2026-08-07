@@ -126,6 +126,12 @@ export function FloatingTrialWidget() {
 
   if (!mounted || !availabilityLoaded || !profile || dismissed) return null;
 
+  // Conta corporativa não tem autosserviço de plano: a cota vem do contrato
+  // negociado no Hub e não existe "fazer upgrade" para ela. Mostrar um contador
+  // aqui só produz número sem significado — e, enquanto o contrato não estiver
+  // projetado, um 0/0 que assusta sem motivo.
+  if (profile.companyId) return null;
+
   const isUnlimited = totalRecording > 0 && availableRecording / 3600 > 24;
   if (isUnlimited) return null;
 
