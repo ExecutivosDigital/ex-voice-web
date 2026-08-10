@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "@/context/auth";
 import { cn } from "@/utils/cn";
 import { motion } from "framer-motion";
 import { Calendar, Mic, Sparkles, Users, Waves } from "lucide-react";
@@ -23,6 +24,7 @@ const ITEMS: {
 export function MobileBottomNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const { profile } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -32,6 +34,12 @@ export function MobileBottomNav() {
   const isActive = (href: string) =>
     href === "/" ? pathname === href : pathname.startsWith(href);
 
+  // Conta corporativa não compra plano: a cota vem do contrato negociado no
+  // Hub e não há autosserviço de upgrade para ela.
+  const items = profile?.companyId
+    ? ITEMS.filter((item) => item.href !== "/plans")
+    : ITEMS;
+
   if (!mounted) return null;
 
   return createPortal(
@@ -40,7 +48,7 @@ export function MobileBottomNav() {
       aria-label="Navegação principal"
     >
       <div className="mx-auto flex max-w-md items-center justify-between gap-0.5 rounded-2xl border border-gray-200/70 bg-white/85 px-1.5 py-1.5 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.25)] backdrop-blur-xl">
-        {ITEMS.map((item) => {
+        {items.map((item) => {
           const active = isActive(item.href);
           const Icon = item.icon;
           return (

@@ -222,6 +222,22 @@ export function SessionProvider({ children }: PropsWithChildren) {
     };
   }, []);
 
+  /**
+   * Garante a disponibilidade após um login na mesma montagem do provider.
+   *
+   * O initializeSession acima só busca a cota quando o provider monta com o
+   * cookie já presente. Num login limpo o provider monta deslogado e a
+   * navegação pós-login é client-side, então ele não remonta e a cota nunca
+   * seria carregada — o usuário ficava sem indicador algum até recarregar.
+   * Reagir à chegada do perfil cobre login, refresh e qualquer outro caminho
+   * que estabeleça sessão. O forceSignOut zera availabilityLoaded, então o
+   * próximo login volta a disparar esta busca.
+   */
+  useEffect(() => {
+    if (!profile || availabilityLoaded) return;
+    handleGetAvailableRecording();
+  }, [profile, availabilityLoaded, handleGetAvailableRecording]);
+
   return (
     <SessionContext.Provider
       value={{

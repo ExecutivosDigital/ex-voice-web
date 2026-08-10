@@ -123,19 +123,23 @@ export function MinimalHeader({ hideNav = false }: { hideNav?: boolean }) {
               );
             })}
 
-            <button
-              onClick={() => router.push("/plans")}
-              className="group relative ml-1 inline-flex items-center gap-1.5 overflow-hidden rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 px-3.5 py-1.5 text-sm font-semibold text-gray-900 shadow-[0_4px_14px_-4px_rgba(245,158,11,0.65)] transition hover:scale-[1.03]"
-              aria-label="Fazer upgrade"
-            >
-              <span className="absolute inset-0 animate-[shimmer_2.8s_ease-in-out_infinite] bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:250%_100%]" />
-              <Sparkles size={13} className="relative" />
-              <span className="relative">Planos</span>
-              <ArrowUpRight
-                size={13}
-                className="relative transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              />
-            </button>
+            {/* Conta corporativa não compra plano: a cota vem do contrato
+                negociado no Hub e não há autosserviço de upgrade para ela. */}
+            {!profile?.companyId && (
+              <button
+                onClick={() => router.push("/plans")}
+                className="group relative ml-1 inline-flex items-center gap-1.5 overflow-hidden rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 px-3.5 py-1.5 text-sm font-semibold text-gray-900 shadow-[0_4px_14px_-4px_rgba(245,158,11,0.65)] transition hover:scale-[1.03]"
+                aria-label="Fazer upgrade"
+              >
+                <span className="absolute inset-0 animate-[shimmer_2.8s_ease-in-out_infinite] bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:250%_100%]" />
+                <Sparkles size={13} className="relative" />
+                <span className="relative">Planos</span>
+                <ArrowUpRight
+                  size={13}
+                  className="relative transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </button>
+            )}
           </nav>
 
           <div className="flex items-center gap-1.5 md:gap-2">

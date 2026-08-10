@@ -39,13 +39,19 @@ export function Sidebar() {
   const { mobileMenu, setMobileMenu } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
-  const { clearSession } = useSession();
+  const { clearSession, profile } = useSession();
   const { isController } = useCorporate();
+
+  // Conta corporativa não compra plano: a cota vem do contrato negociado no
+  // Hub e não há autosserviço de upgrade para ela.
+  const baseItems = profile?.companyId
+    ? NAV_ITEMS.filter((item) => item.href !== "/plans")
+    : NAV_ITEMS;
 
   // Fase 2 (RBAC): "Empresa" só para o Controlador
   const navItems = isController
-    ? [...NAV_ITEMS, { label: "Empresa", href: "/company", icon: Building2 }]
-    : NAV_ITEMS;
+    ? [...baseItems, { label: "Empresa", href: "/company", icon: Building2 }]
+    : baseItems;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === href : pathname.startsWith(href);
