@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import { z } from "zod";
 
 // Importações de UI (shadcn/ui e lucide)
-import { ArrowRight, Check, Eye, EyeOff, Loader2, LockIcon, Mail } from "lucide-react";
+import { AlertCircle, ArrowRight, Check, Eye, EyeOff, Loader2, LockIcon, Mail } from "lucide-react";
 import Field from "./field";
 import { Form, FormField, FormItem, FormMessage } from "./form";
 
@@ -72,6 +72,9 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // Erro de autenticação exibido no próprio formulário. O toast some em 2s e não
+  // deixa rastro; a mensagem inline persiste até o usuário tentar de novo.
+  const [authError, setAuthError] = useState<string | null>(null);
   const googleButtonRef = useRef<HTMLDivElement>(null);
 
   // Configuração do react-hook-form
@@ -83,6 +86,14 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
       password: "",
     },
   });
+
+  // Limpa o erro de autenticação assim que o usuário corrige email ou senha
+  useEffect(() => {
+    const subscription = form.watch(() =>
+      setAuthError((current) => (current ? null : current)),
+    );
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   // Inicializar Google Identity Services e Apple Sign-In SDK
   useEffect(() => {
@@ -136,9 +147,17 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
   }, []);
 
 
+  // Todo erro de autenticação vai para a tela e para o toast, com duração
+  // suficiente para ser lida antes de desaparecer.
+  const showAuthError = (message: string) => {
+    setAuthError(message);
+    toast.error(message, { duration: 5000 });
+  };
+
   // Login com email/senha
   const handleLogin = async (data: FormData) => {
     setIsLoggingIn(true);
+    setAuthError(null);
     try {
       const { email, password } = data;
 
@@ -163,7 +182,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
           errorMessage = result.message;
         }
 
-        toast.error(errorMessage);
+        showAuthError(errorMessage);
         return;
       }
 
@@ -173,7 +192,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
       router.push("/");
     } catch (err) {
       console.error("Erro no login:", err);
-      toast.error("Erro de conexão. Verifique sua internet.");
+      showAuthError("Erro de conexão. Verifique sua internet.");
     } finally {
       setIsLoggingIn(false);
     }
@@ -182,10 +201,11 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
   // Google Sign-In usando Google Identity Services diretamente
   const handleGoogleSignIn = async () => {
     setIsLoggingIn(true);
+    setAuthError(null);
     try {
       // Verifica se o Google Identity Services está carregado
       if (typeof window === 'undefined' || !(window as any).google) {
-        toast.error("Google Sign-In não está disponível no momento. Aguarde alguns segundos e tente novamente.");
+        showAuthError("Google Sign-In não está disponível no momento. Aguarde alguns segundos e tente novamente.");
         setIsLoggingIn(false);
         return;
       }
@@ -194,7 +214,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
       const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
       if (!clientId) {
-        toast.error("Configuração do Google Sign-In não encontrada.");
+        showAuthError("Configuração do Google Sign-In não encontrada.");
         setIsLoggingIn(false);
         return;
       }
@@ -204,7 +224,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
         client_id: clientId,
         callback: async (response: any) => {
           if (!response.credential) {
-            toast.error("Não foi possível obter o token do Google.");
+            showAuthError("Não foi possível obter o token do Google.");
             setIsLoggingIn(false);
             return;
           }
@@ -223,7 +243,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
             const result = await apiResponse.json();
 
             if (!apiResponse.ok) {
-              toast.error(result.message || "Erro no login com Google.");
+              showAuthError(result.message || "Erro no login com Google.");
               return;
             }
 
@@ -232,7 +252,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
             router.push("/");
           } catch (error) {
             console.error("Erro no Google Sign-In:", error);
-            toast.error("Erro ao processar login com Google.");
+            showAuthError("Erro ao processar login com Google.");
           } finally {
             setIsLoggingIn(false);
           }
@@ -259,13 +279,13 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
             button.click();
           } else {
             setIsLoggingIn(false);
-            toast.error("Não foi possível iniciar o login com Google.");
+            showAuthError("Não foi possível iniciar o login com Google.");
           }
         }, 200);
       }
     } catch (error) {
       console.error("Erro ao iniciar Google Sign-In:", error);
-      toast.error("Erro ao iniciar o login com Google.");
+      showAuthError("Erro ao iniciar o login com Google.");
       setIsLoggingIn(false);
     }
   };
@@ -273,11 +293,12 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
   // Apple Sign-In via Apple JS SDK
   const handleAppleSignIn = async () => {
     if (!window.AppleID) {
-      toast.error("Apple Sign-In não está disponível no momento.");
+      showAuthError("Apple Sign-In não está disponível no momento.");
       return;
     }
 
     setIsLoggingIn(true);
+    setAuthError(null);
     try {
       const appleResponse = await window.AppleID.auth.signIn();
 
@@ -300,7 +321,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
       const result = await response.json();
 
       if (!response.ok) {
-        toast.error(result.message || "Erro no login com Apple.");
+        showAuthError(result.message || "Erro no login com Apple.");
         return;
       }
 
@@ -309,7 +330,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
       router.push("/");
     } catch (error) {
       console.error("Erro no Apple Sign-In:", error);
-      toast.error("Não foi possível completar o login com Apple.");
+      showAuthError("Não foi possível completar o login com Apple.");
     } finally {
       setIsLoggingIn(false);
     }
@@ -342,7 +363,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
                 Svg={<Mail size={20} />}
                 {...field}
                 required
-                invalid={!!fieldState.error}
+                invalid={!!fieldState.error || !!authError}
               />
               <FormMessage className="text-xs text-red-500" />
             </FormItem>
@@ -363,7 +384,7 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
                   type={showPassword ? "text" : "password"}
                   {...field}
                   required
-                  invalid={!!fieldState.error}
+                  invalid={!!fieldState.error || !!authError}
                 />
                 <button
                   type="button"
@@ -413,6 +434,17 @@ const SignIn = ({ onClick, rememberMe, setRememberMe }: SignInProps) => {
             Esqueceu a senha?
           </button>
         </div>
+
+        {authError && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>{authError}</span>
+          </div>
+        )}
 
         <button
           type="submit"
