@@ -24,6 +24,8 @@ export function useRecordingUpload() {
           {
             fileName: `recording-${Date.now()}.${extension}`, // e.g., "recording-1234567890.mp3"
             contentType: mimeType, // "audio/mpeg" for audio, "video/webm" for video
+            // Entra na assinatura da URL do R2 e no teto de 200 MB da API.
+            contentLength: blob.size,
           },
           true, // Requires authentication
         );
